@@ -1,0 +1,20 @@
+<div>
+  <div id="shareTwitterModal" data-backdrop="false" class="modal hide in">  
+    <div class="modal-header">  
+    <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
+    <h4 style="text-align: center">Share via Twitter</h4>  
+  </div>  
+  
+  <div class="modal-body">  
+    <div class="controls">
+      <textarea id="shareTwitterMessage" maxchars="140" style="width: 515px" name="twitter-message" rows="4" placeholder="What's happening?"></textarea>
+
+      <input type="hidden" name="_csrf" value="<%=token%>">
+    </div>
+  </div>  
+  <div class="modal-footer" style="text-align: left">
+    <form id="shareTwitterForm">
+      <input id="shareTwitterSend" type="submit" value="Tweet" href="#" class="btn btn-primary pull-right">
+    </form>  
+  </div>            
+</div>

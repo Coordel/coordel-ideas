@@ -1,0 +1,21 @@
+<div>
+  <h5>From Contacts</h5>
+  <div class="input-prepend">
+    <span class="add-on">@</span>
+    <input data-dojo-attach-point="inviteContact" class="span3" id="prependedInput" type="text" data-provide="typeahead" placeholder="Username">
+  </div>
+  <hr>
+  <h5>By Email</h5>
+  <form action="/invite" method="post" style="margin-bottom: 0;">
+    <div class="controls clearfix">
+      <input style="width: 303px" placeholder="Full name of person to invite" type="text" name="signup-fullname" id="signup-fullname">
+      <input style="width: 303px" placeholder="E-mail address" type="text" name="signup-email" id="signup-email">
+      <textarea id="addPurpose" name="ideaPurpose" rows="4" maxchars="560" style="width: 303px" placeholder="Personal message..."></textarea>
+      <p style="font-size:12px; margin: 0 0 8px 0">Recipients will be invited to Follow this Idea</p>
+      <input style="margin-bottom: 0" type="submit" value="Send Invitation" disabled="disabled" class="btn pull-right">
+      <input type="hidden" name="origin" value="index-signup">
+      <input type="hidden" name="_csrf" value="<%=token%>">
+    </div>
+  </form>
+ 
+</div>

@@ -1,0 +1,53 @@
+<% include header %>
+<div class="account-content">
+  <h3>Join Coordel</h3>
+  <form action="/register" method="post" id="account">
+    <fieldset>
+      <div class="control-group">
+        <div class="controls">
+          <input placeholder="Full name" type="text" value="<%=fullName%>" name="fullname" id="fullname">
+          <span class="control-label help-inline">Enter your first and last name.</span>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="controls">
+          <input placeholder="E-mail" type="text" value="<%=email%>" name="email" id="email">
+          <span class="help-inline">What's your e-mail address?</span>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="controls">
+          <input placeholder="Password" type="password" value="<%=password%>"  name="password" id="password">
+          <span class="help-inline">6 characters or more. Be tricky!</span>
+        </div>
+        <div class="score" style="display: block;">
+          <span>
+            <b class="fill error">&nbsp;</b>
+          </span>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="controls">
+          <input placeholder="Username" type="text" value="<%=username%>" name="username" id="username">
+          <span class="help-inline">Don't worry, you can change it later.</span>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="controls">
+          <label class="checkbox inline">
+          <input type="checkbox" checked="true">
+          Keep me signed in on this computer.
+          </label>
+        </div>
+      </div>
+      <div>
+        <input type="submit" value="Create my account" class="btn submit btn-warning" id="submit-form">
+      </div>
+      <div>
+        <input type="hidden" name="origin" value="signup">
+        <input id="_csrf" type='hidden' name='_csrf' value="<%=token%>">
+      </div>
+    </fieldset>
+  </form>
+</div>
+<% include footer %>

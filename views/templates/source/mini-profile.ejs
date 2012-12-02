@@ -1,0 +1,33 @@
+<div class="user-profile bg-white rounded-column">
+  <!-- Profile recap -->
+  <div style="margin-bottom: 9px">
+    <img style="margin-right: 9px;" height="36" width="36" src="{{imageUrl}}" class="img-rounded pull-left"/>
+    <div class="clearfix">
+      <div class="fullname">{{firstName}} {{lastName}}</div>
+      <div style="font-size: 12px; color: #999; line-height: 16px">View my profile page</div>
+    </div>
+  </div>
+  <div class="mini-stats clearfix">
+    <ul>
+      <li class="stats">
+        <a href="/{{username}}">
+          <strong>{{ideas}}</strong>
+          IDEAS
+        </a>
+      </li>
+        
+      <li class="supporting stats">
+        <a href="/supporting">
+          <strong>{{supporting}}</strong>
+          SUPPORTING
+        </a>
+      </li>
+      <li class="stats">
+        <a href="/contacts">
+          <strong>{{contacts}}</strong>
+          CONTACTS
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>

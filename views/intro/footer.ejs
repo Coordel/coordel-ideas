@@ -1,0 +1,22 @@
+    </div>
+    <script src="lib/jquery/jquery.js"></script>
+    <script src="lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="lib/moment/moment.min.js"></script>
+
+    <!-- dojo           -->
+    <script data-dojo-config="async: 1, dojoBlankHtmlUrl: '/blank.html',
+        packages: [ {
+            name: 'app',
+            location: location.pathname.replace(/\/[^/]+$/, '') + '/js/app'
+        } ]"
+    src="//ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js"></script>
+    <script>
+      // load our app module and wait for the DOM to be ready
+      require(['app/controllers/app', 'dojo/domReady!' ], function(app){
+        //this let's us bootstrap the ideas from the server
+        app.init({ideas:JSON.parse(unescape('<%- ideas%>'))});
+      });
+    </script>
+
+  </body>
+</html>

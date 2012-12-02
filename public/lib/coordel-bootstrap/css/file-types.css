@@ -1,0 +1,43 @@
+/* PDF document links */
+a[href$='.pdf'] {
+  background: transparent url(../img/file-types/page_white_acrobat.png) center left no-repeat;
+}
+/* Excel Documents links */
+a[href$='.xls'],
+a[href$='.xlsx'],
+a[href$='.csv'],
+a[href$='.xlw'],
+a[href$='.xlt'] {
+  background: transparent url(../img/file-types/page_white_excel.png) center left no-repeat !important;
+}
+/* Word Document Links */
+a[href$='.doc'],
+a[href$='.docx'],
+a[href$='.rtf'],
+a[href$='.wps'] {
+  background: transparent url(../img/file-types/page_white_word.png) center left no-repeat !important;
+}
+/* Text Document Links */
+a[href$='.txt'] {
+  background: transparent url(../img/file-types/page_white_text.png) center left no-repeat !important;
+}
+/* PowerPoint Document Links */
+a[href$='.ppt'],
+a[href$='.pptx'] {
+  background: transparent url(../img/file-types/page_white_powerpoint.png) center left no-repeat !important;
+}
+/* Image Links */
+a[href$='.png'],
+a[href$='.gif'],
+a[href$='.jpg'],
+a[href$='.jpeg'],
+a[href$='.tiff'] {
+  background: transparent url(../img/file-types/image.png) center left no-repeat !important;
+}
+/* mailto: links */
+a[href^="mailto:"] {
+  background: transparent url(../img/file-types/email.png) center left no-repeat !important;
+}
+a[href^="mailto:"].no-image {
+  background: transparent none !important;
+}

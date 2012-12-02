@@ -1,0 +1,35 @@
+<% include layoutHeader %>
+<div class="left-column">
+  <div id="profile-container" class="nav user-profile bg-white rounded-column" style="min-height: 95px;margin-bottom:20px"></div>
+  <div class="bg-white rounded">
+    <ul class="nav nav-tabs nav-stacked">
+      <li class="active"> 
+        <a><i class="icon-chevron-right menu-chevron"></i>Timeline</a>
+      </li>
+      <li>
+        <a><i class="icon-chevron-right menu-chevron"></i>Trending</a>
+      </li>
+    </ul>
+  </div>
+  <% include includes/about %>
+</div>
+<div class="main-column">
+  <div class="stream-container bg-white no-padding">
+    <div class="stream-header">
+      <h4>Ideas</h4>
+      <div></div>
+    </div>
+    <div class="stream">
+      <div id="stream-items-container" class="stream-items">
+        
+      </div>
+    </div>
+    <div class="stream-footer">
+      <div style="margin: 0 auto; width: 100px;">
+        <img class="logo" src="lib/coordel-bootstrap/img/logo.png"/>
+        <div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<% include layoutFooter %>

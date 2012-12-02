@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Coordel / Create an Account</title>
+    <meta name="description" content="A description of the page" />
+     <meta charset="UTF-8">
+    <!-- Bootstrap -->
+    <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet" media="screen">
+    <link href="lib/coordel-bootstrap/css/coordel.css" rel="stylesheet" media="screen">
+    <link href="css/ideas.css" rel="stylesheet" media="screen">
+    <link rel="shortcut icon" href="img/favicon.gif" />
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container user-header">
+
+          <a id="login" rel="popover" class="pull-right dropdown">Have an account? <strong>Sign in</strong><span  class="caret caret-white"></span></a>
+
+
+
+
+          <a class="brand" href="/intro"><img src="img/logo_white.png"/></a>
+        </div>
+      </div>
+    </div>
+
+    <script id="loginFormTemplate" type="text/html">
+      <form action="/sessions" method="post" style="margin-bottom: 0;">
+        <div>
+          <div class="controls">
+            <input style="width: 303px" placeholder="Username or e-mail" type="text" name="login-username" id="login-username">
+          </div>
+        </div>
+        <div>
+          <div class="controls">
+            <input style="width: 225px;" placeholder="Password" type="password"  name="login-password" id="login-password">
+            <input id="submit-login" type="submit" value="Sign in" style="margin-top: -1px" class="btn login btn-primary pull-right">
+          </div>
+          <div class="controls muted">
+            <label style="font-size: 12px" class="checkbox">
+            <input style="margin-bottom:0" type="checkbox" checked="true">
+            Remember me <span style="padding: 0 4px">&#149;</span> <span><a href="#">Forgot Password</a></span> 
+            </label>
+            <input type='hidden' name='_csrf' value="<%=token%>">
+          </div>
+        </div>
+      </form>
+    </script>
+  
+    <div class="account-wrapper">

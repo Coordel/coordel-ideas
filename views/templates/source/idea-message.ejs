@@ -1,0 +1,30 @@
+<div class="idea-message">
+  <div class="message-content">
+    <div class="idea-header">
+      <small class="time">
+        <a href="/ideas/{{_id}}" class="" title="{{created-title}}">
+          <span class="time" data-time="{{created}}" data-long-form="true">{{created-ago}}</span>
+        </a>
+      </small>
+      {{#ideaCreator}}
+      <a class="" href="/{{username}}" data-userid="{{userid}}">
+        <img class="avatar" src="{{imageUrl}}" alt="{{fullName}}">
+        <strong><a href="*" class="fullname">{{fullName}}</a></strong>
+        <span class="username js-action-profile-name"><s>@</s><b>{{username}}</b></span>
+      </a>
+      {{#/ideaCreator}}
+    </div>
+    <p>
+      <span>
+        <i class="icon-fullscreen activity-icon"></i> <strong class="activity-log">supported this idea</strong>
+      </span>
+    </p>
+    <div class="idea-footer">
+      <div class="actions">
+        <span><a href="">expand</a></span>
+        <span><i class="icon-share-alt icon-blue"></i> <a href="">reply</a></span>
+        <span><i class="icon-share icon-blue"></i> <a href="">share</a></span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,26 @@
+<div>
+  <div id="shareEmailModal" data-backdrop="false" class="modal hide in">  
+    <div class="modal-header">  
+    <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
+    <h4 style="text-align: center">Share via E-mail</h4>  
+  </div>  
+  
+  <div class="modal-body">  
+    <div class="controls clearfix">
+      <input placeholder="To:" class="input-xlarge" type="text" name="share-email-address" id="shareEmailAddress">
+    </div>
+    <div class="controls clearfix">
+      <input placeholder="Subject:" style="width: 515px" class="input-xlarge" type="text" name="share-email-subject" id="shareEmailSubject">
+    </div>
+    <div class="controls">
+      <textarea id="shareEmailMessage" style="width: 515px" name="share-message" rows="7" placeholder="Personal message..."></textarea>
+
+      <input type="hidden" name="_csrf" value="<%=token%>">
+    </div>
+  </div>  
+  <div class="modal-footer" style="text-align: left">
+    <form id="shareEmailForm">
+      <input id="shareEmailSend" type="submit" value="Send" href="#" class="btn btn-primary pull-right">
+    </form>  
+  </div>            
+</div>

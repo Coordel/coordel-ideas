@@ -1,0 +1,42 @@
+    </div>
+    <% include includes/modals %>
+
+    <!--logout form -->
+    <form class="hide" id="sign-out-form" method="post" action="/sessions/delete">
+      <input type="submit" value="Logout">
+      <input type="hidden" name="_csrf" value="<%= token%>">
+    </form>
+
+    <!--csrf -->
+    <div class="hide" id="mainCsrf"><%=_csrf%></div>
+
+    <!-- scripts -->
+    <script src="lib/jquery/jquery.js"></script>
+    <script src="lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="lib/moment/moment.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    
+
+    <!-- dojo           -->
+    <script data-dojo-config="async: 1, dojoBlankHtmlUrl: '/blank.html',
+        packages: [ {
+            name: 'app',
+            location: location.pathname.replace(/\/[^/]+$/, '') + 'js/app'
+        } ]"
+    src="//ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js"></script>
+    <script>
+      // load our app module and wait for the DOM to be ready
+      require(['app/controllers/app', 'dojo/domReady!' ], function(app){
+        //this let's us bootstrap the ideas from the server
+        app.init({_csrf:'<%=_csrf%>', ideas:JSON.parse(unescape('<%- ideas%>')), profile: JSON.parse(unescape('<%-profile%>')), user: JSON.parse(unescape('<%- user%>')), contacts: JSON.parse(unescape('<%- contacts%>'))});
+      });
+    </script>
+
+    <!-- STRIPE payment -->
+    <script type="text/javascript" src="https://js.stripe.com/v1/"></script>
+    <script type="text/javascript">
+      // this identifies your website in the createToken call below (NOTE TEST KEY)
+      Stripe.setPublishableKey('pk_CEEWnYHqepvKhinoNAP2PAbUXdbJ6');
+    </script>
+  </body>
+</html>

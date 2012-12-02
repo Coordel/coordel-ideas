@@ -1,0 +1,10 @@
+<div>
+  <form action="/ideas/{id}/replies" method="post" style="margin-bottom: 0;">
+    <div class="controls clearfix">
+      <textarea id="addPurpose" name="ideaPurpose" rows="4" maxchars="140" style="width: 303px" placeholder="Reply message..."></textarea>
+      <input style="margin-bottom: 0" type="submit" value="Reply" class="btn btn-primary pull-right">
+      <input type="hidden" name="origin" value="index-signup">
+      <input type="hidden" name="_csrf" value="<%=token%>">
+    </div>
+  </form>
+</div>

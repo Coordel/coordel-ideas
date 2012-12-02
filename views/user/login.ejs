@@ -1,0 +1,32 @@
+<% include header %>
+<div class="account-content">
+  <h3>Sign in to Coordel</h3>
+  <form action="/sessions" method="post" id="account">
+    <fieldset>
+      <div class="control-group">
+        <div class="controls">
+          <input placeholder="Username or e-mail" type="text" name="login-username" id="login-username">
+          <span class="control-label help-inline">Forgot your <a href="#">username</a>?</span>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="controls">
+          <input placeholder="Password" type="password"  name="login-password" id="login-password">
+          <span class="help-inline">Forgot your <a href="#">password</a>?</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="controls">
+          <input type="submit" value="Sign in" style="margin-right: 12px;" class="btn login btn-primary">
+          <label class="checkbox inline">
+          <input type="checkbox" checked="true">
+          Remember me
+          </label>
+          <input type='hidden' name='_csrf' value="<%=token%>">
+        </div>
+      </div>
+    </fieldset>
+  </form>
+</div>
+<% include footer %>

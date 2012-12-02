@@ -1,0 +1,1 @@
+$(document).ready(function(){function e(e){$("#menuIdeas, #menuStream, #menuCoordel").removeClass("active");$(e).addClass("active")}$("#addIdea").tooltip({placement:"bottom",trigger:"hover"});$("#menuIdeas").click(function(){e("#menuIdeas")});$("#menuStream").click(function(){e("#menuStream")});$("#menuCoordel").click(function(){e("#menuCoordel")})});

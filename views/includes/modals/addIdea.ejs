@@ -1,0 +1,49 @@
+<div>
+  <div id="addIdeaModal" data-backdrop="true" class="modal hide in">  
+    <div class="modal-header">  
+    <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
+    <h4 style="text-align: center">What's your great idea?</h4>  
+  </div>  
+  
+  <div class="modal-body">  
+    
+      <fieldset>
+        <label></label>
+        <input id="addName" name="ideaName" type="text" max="65" style="width: 520px" placeholder="Name your idea...">
+        <span id="addNameCount" class="pull-right muted">65</span>
+        <label></label>
+        <textarea id="addPurpose" name="ideaPurpose" rows="5" maxchars="560" style="width: 520px" placeholder="Give the purpose of your idea..."></textarea>
+        <span id="addPurposeCount" class="pull-right muted">560</span>
+        <div id="addPurposePopver" class="hide">
+          Here is something that you shouldn't see
+        </div>
+        <input id="addIdea_csrf" type="hidden" id="_csrf" name="_csrf" value="<%=token%>">
+      </fieldset>
+   
+  </div>  
+  <div class="modal-footer" style="text-align: left">
+    <form id="addIdeaForm" method="post" action="/api/v1/ideas">
+    <input id="addShare" type="submit" value="Share" href="#" disabled="disabled" class="btn pull-right">
+    </form>  
+    <!--
+    <div id="addLocationBtn" class="btn-group pull-left">
+      <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+        <i class="c-icon-marker"></i>
+        <span id="addLocation"></span>
+        <span class="caret"></span>
+      </a>
+      <ul class="dropdown-menu ">
+        <li id="resetLocation"><a href="#">Detect location</a></li>
+        <li id="exitLocation"><a href="#"><i class="icon-remove close"></i>Turn off location</a></li>
+      </ul>
+    </div>
+  
+    <div class="fileupload fileupload-new pull-left" style="margin-left: 4px;" data-provides="fileupload">
+      <span class="btn btn-file"><span class="fileupload-new"><i class="c-icon-file"></i></span><span class="fileupload-exists">Change</span><input type="file" /></span>
+      <span class="fileupload-preview"></span>
+      <a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none;"><i style="margin-top: 9px" class="icon-remove"></i></a>
+    </div>
+    -->
+  </div>  
+              
+</div>

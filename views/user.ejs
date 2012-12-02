@@ -1,0 +1,40 @@
+<% include layoutHeader %>
+<div style="padding: 12px 12px 0 12px">
+  <div class="bg-white rounded padding"><div><%= user %></div></div>
+</div>
+<div class="left-column">
+  <ul class="nav nav-tabs nav-stacked bg-white rounded">
+    <li class="active"> 
+      <a><i class="icon-chevron-right menu-chevron"></i>Ideas</a>
+    </li>
+    <li>
+      <a href="/supporting"><i class="icon-chevron-right menu-chevron"></i>Supporting</a>
+    </li>
+    <li>
+      <a href="/contacts"><i class="icon-chevron-right menu-chevron"></i>Contacts</a>
+    </li>
+  </ul>
+  <% include includes/about %>
+</div>
+<div class="main-column">
+  <div class="stream-container bg-white no-padding">
+    <div class="stream-header">
+      <h4>Ideas</h4>
+      <div></div>
+    </div>
+    <div class="stream">
+      <div class="stream-items">
+        <% ideas.forEach(function(idea){ %>
+          <% include includes/idea-collapsed %>
+        <% }); %>
+      </div>
+    </div>
+    <div class="stream-footer">
+      <div style="margin: 0 auto; width: 100px;">
+        <img class="logo" src="coordel-bootstrap/img/logo.png"/>
+        <div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<% include layoutFooter %>

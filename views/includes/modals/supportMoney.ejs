@@ -1,0 +1,82 @@
+<div>
+  <div id="supportMoneyModal" data-backdrop="true" class="modal hide in">  
+    <div class="modal-header">  
+    <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
+    <h4 id="supportMoneyTitle" style="text-align: center">Give money to help make this Idea a success story</h4>  
+  </div>  
+  
+  <div class="modal-body">  
+    <div class="hide" id="supportMoneyInfo">
+
+      <h4>About supporting with money</h4>
+      <ul>
+        <li><p>Coordel enables you to give as little or as much as you'd like to an Idea. You can give now, or you can make a pledge.</p></li>
+        <li><p>With pledges, you decide when the time is right to release your pledged amount. You won't be charged until you release the pledge and you are not obligated to release the pledged amount.</p></li>
+        <li><p>When you support an idea, it is added to your Following list.</p></li>
+      </ul>
+      <p>
+        <a id="supportMoneyUnderstand" class="btn btn-success btn-mini pull-right">I understand</a>
+      </p>
+    </div>
+    <div id="supportMoneyAction">
+      <fieldset style="width: 400px; margin: auto;">
+        <div class="input-prepend">
+          <span class="add-on">$</span>
+          <input class="span3" id="prependedInput" type="text" placeholder="Amount">
+        </div>
+        <h5>Select how you want to give</h5>
+        <label class="radio">
+          <input type="radio" name="optionsRadios" id="supportMoneyNow" value="now" checked>
+          <strong>Now</strong>--give amount immediately (charge me now).
+        </label>
+        <label class="radio">
+          <input type="radio" name="optionsRadios" id="supportMoneyPledge" value="pledge">
+          <strong>One-time pledge</strong>--pledge a single amount I can release when I decide the time is right.
+        </label>
+        <label class="radio">
+          <input type="radio" name="optionsRadios" id="supportMoneyPledge" value="pledge">
+          <strong>Recurring pledge</strong>--pledge a monthly recurring amount I can release when I decide the time is right.
+        </label>
+      </fieldset>
+    </div>
+    <div id="supportMoneyPaymentInfo">
+      <hr>
+      <fieldset style="width: 400px; margin: auto;">
+        <div style="padding-bottom: 10px;">
+          <div class="pull-left" style="font-size: 10px; margin-top: 4px; margin-right: 4px">Powered by</div>
+          <img src="/img/stripe.png">
+        </div>
+        <div>
+          <div class="pull-left" style="margin-right: 20px">
+            <label>Card Number</label>
+            <input type="text"  placeholder="•••• •••• •••• ••••" size="20" autocomplete="off" id="card-number"/>
+          </div>
+          <div class="pull-left">
+            <label>Expiration</label>
+            <input placeholder="MM" type="text" style="width:45px" size="2" id="card-expiry-month"/>
+            <span> / </span>
+            <input placeholder="YYYY" type="text" style="width:45px" size="4" id="card-expiry-year"/>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+        <div>
+          <div class="pull-left" style="margin-right: 20px">
+            <label>Name on Card</label>
+            <input type="text" size="20" autocomplete="off" id="card-name"/>
+          </div>
+          <div class="pull-left">
+            <label>Card Code</label>
+            <input placeholder="CVC" type="text" size="4" style="width:90px" autocomplete="off" id="card-cvc"/>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+        
+      </fieldset>
+    </div>
+  </div>  
+  <div class="modal-footer">
+    <form id="payment-form">
+    <button class="btn btn-primary pull-right" disabled="disabled" type="submit" id="supportMoneySubmit">Support</button>
+    </form> 
+  </div>            
+</div>

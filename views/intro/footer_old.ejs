@@ -1,0 +1,28 @@
+    </div>
+    
+  
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="lib/jquery/jquery.cookie.js"></script>
+    <script src="lib/underscore/underscore.min.js"></script>
+    <script src="lib/underscore/underscore.cookie.js"></script>
+    <script src="lib/backbone/backbone.min.js"></script>
+    <script src="lib/icanhaz/icanhaz.min.js"></script>
+    <script src="lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="lib/bootstrap/js/bootstrap-fileupload.js"></script>
+     <script src="js/models/models.js"></script>
+    <script src="js/controllers/intro.js"></script>
+    <script src="js/views/views.js"></script>
+
+    <!-- icanhaz templates -->
+    <% include ../templates/intro %>
+    
+    <script>
+      $(document).ready(function(){
+        var ideas = JSON.parse(unescape('<%- ideas%>'));
+
+        window.app = IntroController.init({ideas: ideas});
+  
+      });
+    </script>
+  </body>
+</html>
