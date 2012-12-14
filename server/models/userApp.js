@@ -216,6 +216,28 @@ module.exports = function(store) {
       });
     },
 
+    bulkFind: function(keys, fn){
+      var multi = store.redis.multi();
+
+      _.each(keys, function(id){
+        var key = 'coordelapp:' + id;
+        //console.log("USER GET KEY", key);
+        multi.hgetall(key);
+      });
+
+      multi.exec(function(e, batch){
+        //console.log("USER", user);
+        if (e){
+          //console.log("couldn't load existing user from store",err);
+          fn(e);
+        } else {
+          //console.log("found the user", user);
+          fn(false, batch);
+        }
+      });
+
+    },
+
     findContacts: function(user, fn){
       var key = 'coordelapp:'+user.appId+':people'
         , redis = store.redis
@@ -252,6 +274,33 @@ module.exports = function(store) {
         
       });
     },
+
+    set: function(appId, vals, fn){
+      //this updates or adds values in the app hash
+      //appId of the user, vals [{name:"field name", value: "field value"}]
+
+      //forbidden fields - can't update these fields with this function
+      var forbidden = ['id','userId', 'email', 'password', 'username'];
+      if (vals.length){
+        var multi = redis.multi()
+          , doUpdate = false;
+        var key = 'coordelapp:' + appId;
+        _.each(vals, function(item){
+          if (!_.contains(forbidden, item.name)){
+            doUpdate = true;
+            multi.hset(key, item.name, item.value);
+          }
+        });
+
+        if (doUpdate){
+          multi.exec(function(err, replies){
+            if (err) fn(err);
+            fn(null, replies);
+          });
+        }
+      }
+    },
+
 
     create: function(userData, fn){
       //create the app in redis

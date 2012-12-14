@@ -186,7 +186,10 @@ module.exports = function(store){
           } else{
             bcrypt.compare(pass, o.password, function(err, res) {
               if (res){
+
                 console.log("password okay, returning user", o);
+                //remove the password from the object
+                delete o.password;
                 fn(null, o);
               } else{
                 console.log("invalid password");
@@ -203,6 +206,7 @@ module.exports = function(store){
 
     importUser: function(user, fn){
       //use this function to import users from the original site. it hashes the passwords and it creates the required lookups
+      //it also updates the user's app with the
 
       //imported users won't have a username, but need one, so make it their first name + last name + milliseconds for safety
       user.username = user.firstName.trim().toLowerCase() + user.lastName.trim().toLowerCase() + moment().format('SSS');
@@ -227,6 +231,13 @@ module.exports = function(store){
           //save the user's userid to sets user:[user.email] and user:[user.username]
           multi.set('users:'+user.email.trim().toLowerCase(), userId);
           multi.set('users:'+user.username.trim().toLowerCase(), userId);
+
+          //now we need to update the app with the new information username, fullName
+          var appKey = 'coordelapp:' + user.appId;
+          multi.hset(appKey, 'username', user.username);
+          multi.hset(appKey, 'userId', userId);
+          if (user.fullName) multi.hset(appKey, 'fullName', user.fullName);
+
           
           multi.exec(function(err, replies){
             console.log('imported user', replies);
@@ -237,7 +248,7 @@ module.exports = function(store){
         });
       });
     },
-
+    
     create: function(user, fn){
       var v = validator.validate(user, Schema);
       if (!v.valid){

@@ -1,0 +1,58 @@
+{
+  "_id": "xxx",
+  "_rev": "1-xxx",
+  "docType": "money-pledge",
+  "project": "id of thing to which pledge is made",
+  "created": "",
+  "creator": "person who did the pledge",
+  "type": "ONE-TIME|RECURRING",
+  "amount": "will be in BTC",
+  "status": "PLEDGED|PROXIED|ALLOCATED|CANCELLED",
+  "proxy": "person who has the proxy",
+  "proxied": "date the pledge was proxied",
+  "moneyPledges": ["has the entries for all recurring money pledges"],
+  "moneyAlloctions": ["has the ids of all allocations"]
+}
+
+{
+  "_id": "xxx",
+  "_rev": "1-xxx",
+  "docType": "time-pledge",
+  "project": "id of thing to which pledge is made",
+  "username": "person who made the time pledge",
+  "created": "",
+  "creator": "",
+  "updated": "",
+  "updater": "",
+  "type": "ONE-TIME|RECURRING",
+  "status": "PLEDGED|REPORTED|CANCELLED",
+  "timePledges": ["has the entries for single or recurring pledged hours"],
+  "timeReports": ["has the ids of all time reports"]
+}
+
+{
+  "_id": "xxx",
+  "_rev": "1-xxx",
+  "docType": "money-allocation",
+  "project": "id of thing to which pledge is made",
+  "pledgeId": "money-pledge document",
+  "amount": "amount of allocation",
+  "notes": "text describing transaction",
+  "proxy": "person who released if proxied",
+  "username": "person who pledged if not proxied",
+  "status": "STARTED|COMPLETED|FAILED",
+  "created": "",
+  "updated": ""
+}
+
+{
+  "_id": "xxx",
+  "_rev": "1-xxx",
+  "docType": "time-report",
+  "project": "id of thing to which pledge is made",
+  "username": "person who made the report",
+  "pledgeId": "time-pledge document",
+  "hours": "hours reported",
+  "notes": "text describing transaction",
+  "date": ""
+}

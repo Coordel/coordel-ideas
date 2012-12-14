@@ -6,22 +6,38 @@
   </div>  
   
   <div class="modal-body"> 
-  <div>
-    <img class="pull-left" style="margin-right: 20px; margin-bottom: 30px" src="/img/logo-main.png">
-    <p>
-      Click "Follow" to indicate you are willing to give time to make this Idea happen.
-    </p>
-    <p>
-      The Idea will be moved to your Following list. Click <i class="icon-fullscreen">&nbsp;</i> <strong>Get to work</strong> when you are ready to get started.
-    </p>
-
+    <div id="supportTimeInfo" class="hide">
+      <h4>About supporting with time</h4>
+      <ul>
+        <li><p>Coordel enables you to give as little or as much time as you'd like to an Idea. You can make a one-time pledge or a recurring pledge.</p></li>
+        <li><p>When you support an idea, it is added to your Following list.</p></li>
+      </ul>
+      <p>
+        <a id="supportTimeUnderstand" class="btn btn-success btn-mini pull-right">I understand</a>
+      </p>
+    </div>
+  
+    <div id="supportTimeAction">
+      <fieldset style="width: 400px; margin: auto;">
+        <h5>How much time would you like to pledge?</h5>
+        <div class="input-prepend">
+          <span class="add-on">Time</span>
+          <input class="span3" id="supportTimeHours" type="text" placeholder="Hours">
+        </div>
+        <h5>Select how you would like to support this Idea</h5>
+        <label class="radio">
+          <input type="radio" name="optionsTimeRadios" id="supportTimePledge" value="pledge" checked>
+          <strong>One-time pledge</strong>--pledge a single amount of time you will give.
+        </label>
+        <label class="radio">
+          <input type="radio" name="optionsTimeRadios" id="supportTimeRecurringPledge" value="pledge">
+          <strong>Recurring pledge</strong>--pledge a monthly recurring amount of time you will give.
+        </label>
+      </fieldset>
+    </div>
   </div>
-   
-  </div>  
   <div class="modal-footer" style="text-align: left">
-    <form id="supportTimeForm">
-    <input id="supportTimeShare" type="submit" value="Support" class="btn btn-primary pull-right">
+    <input id="supportTimeSubmit" type="submit" disabled="disabled" value="Support" class="btn btn-primary pull-right">
     <input id="supportTimeIdea" type="hidden">
-    </form>  
   </div>            
 </div>

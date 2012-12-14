@@ -372,6 +372,16 @@ UsersController = function(store) {
       //the email and fullName from the form are the toUser
 
       //register the toUser
+    },
+
+    setAppValues: function(req, res){
+      var appId = req.params.appId
+        , vals = req.body.vals;
+
+      App.set(appId, vals, function(e, o){
+        console.log("updated app", e, o);
+        res.end();
+      });
     }
 
   };

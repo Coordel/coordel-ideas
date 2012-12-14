@@ -18,6 +18,10 @@
     "google": {
       "clientId": "570025906568.apps.googleusercontent.com", 
       "clientSecret": "wBCkg3nW9-hgwmVlP8V6_DDc"
+    },
+    "coinbase": {
+      "clientId": "b6473d37c47e2c36f39ee2fff273e6f3494418abd60a445347146f83edd29a12",
+      "clientSecret": "6b97c05a5c403aae701945f8cba497fb9ab5edec4ca00561631e4695364c8235"
     }
   },
   "config" : {

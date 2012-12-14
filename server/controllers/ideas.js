@@ -6,11 +6,13 @@ var v1       = '/api/v1'
   , log      = console.log
   , moment   = require('moment')
   , md5      = require('MD5')
+  , async    = require('async')
   , IdeasController;
 
 IdeasController = function(store, socket) {
 
-  var Idea = require('../models/idea')(store);
+  var Idea = require('../models/idea')(store)
+    , UserApp = require('../models/userApp')(store);
 
   function parsePurpose(purpose){
     //NOTE: this is just rudimentary
@@ -51,7 +53,7 @@ IdeasController = function(store, socket) {
   }
 
   function support(id, userid, res){
-    console.log("support function", id, userid, res);
+    //console.log("support function", id, userid, res);
     Idea.support(id, userid, function(e,o){
       if (e){
         res.json({error: e});
@@ -71,17 +73,104 @@ IdeasController = function(store, socket) {
 
   var Ideas = {
 
+    findStream: function(req, res){
+      var id = req.params.id;
+      console.log("range", req.header('Range'));
+      store.couch.db.view('coordel/projectStream', { startkey: [id, {}], endkey: [id], descending: true}, function (e, stream) {
+        if (e){
+          res.json({error: e});
+        } else {
+
+          if (stream.length){
+            var list = [];
+            _.each(stream, function(item){
+              list.push(item.value);
+            });
+            res.json(list);
+          } else {
+            res.json([]);
+          }
+        }
+      });
+    },
+
+    findDetails: function(req, res){
+      var id= req.params.id;
+
+      console.log("getting details", id);
+      // an example using an object instead of an array
+      async.parallel({
+        idea: function(cb){
+          store.couch.db.get(id, function(e, idea){
+            console.log("idea refresh", e, idea);
+            if (e){
+              cb(e);
+            } else {
+              cb(null, idea);
+            }
+          });
+        },
+        supporting: function(cb){
+          store.redis.smembers('ideas:' + id + ':supporting', function(e, o){
+            console.log("smembers", e, o);
+            if (e){
+              cb(e);
+            } else {
+              if (o.length){
+                cb(null, o[0]);
+              } else {
+                cb (null, 0);
+              }
+              
+            }
+          });
+        }
+      },
+      function(e, results) {
+        
+        if (e){
+          res.json({error: e});
+        } else {
+          console.log("results", results);
+          var idea = results.idea
+            , supporting = results.supporting
+            , following = 0
+            , participating = 0
+            , invited = 0;
+
+          _.each(idea.assignments, function(assign){
+            if (assign.role === "FOLLOWER" && assign.status === "INVITE"){
+              //invite
+              invited += 1;
+            } else if (assign.role === "FOLLOWER" && assign.status === "ACCEPTED"){
+              //follower
+              following += 1;
+            } else if (assign.role === "RESPONSIBLE" && assign.status === "ACCEPTED"){
+              //participant
+              participating += 1;
+            } else if (assign.role !== "FOLLOWER" && assign.status === "ACCEPTED"){
+              //participant
+              participating += 1;
+            }
+          });
+
+          res.json({
+            idea: idea,
+            supporting: supporting,
+            following: following,
+            participating: participating,
+            invited: invited
+          });
+        }
+      });
+
+    },
+
     findUserCreated: function(req, res){
       //returns all the ideas this user has created
     },
 
-    findUserSupporting: function(req, res){
-      //returns both of the folowing
-
-      //all the ideas in which this user is a participant (investing time or money)
-
-      //all the ideas this user is supporting (gave the thumbs up)
-    },
+    
 
     create: function(req, res){
       //console.log("called ideas create");
@@ -124,7 +213,7 @@ IdeasController = function(store, socket) {
 
     support: function(req, res){
       
-      var id = req.body.ideas
+      var id = req.body.id
         , userid = req.session.currentUser.appId;
 
       console.log("support", id, userid);
@@ -150,6 +239,35 @@ IdeasController = function(store, socket) {
           support(id, sender.appId, res);
         }
       });
+    },
+
+    reply: function(req, res){
+      var message = req.body.message
+        , user = req.session.currentUser
+        , idea = JSON.parse(req.body.idea);
+
+      console.log("reply", idea, user, message);
+
+      Idea.addMessage(idea, user, message, function(e, o){
+        if (e){
+          res.json({error: e});
+        } else {
+          res.json({success: o});
+          socket.emit('stream', o);
+        }
+      });
+    },
+
+    invite: function(req, res){
+      var message = req.body.message
+        , user = req.session.currentUser
+        , idea = req.body.idea
+        , toName = req.body.toName
+        , toEmail = req.body.toEmail;
+
+      console.log("send invite", message, toName, toEmail, user, idea);
+
+      res.json({success: "okay"});
     },
 
     supportMoney: function(req, res){

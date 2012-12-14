@@ -25,6 +25,7 @@ define([
 
       this.profileImage.src = user.imageUrl;
       this.profileName.innerHTML = user.fullName;
+      this.profileName.href = "/" + user.username;
 
 
       //miniProfile
@@ -34,14 +35,14 @@ define([
       this.contacts.innerHTML = profile.contacts;
 
       topic.subscribe("coordel/addIdea", function(idea){
-        console.log("got the idea add", idea);
-        var count = parseInt(self.ideas.innerHTML, 10) + 1;
-        self.ideas.innerHTML = count.toString();
+        if (self.user.appId === idea.creator){
+          var count = parseInt(self.ideas.innerHTML, 10) + 1;
+          self.ideas.innerHTML = count.toString();
+        }
       });
 
       topic.subscribe("coordel/supportIdea", function(num){
         num = parseInt(num, 10);
-        console.log("got the idea supporting", num);
         var count = parseInt(self.supporting.innerHTML, 10) + num;
         self.supporting.innerHTML = count.toString();
       });

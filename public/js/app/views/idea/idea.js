@@ -10,10 +10,14 @@ define([
     "dojo/dom-class",
     "dojo/_base/lang",
     "dojo/dom",
-    "dojo/request",
+    "dojo/request/xhr",
     "dojo/topic",
-    "app/views/paymentForm/paymentForm"
-], function(declare, _WidgetBase, _TemplatedMixin, template, replyHtml,inviteHtml, shareHtml, on, build, lang, dom, request, topic) {
+    "app/views/idea/ideaDetails",
+    "app/views/idea/ideaStream",
+    "dijit/registry",
+    "dojo/_base/array"
+
+], function(declare, _WidgetBase, _TemplatedMixin, template, replyHtml,inviteHtml, shareHtml, on, domClass, lang, dom, xhr, topic, ideaDetails, ideaStream, registry, array) {
 
     return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -29,18 +33,49 @@ define([
 
         collapsed: true,
 
+        setState: function(user){
+          var self = this
+            , idea = self.idea;
+
+          //if I'm the creator of this idea, then hide the support button
+          if (user.app.id === idea.creator){
+            domClass.add(self.pledgeSupportContainer, "hide");
+          }
+
+          //if I'm already supporting this idea, hide the support button
+          if (array.indexOf(user.account.supportedIdeas, idea._id )>-1){
+            domClass.add(self.pledgeSupportContainer, "hide");
+          }
+
+          //if i've already pledged meoney, remove pledge money;
+          if (array.indexOf(user.account.pledgedIdeas, idea._id)>-1){
+            domClass.add(self.pledgeMoneyContainer, "hide");
+          }
+
+          //if i've already pledged time, remove pledge time;
+          if (array.indexOf(user.account.pledgedTimeIdeas, idea._id)>-1){
+            domClass.add(self.pledgeTimeContainer, "hide");
+            console.log("already pledged time", idea.name);
+          }
+        },
+
         //  your custom code goes here
         postCreate: function(){
           this.inherited(arguments);
           var self = this;
+
+          var _csrf = $('#addIdea_csrf').val();
 
           function connect(){
             window.open('/connect/twitter', 'mywin','left=20,top=20,width=500,height=500,toolbar=1,resizable=0');
             return false;
           }
 
-          this.user = this.idea.creatorDetails;
 
+          if (this.idea.creatorDetails){
+            this.user = this.idea.creatorDetails;
+          }
+          
           this.name.innerHTML = this.idea.name;
           this.ideaLink.href = "/ideas/"+this.idea._id;
 
@@ -58,19 +93,14 @@ define([
 
           this.usernameLink.innerHTML = this.user.username;
 
-          //expanded info
-          this.purposeContainer.innerHTML = this.idea.purpose;
-          this.purposeFooter.innerHTML = moment(this.idea.created).format('h:mm A - D MMM YY');
+          this.setState(this.currentUser);
 
-          //files
-           console.log("name", this.idea.name, this.idea._attachments);
-          if (this.idea._attachments){
+          
+          //if I'm supporting this idea, then hide the great idea button
 
-            for (var name in this.idea._attachments){
 
-              build.create("a", {href: "/coordel-dev/"+this.idea._id + "/" + name, target:"_blank", "class": "attachment", innerHTML:name}, this.detailsFiles);
-            }
-          }
+
+          
 
           //sharing
           /*
@@ -123,45 +153,62 @@ define([
 
 
           on(this.domNode, 'mouseover', function(e){
-            //console.log("self currentUser", self.currentUser);
             if (self.currentUser){
-              build.remove(self.ideaActions, 'hide');
+              domClass.remove(self.ideaActions, 'hide');
             }
           });
 
           on(this.domNode, 'mouseout', function(e){
             if (self.currentUser && !self.doingInvite && !self.doingReply && !self.doingShare){
-              build.add(self.ideaActions, 'hide');
+              domClass.add(self.ideaActions, 'hide');
             }
           });
 
           on(this.toggler, 'click', function(e){
             if (self.collapsed){
               //open
-              console.log("open");
-              build.remove(self.detailsContainer, "hide");
+              //domClass.remove(self.detailsContainer, "hide");
               this.innerHTML = "collapse";
               self.collapsed = false;
+              //domClass.remove(self.activityContainer, "hide");
+              ideaDetails({idea: self.idea}).placeAt(self.detailsContainer);
+              ideaStream({idea:self.idea}).placeAt(self.streamContainer);
+
             } else {
               //close
-              console.log("close");
-              build.add(self.detailsContainer, "hide");
+              //domClass.add(self.detailsContainer, "hide");
+              array.forEach(registry.findWidgets(self.detailsContainer), function(item){
+                item.destroy();
+              });
+              array.forEach(registry.findWidgets(self.streamContainer), function(item){
+                item.destroy();
+              });
+              //domClass.add(self.activityContainer, "hide");
               this.innerHTML = "expand";
               self.collapsed = true;
+            
             }
           });
 
           $(self.doReply).popover({
             placement: 'bottom',
             html: true,
-            content: replyHtml
-          });
+            content: lang.replace(
+              replyHtml,
+              {
+                id: self.idea._id
+              })
+            });
 
           $(self.doInvite).popover({
             placement: 'bottom',
             html: true,
-            content: inviteHtml
-          });
+            content: lang.replace(
+              inviteHtml,
+              {
+                id: self.idea._id
+              })
+            });
 
           $(self.doShare).popover({
             placement: 'bottom',
@@ -184,8 +231,26 @@ define([
               self.doingShare = false;
             }
             self.doingReply = !self.doingReply;
-            console.log("reply clicked");
-
+            dom.byId("replyMessage-"+self.idea._id).focus();
+            //reply
+            var handle = on(dom.byId("submitReply-"+self.idea._id), "click", function(e){
+              e.preventDefault();
+              xhr.post('/ideas/'+self.idea._id + "/replies", {
+                data: {
+                  idea: JSON.stringify(self.idea),
+                  message: dom.byId("replyMessage-"+self.idea._id).value,
+                  _csrf: _csrf
+                },
+                handleAs: "json",
+                headers: {
+                  "X-CSRF-Token": _csrf
+                }
+              }).then(function(res){
+                handle.remove();
+                dom.byId("replyMessage-"+self.idea._id).value = "";
+                $(self.doReply).popover('hide');
+              });
+            });
           });
 
           on(this.doInvite, 'click', function(e){
@@ -197,24 +262,32 @@ define([
               $(self.doShare).popover('hide');
               self.doingShare = false;
             }
-
+            dom.byId("inviteName-"+self.idea._id).focus();
             self.doingInvite = !self.doingInvite;
-            console.log("invite clicked", self.inviteContact);
-
-            $(self.inviteContact).typeahead({
-
-              source: ["foo", "bar"],
-
-              updater:function (item) {
-                console.log("type ahead", item);
-                //item = selected item
-                //do your stuff.
-
-                //dont forget to return the item to reflect them into input
-                return item;
-              }
+            var emailHandle = on(dom.byId("submitEmailInvite-"+self.idea._id), "click", function(e){
+              e.preventDefault();
+              xhr.post('/ideas/'+self.idea._id + "/invites", {
+                data: {
+                  idea: self.idea,
+                  toName: dom.byId("inviteName-"+self.idea._id).value,
+                  toEmail: dom.byId("inviteEmail-"+self.idea._id).value,
+                  message: dom.byId("inviteMessage-"+self.idea._id).value,
+                  _csrf: _csrf
+                },
+                headers: {
+                  "X-CSRF-Token": _csrf
+                }
+              }).then(function(res){
+                emailHandle.remove();
+                dom.byId("inviteName-"+self.idea._id).value = "";
+                dom.byId("inviteEmail-"+self.idea._id).value = "";
+                dom.byId("inviteMessage-"+self.idea._id).value = "";
+                $(self.doInvite).popover('hide');
+              });
             });
+
           });
+
 
           on(this.doShare, 'click', function(e){
             if (self.doingReply){
@@ -227,25 +300,22 @@ define([
             }
             IN.parse(self.domNode);
             self.doingShare = !self.doingShare;
-            console.log("share clicked");
           });
 
           //pledge support
           on(this.pledgeSupport, 'click', function(e){
-            request.post("/ideas/" + self.idea._id + "/supported", {
+            xhr.post("/ideas/" + self.idea._id + "/supported", {
                 data: {
                   userid: self.currentUser.id,
                   id: self.idea._id
                 },
                 headers: {
-                  "X-CSRF-Token": dom.byId('mainCsrf').innerHTML
+                  "X-CSRF-Token": _csrf
                 }
             }).then(function(res){
               //update supporting
               res = JSON.parse(res);
-              console.log("The server returned: ", res.success);
               if (res.success){
-                console.log("success", res.success);
                 topic.publish("coordel/supportIdea", res.success);
               }
                 
@@ -257,6 +327,13 @@ define([
             //need to set the value of the idea for submission
             dom.byId("supportTimeIdea").value = self.idea._id;
           });
+
+          //pledge money
+          on(this.pledgeMoney, 'click', function(e){
+            //need to set the value of the idea for submission
+            dom.byId("supportMoneyIdea").value = self.idea._id;
+          });
+
         }
     });
 

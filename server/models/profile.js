@@ -26,6 +26,8 @@ module.exports = function(store) {
         , redis = store.redis
         , couch = store.couch;
 
+      //console.log("finding miniProfile", user);
+
       async.parallel({
         ideas: function(cb){
           couch.db.view('coordel/userOpportunities', {startkey: [user.appId], endkey: [user.appId, {}]}, function(e, opps){
@@ -37,13 +39,13 @@ module.exports = function(store) {
           });
         },
         supporting: function(cb){
-          redis.scard('user:'+user.id+':supporting', function(e, o){
+          redis.scard('user:'+user.appId+':supporting', function(e, o){
           
             if (e){
-              console.log("error getting supporting", e);
+              //console.log("error getting supporting", e);
               cb('error ' + e);
             } else {
-              console.log("got supporting", o);
+              //console.log("got supporting", o);
               cb(null,o);
             }
           });
@@ -51,10 +53,10 @@ module.exports = function(store) {
         contacts: function(cb){
           redis.scard('coordelapp:'+user.appId+':people', function(e, o){
             if (e){
-              console.log("error getting contacts", e);
+              //console.log("error getting contacts", e);
               cb('error '+e);
             } else {
-              console.log("got contacts", o);
+              //console.log("got contacts", o);
               cb(null, o);
             }
           });
@@ -63,8 +65,65 @@ module.exports = function(store) {
       function(e, profile) {
         if (e){
           fn(e);
-        }
+        } else {
           fn(null, profile);
+        }
+      });
+    },
+
+    findSupportAccount: function(user, fn){
+      var redis = store.redis
+        , couch = store.couch;
+
+      async.parallel({
+        supporting: function(cb){
+          redis.smembers('user:'+user.appId+':supporting', function(e, o){
+          
+            if (e){
+              //console.log("error getting supporting", e);
+              cb('error ' + e);
+            } else {
+              //console.log("got supporting", o);
+              cb(null,o);
+            }
+          });
+        },
+        account: function(cb){
+          couch.db.view('coordel/userSupportAccount', {
+            key: user.appId,
+            group: true,
+            group_level: "1",
+            reduce: true}, function(e, acct){
+            if (e){
+              cb('error '+e);
+            } else {
+           
+              var spt = {
+                pledged: 0,
+                pledgedIdeas: [],
+                proxied: 0,
+                proxiedIdeas: [],
+                allocated: 0,
+                allocatedIdeas: []
+              };
+
+              if (acct.length){
+                spt = acct[0].value;
+              }
+              
+              cb(null, spt);
+            }
+          });
+        }
+      },
+      function(e, results) {
+        if (e){
+          fn(e);
+        } else {
+          var spt = results.account;
+          spt.supportedIdeas = results.supporting;
+          fn(null, spt);
+        }
       });
     },
 

@@ -1,10 +1,10 @@
 /* Coordel Pledge
-  A pledge tracks what someone who pleges money gives
+  A pledge tracks who pledges money
 */
-exports.module = function() {
+module.exports = function(store) {
 
   var validator = require('revalidator')
-    , Pledge;
+    , TimePledge;
 
   var Schema = {
     properties: {
@@ -12,7 +12,7 @@ exports.module = function() {
     }
   };
 
-  Pledge = {
+  TimePledge = {
 
     findById: function(id, fn){
       //couchdb get id
@@ -28,6 +28,13 @@ exports.module = function() {
 
     create: function(pledge, fn){
       //couchdb post pledge
+      store.couch.db.save(pledge, function(e, o){
+        if (e){
+          fn(e);
+        } else {
+          fn(null, o);
+        }
+      });
     },
 
     save: function(pledge, fn){
@@ -40,6 +47,6 @@ exports.module = function() {
 
   };
 
-  return Pledge;
+  return TimePledge;
 
 };

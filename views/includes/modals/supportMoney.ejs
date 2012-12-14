@@ -2,17 +2,18 @@
   <div id="supportMoneyModal" data-backdrop="true" class="modal hide in">  
     <div class="modal-header">  
     <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
-    <h4 id="supportMoneyTitle" style="text-align: center">Give money to help make this Idea a success story</h4>  
+    <h4 id="supportMoneyTitle" style="text-align: center">Pledge money to help make this Idea a success story</h4>  
   </div>  
   
   <div class="modal-body">  
     <div class="hide" id="supportMoneyInfo">
 
-      <h4>About supporting with money</h4>
+      <h5>About supporting with money</h5>
       <ul>
-        <li><p>Coordel enables you to give as little or as much as you'd like to an Idea. You can give now, or you can make a pledge.</p></li>
-        <li><p>With pledges, you decide when the time is right to release your pledged amount. You won't be charged until you release the pledge and you are not obligated to release the pledged amount.</p></li>
-        <li><p>When you support an idea, it is added to your Following list.</p></li>
+        <li><p>Coordel enables you to pledge as little or as much as you'd like to an Idea by conducting all transactions using <a href="http://coinbase.com/home" target="_blank">Bitcoin</a>.</p></li>
+        <li><p>You decide when the time is right to release your pledged amount, or you can proxy your decision to someone else participating in the Idea. You won't be charged until you release or your proxy releases the pledged amount.</></li>
+        <li><p>You are not obligated to release the pledged amount and can cancel the pledge at any time.</p></li>
+        <li><p>When you pledge money to an idea, it is added to your Following list.</p></li>
       </ul>
       <p>
         <a id="supportMoneyUnderstand" class="btn btn-success btn-mini pull-right">I understand</a>
@@ -20,26 +21,76 @@
     </div>
     <div id="supportMoneyAction">
       <fieldset style="width: 400px; margin: auto;">
-        <div class="input-prepend">
-          <span class="add-on">$</span>
-          <input class="span3" id="prependedInput" type="text" placeholder="Amount">
+        <h5>How much would you like to pledge?</h5>
+        <div class="input-prepend pull-left">
+          <span class="add-on">BTC</span>
+          <input class="span1" id="supportMoneyBtcAmount" placeholder="0.00" type="text">
         </div>
-        <h5>Select how you want to give</h5>
+        <div class="pull-left" style="margin-left: 10px; margin-right: 10px;line-height: 30px">or</div>
+        <div class="input-prepend pull-left">
+          <span id="localCurrencyCode" class="add-on">USD</span>
+          <input class="span1" id="supportMoneyLocalAmount" placeholder="0.00" type="text">
+        </div>
+        <div class="clearfix"></div>
+        <h5>Select how you woulk like to support this Idea</h5>
         <label class="radio">
-          <input type="radio" name="optionsRadios" id="supportMoneyNow" value="now" checked>
-          <strong>Now</strong>--give amount immediately (charge me now).
-        </label>
-        <label class="radio">
-          <input type="radio" name="optionsRadios" id="supportMoneyPledge" value="pledge">
+          <input type="radio" name="optionsRadios" id="supportMoneyPledge" value="pledge" checked>
           <strong>One-time pledge</strong>--pledge a single amount I can release when I decide the time is right.
         </label>
         <label class="radio">
-          <input type="radio" name="optionsRadios" id="supportMoneyPledge" value="pledge">
+          <input type="radio" name="optionsRadios" id="supportMoneyRecurringPledge" value="pledge">
           <strong>Recurring pledge</strong>--pledge a monthly recurring amount I can release when I decide the time is right.
         </label>
       </fieldset>
     </div>
-    <div id="supportMoneyPaymentInfo">
+    <div id="supportMoneyCreateAccount">
+      <p>Coordel uses <a target="_blank" href="http://coinbase.com">Coinbase</a> wallets to make using Bitcoin simple. Please enter the e-mail and password you'd like to use to create your wallet.</p>
+      <p>
+        <fieldset style="width: 400px;margin: auto">
+          <div>
+            <label>E-mail</label>
+            <input class="span4" type="text" id="coinbaseEmail"/>
+          </div>
+          <div>
+          <div>
+
+            <label>Password</label>
+            <div class="pull-right">
+              <a id="supportMoneyCreateCoinbaseAccount" style="margin-left: 8px; margin-top: 3px" class="btn btn-success btn-mini">Create Account</a>
+            </div>
+            <input class="span4" type="password" autocomplete="off" id="coinbasePassword"/>
+          </div>
+          <div id="createCoinbaseAccountErrors" class="alert hide">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            
+          </div>
+          <div>
+            <p><a style="font-size: 12px" href="https://coinbase.com/legal/privacy" target="_blank">Coinbase Privacy Policy and User Agreement <i class="icon-circle-arrow-right icon-blue">&nbsp;</i></a></p>
+          </div>
+          
+        </fieldset>
+      </p>
+      <p>&nbsp;</p>
+      <p>Coordel uses Bitcoin for three reasons--</p>
+      <ul>
+        <li><strong>Negligible transaction fees</strong>--it would be cost-prohibitive to enable users to pledge micro-amounts using traditional payment methods.</li>
+        <li><strong>Global access</strong>--it allows everyone in the world to participate.</li>
+        <li><strong>Peer-to-peer</strong>--Coordel is a peer-to-peer ideas marketplace and productivity solution. It only makes sense to based it on a peer-to-peer currency.</li>
+    </div>
+    <div id="supportMoneyUseAccount">
+      <p>Great! It looks like you already have an existing <a href="http://coinbase.com/home" target="_blank">Coinbase</a> account. Do you want to use this one or create a new one?</p>
+      <p>&nbsp;</p>
+      <div style="width: 400px; margin:auto">
+        <p>Existing account e-mail: <strong><span id="coinbaseExistingEmail"></span></strong></p>
+      </div>
+      <p>&nbsp;</p>
+      <p class="pull-right">
+        <a id="supportMoneyUseAccountCreateNew" class="btn btn-mini">Create a new account</a>
+        <a id="supportMoneyUseAccountUseExisting"style="margin-left: 8px" class="btn btn-success btn-mini">Use this account</a>
+      </p>
+      <div class="clearfix"></div>
+    </div>
+    <div id="supportMoneyPaymentInfo" class="hide">
       <hr>
       <fieldset style="width: 400px; margin: auto;">
         <div style="padding-bottom: 10px;">
@@ -75,8 +126,9 @@
     </div>
   </div>  
   <div class="modal-footer">
-    <form id="payment-form">
+    <!--<form id="payment-form">-->
     <button class="btn btn-primary pull-right" disabled="disabled" type="submit" id="supportMoneySubmit">Support</button>
-    </form> 
+    <input id="supportMoneyIdea" type="hidden">
+    <!--</form>--> 
   </div>            
 </div>

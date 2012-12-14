@@ -1,0 +1,58 @@
+<% include header %>
+<div class="left-column">
+  <div style="padding-bottom: 7px;" class="user-login bg-gray rounded-column">
+    <form action="/sessions" method="post" style="margin-bottom: 0;">
+      <div>
+        <div class="controls">
+          <input style="width: 303px" placeholder="Username or e-mail" type="text" name="login-username" id="login-username">
+        </div>
+      </div>
+      <div>
+        <div class="controls">
+          <input style="width: 225px;" placeholder="Password" type="password"  name="login-password" id="login-password">
+          <input type="submit" value="Sign in" class="btn login btn-primary pull-right">
+        </div>
+        <div class="controls muted">
+          <label style="font-size: 12px" class="checkbox">
+          <input style="margin-bottom:0" type="checkbox" checked="true">
+          Remember me <span style="padding: 0 4px">&#149;</span> <span><a href="#">Forgot Password</a></span> 
+          </label>
+          <input type='hidden' name='_csrf' value="<%=token%>">
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="user-signup bg-gray rounded-column">
+    <form action="/signup" method="post" style="margin-bottom: 0;">
+      <div class="controls clearfix">
+        <input style="width: 303px" placeholder="Full name" type="text" name="signup-fullname" id="signup-fullname">
+        <input style="width: 303px" placeholder="E-mail" type="text" name="signup-email" id="signup-email">
+        <input style="width: 303px" placeholder="Password" type="password" name="signup-password" id="signup-password">
+        <input style="margin-bottom: 0" type="submit" value="Sign up for Coordel" class="btn submit btn-warning pull-right">
+        <input type="hidden" name="origin" value="index-signup">
+        <input type="hidden" name="_csrf" value="<%=token%>">
+      </div>
+    </form>
+  </div>
+  <% include ../includes/about %>
+</div>
+<div class="main-column">
+  <div class="stream-container bg-white no-padding">
+  <div class="stream-header">
+    <h4 id="container-header">Success stories</h4>
+    <div></div>
+  </div>
+  <div class="stream">
+    <div id="stream-items-container" class="stream-items">
+      main
+    </div>
+  </div>
+  <div class="stream-footer">
+    <div style="margin: 0 auto; width: 100px;">
+      <img class="logo" src="lib/coordel-bootstrap/img/logo.png"/>
+      <div></div>
+    </div>
+  </div>
+</div>
+</div>
+<% include footer %>

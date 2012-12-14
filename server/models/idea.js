@@ -4,9 +4,14 @@ Manages the ideas for the ideas app
 
 */
 var moment = require('moment')
-  , _ = require('underscore');
+  , _ = require('underscore')
+  , md5 = require('MD5');
+
+
 
 module.exports = function(store) {
+
+  var UserApp = require('./userApp')(store);
 
   var validator = require('revalidator')
     , Idea
@@ -92,6 +97,51 @@ module.exports = function(store) {
 
     }
   };
+
+  function loadBatch(keys, fn){
+    //now get the ideas in bulk
+    store.couch.db.all({keys: keys, include_docs: true}, function(e, ideas){
+      //console.log("got ideas", ideas);
+
+      ideas = _.map(ideas, function(item){
+        return item.doc;
+      });
+
+      //need to get all of the creators to get their details from the cache
+      var map = {}
+        , creators = [];
+
+      _.each(ideas, function(item){
+        if (!map[item.creator]){
+          map[item.creator] = true;
+          creators.push(item.creator);
+        }
+      });
+
+      //now get the apps from the redis cache to append them to the ideas
+      UserApp.bulkFind(creators, function(e, o){
+        //console.log("creators", o);
+        //make a map of the creators to append to the idea as creatorDetails
+        var list = {};
+        _.each(o, function(item){
+          list[item.id] = {
+            appId: item.id,
+            username: item.username,
+            fullName: item.fullName,
+            email:item.email,
+            userId: item.userId,
+            imageUrl: 'http://www.gravatar.com/avatar/' + md5(item.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+          };
+        });
+
+        _.each(ideas, function(item){
+          item.creatorDetails = list[item.creator];
+        });
+
+        fn(null, ideas);
+      });
+    });
+  }
   
 
   Idea = {
@@ -102,7 +152,86 @@ module.exports = function(store) {
       //returns supporting time investors (idea.users) + LLEN ideas:[id]:supporting + money investors (get pledges startkey[id], endkey[id,{}])
     },
 
+    findUserSupporting: function(appId, fn){
+
+      var redis = store.redis
+        , couch = store.couch;
+
+      redis.smembers('user:'+appId+':supporting', function(e, keys){
+        if (e){
+          //console.log("error getting supporting", e);
+          fn('error ' + e);
+        } else {
+          //occasionally an undefined element gets added. need to investigate. this works for prototyping
+          keys = _.filter(keys, function(id){
+            if (id !== 'undefined'){
+              return id;
+            }
+          });
+
+          loadBatch(keys, function(e, o){
+            console.log("batch", o);
+            fn(null, o);
+          });
+          
+        }
+      });
+    },
+
+    findBatch: function(keys, fn){
+      loadBatch(keys, function(e, o){
+        fn(null, o);
+      });
+    },
+
     timeline: function(fn){
+      var defaults = {
+        start: 0,
+        count: 200
+      };
+
+      var total = 0;
+
+      //first we need to get the count of all ideas to be able to enable pagination
+      store.couch.db.view("coordel/opportunities", {reduce: true}, function(e, o){
+       
+        if (e){
+          //some kind of error with couch
+        } else {
+          total = o[0].value;
+        }
+
+         console.log("results from reduce call", total);
+      });
+
+      
+      /*
+
+      //if the start is greater 999, need to start couch pagination where appropriate
+
+      store.redis.lrange('global:timeline', optins.start, options.start + options.count -1, function(e, o){
+        if (e){
+          fn(e);
+        } else {
+          //console.log("timeline", o);
+          //if the list length is less that the number of items selected, we need to go to couch
+          if (o.length < count){
+            //need to use the last item in the list as the start key for the remainder of the key
+
+            store.couch.db.view("coordel/opportunities", {limit: count, descending: true, startkey: [options.startkey]}, function(e, o){
+
+            });
+          } else {
+            fn(null, o);
+          }
+        }
+      });
+
+      */
+
+
+     
+
       //the timeline gets ideas from the redis global:timeline set
       store.redis.lrange('global:timeline', 0, -1, function(e, o){
         if (e){
@@ -176,6 +305,8 @@ module.exports = function(store) {
 
     support: function(ideaId, userId, fn){
 
+      console.log("ideaId", ideaId, "userId", userId);
+
       var multi = store.redis.multi();
       //creates a supporting entry for this user and adds the supporting user to the idea
 
@@ -189,10 +320,11 @@ module.exports = function(store) {
         if (e){
           res(e);
         } else {
-
+          console.log("support in idea.js", e, o);
           //if this user hadn't already supported this idea then increment the trending score
           if (o[0] && o[1]){
             store.redis.zincrby('global:trending', 1, ideaId);
+            console.log("trending added");
           }
 
           fn(null, o);
@@ -262,13 +394,59 @@ module.exports = function(store) {
 
         //console.log("before update in projectModel.follow");
         store.couch.db.save(idea, function(e, o){
-          console.log('followed idea', o);
+          //console.log('followed idea', o);
           if (e){
             fn(e);
           } else {
             fn(null, o);
           }
         });
+      });
+    },
+
+    addMessage: function(idea, user, message, fn){
+      //messages are fundamentally targeted at the project level
+      //they can be overridden to target different levels (task, group, objective, etc)
+      var a = {
+            actor: {},
+            target: {},
+            object: {}
+          }
+        , timestamp = moment().format(store.timeFormat);
+        
+      a.actor.id = user.appId;
+      a.actor.username = user.username;
+      a.actor.email = user.email;
+      a.actor.name = user.fullName;
+      a.actor.type = "PERSON";
+      a.target.id = idea._id;
+      a.target.name = idea.name;
+      a.target.type = "PROJECT";
+      a.project = idea._id;
+      a.users = idea.users;
+      a._id = store.couch.uuid();
+      a.object.id = a._id;
+      a.object.name = "";
+      a.object.type = "COMMENT";
+      a.body = message;
+      a.verb = "POST";
+      a.docType = "message";
+      a.time = timestamp;
+      a.created = timestamp;
+      a.creator = user.appId;
+      a.updated = timestamp;
+      a.updater = user.appId;
+
+      console.log("saving reply", a);
+      
+      store.couch.db.save(a, function(e, o){
+        if (e){
+          fn(e);
+        } else {
+          console.log("reply from saving reply", o);
+          a._rev = o.rev;
+          fn(null, a);
+        }
       });
     },
 

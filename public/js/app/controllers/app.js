@@ -3,11 +3,15 @@ define(["dojo/dom",
   "dojo/cookie",
   "dojo/_base/array",
   "dojo/on",
+  "dojo/dom-class",
   "app/models/app",
   "app/views/miniProfile/miniProfile",
+  "app/views/userProfile/userProfile",
   "app/views/idea/idea",
+  "app/views/moneyForm/moneyForm",
+  "app/views/timeForm/timeForm",
   "app/views/addForm/addForm",
-  "dojo/domReady!" ], function(dom, topic, cookie, array, on, model, miniProfile, idea){
+  "dojo/domReady!" ], function(dom, topic, cookie, array, on, domClass, model, miniProfile, userProfile, idea, moneyForm, timeForm){
 
   var app = {
     max: {
@@ -21,23 +25,19 @@ define(["dojo/dom",
 
     init: function(args){
 
-      console.log("init app", args);
- 
+      console.log("init app", args );
+      this.currentMenu = args.menu;
       this.model= model.init(args);
       this.show();
+      moneyForm.init(args.user);
+      timeForm.init(args.user);
 
     },
     show: function(){
 
       var self = this;
 
-      console.log("showing app");
-
-      console.log("model", this.model);
-
       var socket = io.connect(window.location.host);
-
-      //console.log("showing app", this.username);
 
       //register for socketio events
       socket.on("idea", function (idea) {
@@ -46,15 +46,22 @@ define(["dojo/dom",
         topic.publish("coordel/addIdea", idea);
       });
 
-      socket.on("stream", function(stream){
-        console.log("SOCKET REPLY", stream);
-     
+      socket.on("stream", function(item){
+        console.log("SOCKET REPLY", item);
+        topic.publish("coordel/stream", item);
       });
 
-      self.showTimeline();
+      if (this.currentMenu === "#menuIdeas"){
+         self.showTimeline();
+      }
 
-      if (self.model.currentUser){
+      if (self.model.currentUser && this.currentMenu === "#menuIdeas"){
         self.showMiniProfile();
+      }
+
+      if (self.model.currentUser && this.currentMenu === "#menuMe"){
+        self.showUserProfile();
+        self.showTimeline();
       }
 
       $('#sign-out').click(function(){
@@ -75,11 +82,20 @@ define(["dojo/dom",
         setMenu("#menuCoordel");
       });
 
+      $("#menuBlueprints").click(function(){
+        setMenu("#menuBlueprints");
+      });
+
 
       function setMenu(selector){
-        $("#menuIdeas, #menuStream, #menuCoordel").removeClass("active");
+        $("#menuIdeas").removeClass("active");
+        $("#menuStream").removeClass("active");
+        $("#menuCoordel").removeClass("active");
+        $("#menuBlueprints").removeClass("active");
         $(selector).addClass("active");
       }
+
+      setMenu(this.currentMenu);
 
       $("[rel=tooltip]").tooltip({
         placement: "bottom",
@@ -88,7 +104,6 @@ define(["dojo/dom",
 
       /* attach a submit handler to the form */
       $("#addIdeaForm").submit(function(event) {
-        console.log("in here");
 
         /* stop form from submitting normally */
         event.preventDefault();
@@ -119,7 +134,6 @@ define(["dojo/dom",
           dataType: 'json',
           success: function( idea )
           {
-            console.log("added an idea", idea);
             //self.model.timeline.notify(idea);
             //topic.publish("coordel/addIdea", idea);
           }
@@ -138,7 +152,6 @@ define(["dojo/dom",
           user: self.model.currentUser
         };
 
-        console.log("postData", postData);
 
         $.ajax( {
           url: "/ideas/" + id + "/time",
@@ -150,28 +163,50 @@ define(["dojo/dom",
           dataType: 'json',
           success: function( idea )
           {
-            console.log("followed an idea", idea);
+  
           }
         });
       });
 
     },
 
+
     showTimeline: function(){
       var self = this;
+
+      /*
+      $('#stream-items-container').infinitescroll({
+        // other options
+        dataType: 'json',
+        appendCallback: false
+      }, function(json, opts) {
+        // Get current page
+        var page = opts.state.currPage;
+        console.log("infinite scroll", json, opts);
+        // Do something with JSON data, create DOM elements, etc ..
+      });
+       */
 
       var ideas = this.model.timeline.query();
 
       array.forEach(ideas, function(item){
-        var i = new idea({idea: item, currentUser: self.model.currentUser, contacts: self.model.contacts}).placeAt("stream-items-container");
+        var options = {
+          idea: item,
+          currentUser: self.model.currentUser,
+          contacts: self.model.contacts
+        };
+
+        if (options.currentUser.appId === item.creator){
+          options.user = options.currentUser;
+        }
+
+        var i = new idea(options).placeAt("stream-items-container");
       });
 
       self.ideasHandler = ideas.observe(function(item, removedFrom, insertedInto){
-        console.log("observed", item, removedFrom, insertedInto);
         
         if(insertedInto > -1){ // new or updated object inserted
-          console.log('inserting new item');
-            var i = new idea({idea: item, currentUser: self.model.currentUser, contacts: self.model.contacts}).placeAt("stream-items-container", "first");
+          var i = new idea({idea: item, currentUser: self.model.currentUser, contacts: self.model.contacts}).placeAt("stream-items-container", "first");
         }
       });
 
@@ -183,6 +218,33 @@ define(["dojo/dom",
       var self = this;
 
       var p = new miniProfile({user: self.model.currentUser, miniProfile: self.model.miniProfile}).placeAt("profile-container");
+    },
+
+    showUserProfile: function(){
+      var self = this;
+      var user = self.model.currentUser
+        , mini = self.model.miniProfile;
+    
+      self.setUserNav();
+      var p = new userProfile({user: user, miniProfile: mini}).placeAt("userProfileContainer");
+    },
+
+    setUserNav: function(){
+      var mini = this.model.miniProfile
+        , user = this.model.currentUser;
+
+      var ideas = dom.byId("navIdeas");
+      var supporting = dom.byId("navSupporting");
+      var contacts = dom.byId("navContacts");
+      var money = dom.byId("navMoney");
+      var time = dom.byId("navTime");
+
+
+      ideas.innerHTML = mini.ideas;
+      supporting.innerHTML = mini.supporting;
+      contacts.innerHTML = mini.contacts;
+      money.innerHTML = user.account.pledgedIdeas.length;
+      time.innerHTML = user.account.pledgedTimeIdeas.length;
     }
 
     

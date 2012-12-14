@@ -14,7 +14,11 @@
     <script src="lib/jquery/jquery.js"></script>
     <script src="lib/bootstrap/js/bootstrap.min.js"></script>
     <script src="lib/moment/moment.min.js"></script>
+    <script src="lib/accounting/accounting.min.js"></script>
+    <script src="lib/jquery/jquery.validate.min.js"></script>
+    <script src="lib/jquery/jquery.infinitescroll.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="lib/md5/md5.js"></script>
     
 
     <!-- dojo           -->
@@ -28,15 +32,10 @@
       // load our app module and wait for the DOM to be ready
       require(['app/controllers/app', 'dojo/domReady!' ], function(app){
         //this let's us bootstrap the ideas from the server
-        app.init({_csrf:'<%=_csrf%>', ideas:JSON.parse(unescape('<%- ideas%>')), profile: JSON.parse(unescape('<%-profile%>')), user: JSON.parse(unescape('<%- user%>')), contacts: JSON.parse(unescape('<%- contacts%>'))});
+        app.init({_csrf:'<%=_csrf%>', ideas:JSON.parse(unescape('<%- ideas%>')), profile: JSON.parse(unescape('<%-profile%>')), user: JSON.parse(unescape('<%- user%>')), contacts: JSON.parse(unescape('<%- contacts%>')), menu: '<%=menu%>'});
       });
     </script>
 
-    <!-- STRIPE payment -->
-    <script type="text/javascript" src="https://js.stripe.com/v1/"></script>
-    <script type="text/javascript">
-      // this identifies your website in the createToken call below (NOTE TEST KEY)
-      Stripe.setPublishableKey('pk_CEEWnYHqepvKhinoNAP2PAbUXdbJ6');
-    </script>
+    
   </body>
 </html>

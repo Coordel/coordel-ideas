@@ -22,8 +22,11 @@ IntroController = function(store) {
         
         ideas = escape(JSON.stringify(ideas));
         console.log("ideas", ideas);
-        res.render('intro/index', {token: res.locals.token, title: 'Coordel', menu: 'ideas', ideas: ideas});
+        res.render('intro/index', {token: res.locals.token, title: 'Coordel', menu: "#menuIdeas", ideas: ideas});
       });
+    },
+    blueprints: function(req, res){
+      res.render('intro/index', {token: res.locals.token, title: 'Coordel', menu: '#menuBlueprints', ideas: JSON.stringify([])});
     }
   };
 
