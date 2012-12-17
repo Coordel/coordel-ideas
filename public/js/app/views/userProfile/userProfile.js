@@ -3,11 +3,12 @@ define([
     "dijit/_WidgetBase",
     "dijit/_TemplatedMixin",
     "dojo/text!./templates/userProfile.html",
+    "dojo/text!./templates/feedbackTip.html",
     "dojo/on",
     "dojo/dom-class",
     "dojo/topic",
     "dojo/request"
-], function(declare, _WidgetBase, _TemplatedMixin, template, on, domClass, topic, request) {
+], function(declare, _WidgetBase, _TemplatedMixin, template, tipHtml, on, domClass, topic, request) {
  
   return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -15,10 +16,13 @@ define([
 
     localCurrency: "USD",
 
+    miniProfile: null,
+
     //  your custom code goes here
     postCreate: function(){
       this.inherited(arguments);
       var self = this;
+      console.log("self.user", self.miniProfile);
 
       if (self.user.app.localCurrency){
         self.localCurrency = self.user.app.localCurrency;
@@ -38,7 +42,21 @@ define([
         }
       }
 
+      if (self.miniProfile.feedback){
+        if (self.miniProfile.feedback.avg > 0){
+          self.feedbackAvg.innerHTML = self.miniProfile.feedback.avg;
+        } else {
+          domClass.add(self.feedbackImage, "hide");
+        }
+      }
+
       self.setAccount();
+
+      $(self.feedbackScore).tooltip({
+        title: tipHtml,
+        placement: "right",
+        html: true
+      });
 
       topic.subscribe("coordel/addIdea", function(idea){
         if (self.user.appId === idea.creator){

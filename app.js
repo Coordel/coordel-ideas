@@ -21,11 +21,53 @@ var express = require('express')
   , moment = require('moment')
   , passport = require('passport')
   , TwitterStrategy = require('passport-twitter').Strategy
+  , OAuth2Strategy = require('passport-oauth').OAuth2Strategy
   , v1 = '/api/v1';
 
 io.set('log level', 1);
 
+//setup the stores
+var store = {
+  couch: require('./stores/couchdb').Store,
+  redis: require('./stores/redis').Store,
+  bitcoin: require('./stores/bitcoin').Store,
+  timeFormat: "YYYY-MM-DDTHH:mm:ss.SSSZ"
+};
+
 //configure passport
+var UserApp = require('./server/models/userApp')(store);
+
+//use the OAuth2Strategy within Passport
+passport.use('coinbase', new OAuth2Strategy({
+    authorizationURL: 'https://www.coinbase.com/oauth/authorize',
+    tokenURL: 'https://www.coinbase.com/oauth/token',
+    clientID: settings.auth.coinbase.clientId,
+    clientSecret: settings.auth.coinbase.clientSecret,
+    callbackURL: 'http://' + settings.coordelUrl + '/connect/coinbase/callback',
+    passReqToCallback: true
+  },
+  function(req, accessToken, refreshToken, profile, done) {
+
+    var appId = req.session.currentUser.appId;
+
+    var keys = [
+      {
+        name: "coinbaseAccessToken", value: accessToken
+      },
+      {
+        name: "coinbaseRefreshToken", value: refreshToken
+      }
+    ];
+
+    console.log("keys for coinbase", keys);
+
+    UserApp.set(appId, keys, function(err, app) {
+      console.log("updated app with coinbase keys", app);
+      done(err, app);
+    });
+  }
+));
+
 // Use the TwitterStrategy within Passport.
 //   Strategies in passport require a `verify` function, which accept
 //   credentials (in this case, a token, tokenSecret, and Twitter profile), and
@@ -76,16 +118,11 @@ passport.use(new TwitterStrategy({
   }
 ));
 
+
 //configure express
 require('./configure')(app, express, passport);
 
-//setup the stores
-var store = {
-  couch: require('./stores/couchdb').Store,
-  redis: require('./stores/redis').Store,
-  bitcoin: require('./stores/bitcoin').Store,
-  timeFormat: "YYYY-MM-DDTHH:mm:ss.SSSZ"
-};
+
 
 
 //authentication middleware
@@ -248,6 +285,11 @@ app.del('/ideas/:id/supported');
 app.post('/ideas/:id/time', Ideas.supportTime); //set up as Support Time in analytics
 app.put('/ideas/:id/time');
 app.del('/ideas/:id/time/');
+app.get('/ideas/:id/users', Ideas.findUsers);
+app.get('/ideas/:id/users/:appId/feedback', Ideas.getUserFeedback);
+app.post('/ideas/:id/users/:appId/feedback', Ideas.addUserFeedback);
+app.get('/ideas/:id/pledges/money', Ideas.findMoneyPledges);
+app.get('/ideas/:id/pledges/time', Ideas.findTimePledges);
 app.post('/ideas/:id/money', Ideas.supportMoney); //set up as Support Money in analytics
 app.put('/ideas/:id/money');
 app.del('/ideas/:id/money');
@@ -256,10 +298,10 @@ app.post('/ideas/:id/shared/:service'); //set up as Share Idea in analytics (wit
 app.get('/', loadUser, App.index);
 app.get('/blueprints', App.blueprints);
 app.get('/supporting', App.supporting);
-app.get('/contacts', App.user);
+app.get('/contacts', App.contacts);
 app.get('/money', App.moneyPledged);
 app.get('/time', App.timePledged);
-app.get('/:username', App.user);
+app.get('/:username', App.ideas);
 
 
 //settings
@@ -272,6 +314,26 @@ app.post('/coinbase/users', Coinbase.createUser);
 
 //bitcoin
 app.get('/bitcoin/prices', Bitcoin.getPrices);
+
+
+//coinbase routes
+// Redirect the user to the OAuth 2.0 provider for authentication.  When
+// complete, the provider will redirect the user back to the application at
+//     /connect/coinbase/callback
+app.get('/connect/coinbase', passport.authorize('coinbase'));
+
+app.get('/connect/coinbase/error', function(req, res){
+  res.render('coinbaseError.ejs');
+});
+
+//The OAuth 2.0 provider has redirected the user back to the application.
+// Finish the authentication process by attempting to obtain an access
+// token.  If authorization was granted, the user will be logged in.
+// Otherwise, authentication has failed.
+app.get('/connect/coinbase/callback',
+  passport.authorize('coinbase', {failureRedirect: '/login' }), function(req, res){
+    res.render('close');
+  });
 
 
 //twitter routes

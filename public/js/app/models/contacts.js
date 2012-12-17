@@ -7,7 +7,7 @@ define(["dojo/store/Memory",
   var contactStore = {
 
     init: function(userid){
-      //creates the ideas store
+      //creates the contacts store
       var remote = new JsonRest({
         target: "/api/v1/users/" + userid + "/contacts"
       });

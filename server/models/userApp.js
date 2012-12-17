@@ -1,7 +1,8 @@
 /* Coordel Pledge
   A pledge tracks what someone who pleges money gives
 */
-var _ = require('underscore');
+var _ = require('underscore')
+  , md5 = require('MD5');
 
 
 module.exports = function(store) {
@@ -261,17 +262,26 @@ module.exports = function(store) {
           multi.exec(function(err, apps){
             if (err) return fn(err);
             
-            //need to make sure that there aren't any nulls
-            apps = _.filter(apps, function(a){
-              return a;
+            //need to send back only the contact info
+            apps = _.map(apps, function(a){
+              if (a){
+                return {
+                  firstName: a.firstName,
+                  fullName: a.fullName,
+                  appId: a.id,
+                  lastName: a.lastName,
+                  user: a.user,
+                  userId: a.userId,
+                  username: a.username,
+                  imageUrl: 'http://www.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+                };
+              }
             });
             return fn(null, apps);
           });
         } else {
           return fn(null, []);
         }
-
-        
       });
     },
 
@@ -282,7 +292,7 @@ module.exports = function(store) {
       //forbidden fields - can't update these fields with this function
       var forbidden = ['id','userId', 'email', 'password', 'username'];
       if (vals.length){
-        var multi = redis.multi()
+        var multi = store.redis.multi()
           , doUpdate = false;
         var key = 'coordelapp:' + appId;
         _.each(vals, function(item){
@@ -293,9 +303,11 @@ module.exports = function(store) {
         });
 
         if (doUpdate){
+          multi.hgetall(key);
           multi.exec(function(err, replies){
+            console.log('set replies', replies);
             if (err) fn(err);
-            fn(null, replies);
+            fn(null, _.last(replies));
           });
         }
       }

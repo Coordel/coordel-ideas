@@ -12,18 +12,48 @@ define([
 
     templateString: template,
 
-    contacts: ["foo", "bar"],
+    placeholder: false,
+
+    value: null,
+
+    contacts: [],
 
     //  your custom code goes here
     postCreate: function(){
       this.inherited(arguments);
       
       var self = this;
-     
-      $(self.picker).typeahead({
-        source: ["foo", "bar"]
+
+      if (self.placeholder){
+        self.inputControl.placeholder = self.placeholder;
+      }
+
+      $(self.inputControl).typeahead({
+        source: function (query, process) {
+
+          var labels=[];
+
+          $.each(self.contacts, function (i, item) {
+            labels.push(JSON.stringify(item));
+          });
+
+          process(labels);
+        }
+      , updater: function (item) {
+          var newitem = JSON.parse(item);
+          self.value = newitem.appId;
+          return newitem.fullName;
+        }
+      , highlighter: function(item){
+          var newitem = JSON.parse(item);
+          var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+          var fullName = newitem.fullName.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+            return '<strong>' + match + '</strong>';
+          });
+          return "<div><img class='img-typeahead' src='" + newitem.imageUrl + "'/>" + fullName + "</div>";
+        }
+      
       });
-      console.log("picker", self.picker, self.contacts);
     }
   });
 });

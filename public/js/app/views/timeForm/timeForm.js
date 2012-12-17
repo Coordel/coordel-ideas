@@ -2,11 +2,13 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/dom
 
   var timeFormControl = {
 
+    user: null,
+
     init: function(user){
       var self = this;
 
       self.user = user;
-      
+  
       var hoursInput = dom.byId("supportTimeHours");
 
       on(dom.byId("supportTimeSubmit"), "click", function(){

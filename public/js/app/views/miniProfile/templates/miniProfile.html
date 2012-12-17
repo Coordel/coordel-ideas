@@ -1,7 +1,8 @@
 <div>
   <!-- Profile recap -->
-  <div style="margin-bottom: 9px">
-    <img src="/img/feedback.png" class="pull-right"/>
+  <div style="margin-bottom: 9px; position:relative;">
+    <img data-dojo-attach-point="feedbackImage" src="/img/feedback.png" class="pull-right"/>
+    <span data-dojo-attach-point="feedbackAvg" style="position:absolute; top:8px; right: 7px;color:#fff;"></span>
     <img data-dojo-attach-point="profileImage" style="margin-right: 9px;" height="36" width="36" src="" class="img-rounded pull-left"/>
     <div class="clearfix">
       <div><a href="" data-dojo-attach-point="profileName" class="fullname"></a></div>
@@ -24,9 +25,15 @@
         </a>
       </li>
       <li class="stats">
-        <a href="/contacts">
-          <strong data-dojo-attach-point="contacts">0</strong>
-          CONTACTS
+        <a href="/time">
+          <strong data-dojo-attach-point="time">0</strong>
+          WITH TIME
+        </a>
+      </li>
+      <li class="stats">
+        <a href="/money">
+          <strong data-dojo-attach-point="money">0</strong>
+          WITH MONEY
         </a>
       </li>
     </ul>

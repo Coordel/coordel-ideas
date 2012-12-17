@@ -111,6 +111,36 @@ AppController = function(store) {
       });
     },
 
+    contacts: function(req, res){
+      var user = req.session.currentUser;
+
+      async.parallel({
+        extendedUser: function(cb){
+          extendUser(req.session.currentUser, function(e, ext){
+            cb(null,ext);
+          });
+        }
+      },
+      function(e, results) {
+
+        //compress the user
+        var ext = compressExtendedUser(results.extendedUser);
+        
+        res.render('user', {
+          token: res.locals.token,
+          title: req.session.currentUser.fullName,
+          menu: '#menuMe',
+          subNav: 'contacts',
+          user: ext.user,
+          ideas: compress([]),
+          profile: ext.profile,
+          contacts: ext.contacts,
+          username: req.session.username,
+          _csrf: req.session._csrf
+        });
+      });
+    },
+
     blueprints: function(req, res){
       res.render('blueprints.ejs', {
         token: res.locals.token,
@@ -136,7 +166,8 @@ AppController = function(store) {
              
             } else {
               console.log('account', o);
-              Idea.findBatch(o.pledgedIdeas, function(e, o){
+              var batch = _.union(o.pledgedIdeas, o.proxiedIdeas, o.recurringAllocatedPledges);
+              Idea.findBatch(batch, function(e, o){
                 if (e){
                   cb('error '+e);
                 } else {
@@ -149,7 +180,9 @@ AppController = function(store) {
       },
       function(e, results) {
 
-        console.log("ideas", results.ideas);
+        _.each(results.ideas, function(item){
+          item.pledgeType="money";
+        });
 
         //compress the user
         var ext = compressExtendedUser(results.extendedUser);
@@ -158,6 +191,7 @@ AppController = function(store) {
           token: res.locals.token,
           title: req.session.currentUser.fullName,
           menu: '#menuMe',
+          subNav: 'moneyPledged',
           user: ext.user,
           ideas: compress(results.ideas),
           profile: ext.profile,
@@ -197,7 +231,9 @@ AppController = function(store) {
       },
       function(e, results) {
 
-        console.log("ideas", results.ideas);
+        _.each(results.ideas, function(item){
+          item.pledgeType="time";
+        });
 
         //compress the user
         var ext = compressExtendedUser(results.extendedUser);
@@ -206,6 +242,7 @@ AppController = function(store) {
           token: res.locals.token,
           title: req.session.currentUser.fullName,
           menu: '#menuMe',
+          subNav: 'timePledged',
           user: ext.user,
           ideas: compress(results.ideas),
           profile: ext.profile,
@@ -215,8 +252,6 @@ AppController = function(store) {
         });
       });
     },
-
-
 
     supporting: function(req, res){
       var user = req.session.currentUser;
@@ -240,7 +275,7 @@ AppController = function(store) {
       },
       function(e, results) {
 
-        console.log("ideas", results.ideas);
+        //console.log("ideas", results.ideas);
 
         //compress the user
         var ext = compressExtendedUser(results.extendedUser);
@@ -249,6 +284,7 @@ AppController = function(store) {
           token: res.locals.token,
           title: req.session.currentUser.fullName,
           menu: '#menuMe',
+          subNav: 'supporting',
           user: ext.user,
           ideas: compress(results.ideas),
           profile: ext.profile,
@@ -259,7 +295,7 @@ AppController = function(store) {
       });
     },
 
-    user: function(req, res){
+    ideas: function(req, res){
       var user = req.session.currentUser;
 
       async.parallel({
@@ -284,7 +320,7 @@ AppController = function(store) {
           return item.value;
         });
 
-        console.log("ideas", ideas);
+        //console.log("ideas", ideas);
 
         //compress the user
         var ext = compressExtendedUser(results.extendedUser);
@@ -293,6 +329,7 @@ AppController = function(store) {
           token: res.locals.token,
           title: req.session.currentUser.fullName,
           menu: '#menuMe',
+          subNav: 'ideas',
           user: ext.user,
           ideas: compress(ideas),
           profile: ext.profile,
@@ -325,8 +362,10 @@ AppController = function(store) {
       profile: function(cb){
         Profile.findMiniProfile(user, function(e, o){
           if (e){
+            console.log("mini profile error", e);
             cb('error' + e);
           } else {
+            console.log("mini profile", o);
             cb(null, o);
           }
         });
@@ -379,6 +418,8 @@ AppController = function(store) {
 
       //add the contacts to the extension
       ext.contacts = contacts;
+
+      console.log("profile", results.profile);
 
       //add the profile to the extension
       ext.profile = results.profile;

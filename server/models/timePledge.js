@@ -1,6 +1,8 @@
 /* Coordel Pledge
   A pledge tracks who pledges money
 */
+var _ = require('underscore');
+
 module.exports = function(store) {
 
   var validator = require('revalidator')
@@ -20,6 +22,16 @@ module.exports = function(store) {
 
     findByIdea: function(idea, fn){
       //couchdb view ideaPledges startkey[idea._id] endkey[idea._id, {}]
+      store.couch.db.view('coordel/ideaTimePledges', {startkey: [idea], endkey:[idea,{}], include_docs: true}, function(e, o){
+        if (e){
+          fn(e);
+        } else {
+          o = _.map(o, function(item){
+            return item.doc;
+          });
+          fn(null, o);
+        }
+      });
     },
 
     findByUser: function(user, fn){

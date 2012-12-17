@@ -1,4 +1,6 @@
 <div class="idea">
+  <i data-dojo-attach-point="dogear"></i>
+
   <div class="stream-entry">
     <div class="content">
       <div class="">
@@ -15,18 +17,19 @@
         <p class="idea-text" data-dojo-attach-point="name"></p>
         <div class="idea-footer">
           <span><a data-dojo-attach-point="toggler">expand</a></span>
+          <span data-dojo-attach-point="doFeedbackContainer" class="hide"><i class="icon-feedback"></i> <a data-dojo-attach-point="doFeedback" data-toggle="modal" data-target="#feedbackModal">feedback</a></span>
           <span data-dojo-attach-point="ideaActions" class="hide">
             <span class="dropdown"><i class="icon-heart icon-blue"></i> <a  class="dropdown-toggle" data-toggle="dropdown" href="#">support</a><ul class="dropdown-menu">
                 <li data-dojo-attach-point="pledgeSupportContainer"><a data-dojo-attach-point="pledgeSupport" data-placement="right" data-content="Adds this idea to your supporting list">Great idea!</a></li>
                 <li data-dojo-attach-point="pledgeTimeContainer"><a data-dojo-attach-point="pledgeTime" data-toggle="modal" data-target="#supportTimeModal">Pledge time</a></li>
-                <li class="hide"><a data-dojo-attach-point="reportTime" data-toggle="modal" data-target="#reportTimeModal">Report time</a></li>
+                <li data-dojo-attach-point="reportTimeContainer"  class="hide"><a data-dojo-attach-point="reportTime" data-toggle="modal" data-target="#reportTimeModal">Report time</a></li>
                 <li data-dojo-attach-point="pledgeMoneyContainer"><a data-dojo-attach-point="pledgeMoney" data-toggle="modal" data-target="#supportMoneyModal">Pledge money</a></li>
-                <li class="hide"><a data-dojo-attach-point="releaseMoney" data-toggle="modal" data-target="#releaseMoneyModal">Release money</a></li>
-                <li class="hide"><a data-dojo-attach-point="" data-toggle="modal" data-target="#">Add proxy</a></li>
-                <li class="hide"><a data-dojo-attach-point="" data-toggle="modal" data-target="#">Remove proxy</a></li>
-                <li class="hide"><a data-dojo-attach-point="" data-toggle="modal" data-target="#">Edit</a></li>
-                <li class="hide"><a data-dojo-attach-point="" data-toggle="modal" data-target="#">Cancel</a></li>
-
+                <li data-dojo-attach-point="releaseMoneyContainer" class="hide"><a data-dojo-attach-point="releaseMoney" data-toggle="modal" data-target="#allocateModal">Allocate pledge</a></li>
+                <li data-dojo-attach-point="addProxyContainer" class="hide"><a data-dojo-attach-point="addProxy" data-toggle="modal" data-target="#addProxyModal">Proxy allocation</a></li>
+                <li data-dojo-attach-point="removeProxyContainer" class="hide"><a data-dojo-attach-point="removeProxy" data-toggle="modal" data-target="#removeProxyModal">Remove proxy</a></li>
+                <li data-dojo-attach-point="editContainer" class="hide"><a data-dojo-attach-point="" data-toggle="modal" data-target="#">Edit</a></li>
+                <li data-dojo-attach-point="cancelMoneyContainer" class="hide"><a data-dojo-attach-point="cancelMoney" data-toggle="modal" data-target="#cancelMoneyPledgeModal">Cancel money pledge</a></li>
+                <li data-dojo-attach-point="cancelTimeContainer" class="hide"><a data-dojo-attach-point="cancelTime" data-toggle="modal" data-target="#cancelTimePledgeModal">Cancel time pledge</a></li>
               </ul>
             </span>
             <span><i class="icon-user icon-blue"></i> <a data-dojo-attach-point="doInvite">invite</a></span>
@@ -37,10 +40,8 @@
                 <li class="hide"><a data-dojo-attach-point="" data-toggle="modal" data-target="#">Deallocate</a></li>
                 <li><a data-dojo-attach-point="" data-toggle="modal" data-target="#">Accept</a></li>
                 <li class="hide"><a data-dojo-attach-point="" data-toggle="modal" data-target="#">Decline</a></li>
-                <li><a data-dojo-attach-point="" data-toggle="modal" data-target="#">Show details</a></li>
-            
               </ul>
-          </span>
+            </span>
           </span>
         </div>
       </div>

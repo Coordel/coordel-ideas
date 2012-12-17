@@ -4,6 +4,31 @@
   width: 345px;
 }
 
+.dogear .tooltip {
+  min-width: 100px;
+}
+
+.typeahead { z-index: 1051; }
+.typeahead .active > a,
+.typeahead .active > a:hover {
+    color: white;
+
+    /* Change the typeahead background color here if you'd like 
+    background-color: Green;*/
+
+    /* Turns off the default background gradients 
+    background-image: none;*/
+}
+
+.img-typeahead {
+  height: 24px;
+  width: 24px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  margin-right: 4px;
+}
+
 .help {
   cursor: pointer;
   opacity: .2;
@@ -94,8 +119,12 @@
 .profile-feedback-score {
   color: #fff; 
   position:absolute; 
-  top:72px; 
-  left:306px;
+  top:66px; 
+  left:298px;
+  height: 35px;
+  line-height: 35px;
+  width: 32px;
+  cursor: pointer;
 }
 
 .profile-stats {
@@ -126,9 +155,102 @@
   font-weight: bold;
 }
 
+/* feedback */
+.feedback .ui-slider {
+  width: 317px;
+  margin-top: 26px;
+}
+
+.feedback td strong {
+  font-size: 14px;
+}
+
+
+/* contact */
+.contact {
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
+
+.contact .table th, .contact .table td , .feedback .table th, .feedback .table td{
+  padding: 4px;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+}
+
+/* icons */
+
+.icon-feedback {
+  height: 14px;
+  width: 14px;
+  display: inline-block;
+  background: url('../img/feedback_mini.png') no-repeat center center;
+}
+
+.icon-dogear-proxy {
+  height: 24px;
+  width: 24px;
+  display:inline-block;
+  background: url('../img/dogear_proxy.png') no-repeat;
+  position: absolute;
+  top: -1px;
+  right: 0;
+}
+
+.icon-dogear-recurring {
+  height: 24px;
+  width: 24px;
+  display:inline-block;
+  background: url('../img/dogear_recurring.png') no-repeat;
+  position: absolute;
+  top: -1px;
+  right: 0;
+}
+
+.icon-dogear-recurring-stopped {
+  height: 24px;
+  width: 24px;
+  display:inline-block;
+  background: url('../img/dogear_recurring_stopped.png') no-repeat;
+  position: absolute;
+  top: -1px;
+  right: 0;
+}
+
+.icon-dogear-both {
+  height: 24px;
+  width: 24px;
+  display:inline-block;
+  background: url('../img/dogear_both.png') no-repeat;
+  position: absolute;
+  top: -1px;
+  right: 0;
+}
+
+.icon-dogear-both-stopped {
+  height: 24px;
+  width: 24px;
+  display:inline-block;
+  background: url('../img/dogear_both_stopped.png') no-repeat;
+  position: absolute;
+  top: -1px;
+  right: 0;
+}
+
+
+
 /* allocation styles */
 .allocation {
   border-top: 1px solid #E8E8E8;
   background-color: #f6f6f6;
   padding: 9px 12px;
+}
+
+.pledge-allocation td {
+  text-align: center;
+}
+
+.pledge-allocation td strong {
+  font-size: 22px;
 }

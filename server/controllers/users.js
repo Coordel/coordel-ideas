@@ -47,7 +47,7 @@ UsersController = function(store) {
       userData.userId = ids[0];
       userData.appId = ids[1];
       
-      console.log("register userData", userData);
+      //console.log("register userData", userData);
 
       //in the original app, firstName and lastName were used. in the latest version, that was replaced with fullname
       //to maintain compatibility, need to try and create the first and last names from the fullname given

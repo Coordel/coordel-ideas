@@ -13,7 +13,11 @@ define(["app/models/ideas", "app/models/timeline"], function(ideasModel, timelin
 
     miniProfile: null,
 
+    bitcoinPrices: null,
+
     init: function(args){
+      var self = this;
+
       //the timeline is in memory and bootstrapped from the server on load
       this.timeline = timelineModel.bootstrap(args.ideas);
 

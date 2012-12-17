@@ -152,6 +152,94 @@ module.exports = function(store) {
       //returns supporting time investors (idea.users) + LLEN ideas:[id]:supporting + money investors (get pledges startkey[id], endkey[id,{}])
     },
 
+    addUserFeedback: function(args, fn){
+      //{ideaId, "xadfdfd", appId: "1",feedback: {from: "2", coordination: 88, performance: 98, comment: "comment", created: "date"} }
+      var couch = store.couch;
+
+      couch.db.get(args.ideaId, function(e, idea){
+        if(e){
+          fn({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          _.each(idea.assignments, function(assign){
+            //only give feedback to people who accepted a role in the idea and who
+            //weren't only followers
+            if (assign.username === args.appId){
+              if (!assign.feedback){
+                assign.feedback = [];
+              }
+              assign.feedback.push(args.feedback);
+              couch.db.save(idea, function(e, o){
+                if (e){
+                  fn({
+                    success: false,
+                    errors: [e]
+                  });
+                } else {
+                  fn({
+                    success: true,
+                    idea: idea
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+    },
+
+    findUsers: function(ideaId, fn){
+      var couch = store.couch
+        , multi = store.redis.multi();
+
+      //console.log("ideaId", ideaId);
+      couch.db.get(ideaId, function(e, idea){
+        if (e){
+          fn(e);
+        } else {
+
+        var appIds = idea.users;
+
+        if (!appIds) appIds = [];
+      
+          //console.log('appIds', appIds);
+
+          appIds.forEach(function(id){
+            var akey = 'coordelapp:' + id;
+            //console.log("GET USER APP FOR KEY", akey);
+            multi.hgetall(akey);
+          });
+
+          if (appIds.length){
+            multi.exec(function(err, apps){
+              if (err) return fn(err);
+              
+              //need to send back only the contact info
+              apps = _.map(apps, function(a){
+                if (a){
+                  return {
+                    firstName: a.firstName,
+                    fullName: a.fullName,
+                    appId: a.id,
+                    lastName: a.lastName,
+                    user: a.user,
+                    userId: a.userId,
+                    username: a.username,
+                    imageUrl: 'http://www.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+                  };
+                }
+              });
+              return fn(null, apps);
+            });
+          } else {
+            return fn(null, []);
+          }
+        }
+      });
+    },
+
     findUserSupporting: function(appId, fn){
 
       var redis = store.redis
@@ -170,7 +258,7 @@ module.exports = function(store) {
           });
 
           loadBatch(keys, function(e, o){
-            console.log("batch", o);
+            //console.log("batch", o);
             fn(null, o);
           });
           
@@ -201,7 +289,7 @@ module.exports = function(store) {
           total = o[0].value;
         }
 
-         console.log("results from reduce call", total);
+         //console.log("results from reduce call", total);
       });
 
       
@@ -285,11 +373,11 @@ module.exports = function(store) {
 
         //validate the idea
         var v = validator.validate(idea, Schema);
-        console.log("validator", v, idea);
+        //console.log("validator", v, idea);
         if (v.valid){
           //add the idea to the couchdb as an opportunity
           store.couch.db.save(idea, function(e, o){
-            console.log("saved to couch", e,o);
+            //console.log("saved to couch", e,o);
             if (e) {
               fn(e);
             } else {
@@ -305,7 +393,7 @@ module.exports = function(store) {
 
     support: function(ideaId, userId, fn){
 
-      console.log("ideaId", ideaId, "userId", userId);
+      //console.log("ideaId", ideaId, "userId", userId);
 
       var multi = store.redis.multi();
       //creates a supporting entry for this user and adds the supporting user to the idea
@@ -320,11 +408,11 @@ module.exports = function(store) {
         if (e){
           res(e);
         } else {
-          console.log("support in idea.js", e, o);
+          //console.log("support in idea.js", e, o);
           //if this user hadn't already supported this idea then increment the trending score
           if (o[0] && o[1]){
             store.redis.zincrby('global:trending', 1, ideaId);
-            console.log("trending added");
+            //console.log("trending added");
           }
 
           fn(null, o);
@@ -336,7 +424,7 @@ module.exports = function(store) {
       var self = Idea;
       //get the idea
       store.couch.db.get(id, function(e, idea){
-        console.log("got the idea", idea, self);
+        //console.log("got the idea", idea, self);
 
         var username = sender.appId
           , hasUser = false;
@@ -437,13 +525,13 @@ module.exports = function(store) {
       a.updated = timestamp;
       a.updater = user.appId;
 
-      console.log("saving reply", a);
+      //console.log("saving reply", a);
       
       store.couch.db.save(a, function(e, o){
         if (e){
           fn(e);
         } else {
-          console.log("reply from saving reply", o);
+          //console.log("reply from saving reply", o);
           a._rev = o.rev;
           fn(null, a);
         }
@@ -462,7 +550,7 @@ module.exports = function(store) {
         rev: "-1"
       };
 
-      console.log("in addActivity", defaults, opts);
+      //console.log("in addActivity", defaults, opts);
       
       //we use the rev to track the history. that way the alerts can be tested against the rev
       if (idea._rev){
@@ -480,7 +568,7 @@ module.exports = function(store) {
     },
 
     setVersion: function(doc){
-      console.log("setting version", doc.name, doc.docType);
+      //console.log("setting version", doc.name, doc.docType);
       //this tracks the versions of this doc.
       //if the doc doesn't have versions create them
       if (!doc.versions){

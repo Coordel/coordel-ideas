@@ -4,14 +4,25 @@ define(["dojo/dom",
   "dojo/_base/array",
   "dojo/on",
   "dojo/dom-class",
+  "dojo/request",
   "app/models/app",
   "app/views/miniProfile/miniProfile",
   "app/views/userProfile/userProfile",
   "app/views/idea/idea",
   "app/views/moneyForm/moneyForm",
   "app/views/timeForm/timeForm",
+  "app/views/contact/contact",
+  "app/views/allocateForm/allocateForm",
+  "app/views/addProxyForm/addProxyForm",
+  "app/views/cancelMoneyForm/cancelMoneyForm",
+  "app/views/removeProxyForm/removeProxyForm",
+  "app/views/feedbackForm/feedbackForm",
   "app/views/addForm/addForm",
-  "dojo/domReady!" ], function(dom, topic, cookie, array, on, domClass, model, miniProfile, userProfile, idea, moneyForm, timeForm){
+  "dojo/domReady!" ], function(dom
+                    , topic, cookie, array, on, domClass, request
+                    , model, miniProfile, userProfile, idea, moneyForm
+                    , timeForm, contact, allocate, addProxy
+                    , cancelMoneyForm, removeProxyForm, feedbackForm){
 
   var app = {
     max: {
@@ -27,12 +38,68 @@ define(["dojo/dom",
 
       console.log("init app", args );
       this.currentMenu = args.menu;
+      this.subNav = args.subNav;
       this.model= model.init(args);
+      this.contacts = args.contacts;
       this.show();
-      moneyForm.init(args.user);
+     
       timeForm.init(args.user);
+    
+      request("/bitcoin/prices", {
+        handleAs: "json"
+      }).then(function(prices){
+        self.bitcoinPrices = prices;
+        moneyForm.init(args.user, prices);
+        allocate.init(args.user, prices);
+        addProxy.init(args.user, prices, args.contacts);
+        cancelMoneyForm.init(args.user, prices);
+        removeProxyForm.init(args.user, prices);
+        feedbackForm.init(args.user);
+      });
+      
 
     },
+
+    setSubNav: function(subnav){
+      var self = this;
+
+      var options = {
+        header: 'Ideas',
+        subNavId: 'subNavIdeas'
+      };
+
+      switch (subnav){
+        case 'ideas':
+        break;
+        case 'supporting':
+          options.header = "Supporting";
+          options.subNavId = "subNavSupporting";
+        break;
+        case 'moneyPledged':
+          options.header = "Pledged money";
+          options.subNavId = "subNavMoney";
+        break;
+        case 'timePledged':
+          options.header = "Pledged time";
+          options.subNavId = "subNavTime";
+        break;
+        case 'contacts':
+          options.header = "Contacts";
+          options.subNavId = "subNavContacts";
+        break;
+        case 'feedback':
+          options.header = "Feedback";
+          options.subNavId = "subNavFeedback";
+        break;
+      }
+
+      dom.byId("mainColumnHeader").innerHTML = options.header;
+
+      self.subNavId = options.subNavId;
+
+      domClass.add(options.subNavId, "active");
+    },
+
     show: function(){
 
       var self = this;
@@ -61,7 +128,17 @@ define(["dojo/dom",
 
       if (self.model.currentUser && this.currentMenu === "#menuMe"){
         self.showUserProfile();
-        self.showTimeline();
+        self.setSubNav(self.subNav);
+        console.log("subNav", self.subNav);
+        if (self.subNav && self.subNav === "contacts"){
+          self.showContacts();
+        } else if (self.subNav && self.subNav === "supporting"){
+          console.log("setting feedback to true");
+          self.showTimeline({showFeedback: true});
+        } else {
+          self.showTimeline({showDogears: true});
+        }
+        
       }
 
       $('#sign-out').click(function(){
@@ -170,9 +247,23 @@ define(["dojo/dom",
 
     },
 
+    showContacts: function(){
+      console.log("contacts");
+      var self = this
+        , contacts = this.contacts;
 
-    showTimeline: function(){
+      array.forEach(contacts, function(item){
+        
+
+        var i = new contact({contact: item}).placeAt("stream-items-container");
+      });
+    },
+
+
+    showTimeline: function(args){
       var self = this;
+
+     
 
       /*
       $('#stream-items-container').infinitescroll({
@@ -200,13 +291,27 @@ define(["dojo/dom",
           options.user = options.currentUser;
         }
 
+        if (args && args.showDogears){
+          options.showDogears = true;
+        }
+
+        if (args && args.showFeedback){
+          options.showFeedback = true;
+        }
+
+        if (self.subNavId){
+          options.subNavId = self.subNavId;
+        }
+
+
+
         var i = new idea(options).placeAt("stream-items-container");
       });
 
       self.ideasHandler = ideas.observe(function(item, removedFrom, insertedInto){
         
         if(insertedInto > -1){ // new or updated object inserted
-          var i = new idea({idea: item, currentUser: self.model.currentUser, contacts: self.model.contacts}).placeAt("stream-items-container", "first");
+          var i = new idea({idea: item, subNavId: self.subNavId, currentUser: self.model.currentUser, contacts: self.model.contacts}).placeAt("stream-items-container", "first");
         }
       });
 
@@ -243,7 +348,7 @@ define(["dojo/dom",
       ideas.innerHTML = mini.ideas;
       supporting.innerHTML = mini.supporting;
       contacts.innerHTML = mini.contacts;
-      money.innerHTML = user.account.pledgedIdeas.length;
+      money.innerHTML = user.account.pledgedIdeas.length + user.account.proxiedIdeas.length;
       time.innerHTML = user.account.pledgedTimeIdeas.length;
     }
 

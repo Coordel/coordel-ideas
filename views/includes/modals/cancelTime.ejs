@@ -1,0 +1,29 @@
+<div>
+  <div id="cancelTimePledgeModal" data-backdrop="false" class="modal hide in">  
+    <div class="modal-header">  
+    <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
+    <h4 style="text-align: center">Cancel your <span id="cancelTimeType"></span> pledge</h4>  
+  </div>  
+  
+  <div class="modal-body">  
+    <div id="cancelTimeAction" class="pledge-allocation">
+      <fieldset style="width: 400px; margin: auto;">
+        <table class="table table-bordered">
+          <tr>
+            <td >
+              <strong><span id="cancelTimeHours">0.00</span></strong>
+              <div>HOURS PLEDGED</div>
+            </td>
+          </tr>
+        </table>
+      </fieldset>
+    </div>
+    <div id="cancelTimeError" class="alert alert-error hide">
+      Woops, either we didn't find your pledge or something went wrong. Please close this dialog and try again. If the problem continues, please contact <strong><a style="color: #B94A48;" href="http://coordel.desk.com">Support</a></strong>.
+    </div>
+  </div>  
+  <div class="modal-footer" style="text-align: left">
+    <input id="cancelTimeSubmit" type="submit" value="Cancel" href="#" class="btn btn-danger pull-right">
+    <input id="cancelTimeIdea" type="hidden">
+  </div>            
+</div>

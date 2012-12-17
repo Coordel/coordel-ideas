@@ -12,7 +12,9 @@ var v1       = '/api/v1'
 IdeasController = function(store, socket) {
 
   var Idea = require('../models/idea')(store)
-    , UserApp = require('../models/userApp')(store);
+    , UserApp = require('../models/userApp')(store)
+    , MoneyPledge = require('../models/moneyPledge')(store)
+    , TimePledge = require('../models/timePledge')(store);
 
   function parsePurpose(purpose){
     //NOTE: this is just rudimentary
@@ -60,7 +62,7 @@ IdeasController = function(store, socket) {
       } else {
 
         //if it wasn't already supported notify
-        console.log("results", o[0], o[1]);
+        //console.log("results", o[0], o[1]);
         if (o[0] && o[1]){
           //make a global:trending entry for this idea if this user hadn't already been supporting
           res.json({success: "1"});
@@ -72,6 +74,26 @@ IdeasController = function(store, socket) {
   }
 
   var Ideas = {
+
+    addUserFeedback: function(req, res){
+      var ideaId = req.params.id
+        , appId = req.params.appId
+        , feedback = req.body;
+
+      var args = {
+        ideaId: req.params.id,
+        appId: req.params.appId,
+        feedback: req.body
+      };
+
+      Idea.addUserFeedback(args, function(e, o){
+        if (e){
+          res.json(e);
+        } else {
+          res.json(o);
+        }
+      });
+    },
 
     findStream: function(req, res){
       var id = req.params.id;
@@ -97,12 +119,12 @@ IdeasController = function(store, socket) {
     findDetails: function(req, res){
       var id= req.params.id;
 
-      console.log("getting details", id);
+      //console.log("getting details", id);
       // an example using an object instead of an array
       async.parallel({
         idea: function(cb){
           store.couch.db.get(id, function(e, idea){
-            console.log("idea refresh", e, idea);
+            //console.log("idea refresh", e, idea);
             if (e){
               cb(e);
             } else {
@@ -112,7 +134,7 @@ IdeasController = function(store, socket) {
         },
         supporting: function(cb){
           store.redis.smembers('ideas:' + id + ':supporting', function(e, o){
-            console.log("smembers", e, o);
+            //console.log("smembers", e, o);
             if (e){
               cb(e);
             } else {
@@ -131,7 +153,7 @@ IdeasController = function(store, socket) {
         if (e){
           res.json({error: e});
         } else {
-          console.log("results", results);
+          //console.log("results", results);
           var idea = results.idea
             , supporting = results.supporting
             , following = 0
@@ -170,7 +192,39 @@ IdeasController = function(store, socket) {
       //returns all the ideas this user has created
     },
 
-    
+    findUsers: function(req, res){
+
+      var id = req.params.id;
+      Idea.findUsers(id, function(e, o){
+        //console.log("found users", e, o);
+        if (e){
+          res.json(e);
+        } else {
+          res.json(o);
+        }
+      });
+
+    },
+
+    findMoneyPledges: function(req, res){
+      //get all the money pledges for this idea
+      var idea = req.params.id;
+
+      MoneyPledge.findByIdea(idea, function(e, o){
+        res.json(o);
+      });
+
+    },
+
+    findTimePledges: function(req, res){
+      //get all the money pledges for this idea
+      var idea = req.params.id;
+
+      TimePledge.findByIdea(idea, function(e, o){
+        res.json(o);
+      });
+
+    },
 
     create: function(req, res){
       //console.log("called ideas create");
@@ -216,7 +270,7 @@ IdeasController = function(store, socket) {
       var id = req.body.id
         , userid = req.session.currentUser.appId;
 
-      console.log("support", id, userid);
+      //console.log("support", id, userid);
 
       support(id, userid, res);
     },
@@ -230,7 +284,7 @@ IdeasController = function(store, socket) {
         , id = req.body.id
         , self = Ideas;
 
-      console.log("supportTime", id, sender);
+      //console.log("supportTime", id, sender);
 
       Idea.follow(id, sender, function(e, o){
         if (e){
@@ -246,7 +300,7 @@ IdeasController = function(store, socket) {
         , user = req.session.currentUser
         , idea = JSON.parse(req.body.idea);
 
-      console.log("reply", idea, user, message);
+      //console.log("reply", idea, user, message);
 
       Idea.addMessage(idea, user, message, function(e, o){
         if (e){
@@ -265,7 +319,7 @@ IdeasController = function(store, socket) {
         , toName = req.body.toName
         , toEmail = req.body.toEmail;
 
-      console.log("send invite", message, toName, toEmail, user, idea);
+      //console.log("send invite", message, toName, toEmail, user, idea);
 
       res.json({success: "okay"});
     },

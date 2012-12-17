@@ -15,15 +15,14 @@ define(["dojo/dom",
 
     localCurrency: "USD",
 
-    init: function(user){
+    init: function(user, prices){
       var self = this;
 
       self._csrf = $('#addIdea_csrf').val();
+
       self.user = user;
 
-      if (!self.bitcoinPrices){
-        self.getPrices();
-      }
+      self.bitcoinPrices = prices;
 
       if (user.app.localCurrency){
         self.localCurrency = user.app.localCurrency;
@@ -183,15 +182,6 @@ define(["dojo/dom",
           fn(resp);
           //the login won't work for sure because we don't have a password
           //but we can go through the error to see if the email already exists
-      });
-    },
-
-    getPrices: function(){
-      var self = this;
-      request("/bitcoin/prices", {
-        handleAs: "json"
-      }).then(function(prices){
-        self.bitcoinPrices = prices;
       });
     },
 

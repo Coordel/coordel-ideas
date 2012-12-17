@@ -1,14 +1,15 @@
 <div>
   <div class="profile-main">
     <img data-dojo-attach-point="profileImage" class="profile-image img-rounded" src=""/>
-    <img class="profile-feedback-container" src="/img/feedback.png"/>
-    <span class="profile-feedback-score">99</span>
+    <img data-dojo-attach-point="feedbackImage" class="profile-feedback-container" src="/img/feedback.png"/>
+    <span data-dojo-attach-point="feedbackAvg" class="profile-feedback-score"></span>
     <div data-dojo-attach-point="fullName" class="fullname">First Last</div>
     <div style="font-size: 16px">@<span data-dojo-attach-point="username">username</div>
     <div data-dojo-attach-point="bio">Here is the profile of the person that we might want to see</div>
-    <div data-dojo-attach-point="other"><span data-dojo-attach-point="location">Location</span> 
-  
-      <span data-dojo-attach-point="url">http://url.com</span></div>
+    <div data-dojo-attach-point="other">
+      <span data-dojo-attach-point="location">Location</span> 
+      <span data-dojo-attach-point="url">http://url.com</span>
+    </div>
   </div>
 
   <table class="table profile-stats bg-white">

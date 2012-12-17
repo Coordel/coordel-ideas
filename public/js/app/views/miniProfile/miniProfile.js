@@ -6,7 +6,7 @@ define([
     "dojo/on",
     "dojo/dom-class",
     "dojo/topic"
-], function(declare, _WidgetBase, _TemplatedMixin, template, on, build, topic) {
+], function(declare, _WidgetBase, _TemplatedMixin, template, on, domClass, topic) {
  
   return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -32,7 +32,21 @@ define([
       this.ideas.innerHTML = profile.ideas;
       this.ideasLink.href = '/'+user.username;
       this.supporting.innerHTML = profile.supporting;
-      this.contacts.innerHTML = profile.contacts;
+      this.time.innerHTML = user.account.pledgedTimeIdeas.length;
+      this.money.innerHTML = user.account.pledgedIdeas.length + user.account.proxiedIdeas.length;
+
+      console.log("in miniprofile", profile);
+
+      if (profile.feedback){
+        
+        if (profile.feedback.avg > 0){
+          //set the average
+          self.feedbackAvg.innerHTML = profile.feedback.avg;
+        } else {
+          //hide the feedback graphic
+          domClass.add(self.feedbackImage, "hide");
+        }
+      }
 
       topic.subscribe("coordel/addIdea", function(idea){
         if (self.user.appId === idea.creator){

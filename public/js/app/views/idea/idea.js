@@ -15,15 +15,31 @@ define([
     "app/views/idea/ideaDetails",
     "app/views/idea/ideaStream",
     "dijit/registry",
-    "dojo/_base/array"
+    "dojo/_base/array",
+    "app/views/allocateForm/allocateForm",
+    "app/views/addProxyForm/addProxyForm",
+    "app/views/contactPicker/contactPicker",
+    "app/views/cancelMoneyForm/cancelMoneyForm",
+    "app/views/reportTimeForm/reportTimeForm",
+    "app/views/cancelTimeForm/cancelTimeForm",
+    "app/views/removeProxyForm/removeProxyForm",
+    "app/views/feedbackForm/feedbackForm"
 
-], function(declare, _WidgetBase, _TemplatedMixin, template, replyHtml,inviteHtml, shareHtml, on, domClass, lang, dom, xhr, topic, ideaDetails, ideaStream, registry, array) {
+], function(declare, _WidgetBase, _TemplatedMixin, template, replyHtml,inviteHtml, shareHtml, on, domClass, lang, dom, xhr, topic, ideaDetails, ideaStream, registry, array, allocateForm, addProxyForm, contactPicker, cancelMoneyForm, reportTimeForm, cancelTimeForm, removeProxyForm, feedbackForm) {
 
     return declare([_WidgetBase, _TemplatedMixin], {
 
         templateString: template,
 
+        showDogears: false,
+
+        showFeedback: false,
+
         idea: null,
+
+        contacts: null,
+
+        subNavId: null,
 
         user: null,
 
@@ -37,25 +53,134 @@ define([
           var self = this
             , idea = self.idea;
 
+          console.log("setting feedback state", self.showFeedback);
+
           //if I'm the creator of this idea, then hide the support button
           if (user.app.id === idea.creator){
             domClass.add(self.pledgeSupportContainer, "hide");
           }
 
-          //if I'm already supporting this idea, hide the support button
+          //if I'm already supporting this idea, hide the support option
           if (array.indexOf(user.account.supportedIdeas, idea._id )>-1){
             domClass.add(self.pledgeSupportContainer, "hide");
           }
 
-          //if i've already pledged meoney, remove pledge money;
+          //if i've already pledged money, remove pledge money;
+          //show allocate edit and cancel
           if (array.indexOf(user.account.pledgedIdeas, idea._id)>-1){
             domClass.add(self.pledgeMoneyContainer, "hide");
+            domClass.remove(self.releaseMoneyContainer, "hide");
+            domClass.remove(self.addProxyContainer, "hide");
+            //domClass.remove(self.editContainer, "hide"); not dealing with edit for first pass
+            domClass.remove(self.cancelMoneyContainer, "hide");
+          }
+
+          //if i've already proxied money, remove pledge money, addProxy, show removeProxy;
+          //show allocate edit and cancel
+          if (array.indexOf(user.account.proxiedIdeas, idea._id)>-1){
+            domClass.add(self.pledgeMoneyContainer, "hide");
+            domClass.add(self.releaseMoneyContainer, "hide");
+            domClass.add(self.addProxyContainer, "hide");
+            domClass.remove(self.removeProxyContainer, "hide");
+            //domClass.remove(self.editContainer, "hide"); not dealing with edit for first pass
+            domClass.remove(self.cancelMoneyContainer, "hide");
+          }
+
+
+          //if this is a recurring pledge that i've allocated, give the option to deallocate or cancel the pledge
+          if (array.indexOf(user.account.recurringAllocatedPledges, idea._id)>-1){
+            domClass.add(self.pledgeMoneyContainer, "hide");
+            domClass.add(self.releaseMoneyContainer, "hide");
+            domClass.remove(self.addProxyContainer, "hide");
+            //domClass.remove(self.editContainer, "hide"); not dealing with edit for first pass
+            domClass.remove(self.cancelMoneyContainer, "hide");
           }
 
           //if i've already pledged time, remove pledge time;
           if (array.indexOf(user.account.pledgedTimeIdeas, idea._id)>-1){
             domClass.add(self.pledgeTimeContainer, "hide");
-            console.log("already pledged time", idea.name);
+            domClass.remove(self.reportTimeContainer, "hide");
+            domClass.remove(self.cancelTimeContainer, "hide");
+          }
+
+          //finally, if this is money, then hide idea related and vice-versa
+          if (self.subNavId === "subNavMoney"){
+            domClass.add(self.pledgeTimeContainer, "hide");
+            domClass.add(self.reportTimeContainer, "hide");
+            domClass.add(self.cancelTimeContainer, "hide");
+          }
+
+          if (self.subNavId === "subNavTime"){
+            domClass.add(self.pledgeMoneyContainer, "hide");
+            domClass.add(self.releaseMoneyContainer, "hide");
+            domClass.add(self.addProxyContainer, "hide");
+            domClass.add(self.cancelMoneyContainer, "hide");
+          }
+
+          //feedback
+          if (self.showFeedback){
+            console.log("show feedback");
+            //if I'm a participant in this idea, I can give feedback
+            var has = array.filter(self.idea.assignments, function(assign){
+              return (assign.status === "ACCEPTED" && assign.role !== "FOLLOWER" && assign.username === self.currentUser.appId);
+            });
+
+            if (has.length && self.idea.users.length > 1){
+              domClass.remove(self.doFeedbackContainer, "hide");
+            }
+          }
+
+          //DOGEARS
+          if (self.showDogears){
+            var recur = array.indexOf(user.account.recurringPledges, idea._id)>-1
+              , recurAlloc = array.indexOf(user.account.recurringAllocatedPledges, idea._id)>-1
+              , recurTime = array.indexOf(user.account.recurringTimePledges, idea._id) > -1
+              , recurTimeAlloc = array.indexOf(user.account.recurringTimeAllocatedPledges, idea._id) > -1
+              , proxy = array.indexOf(user.account.proxiedIdeas, idea._id)>-1;
+
+
+            var showTip = false
+              , tipText = "";
+
+            //if both recur and proxy, show both, otherwise show the right one
+            if (self.idea.pledgeType === "money"){
+              if (recur && proxy){
+                domClass.add(self.dogear, "icon-dogear-both-stopped");
+                tipText = "Proxied and recurring but not allocated";
+                showTip = true;
+              } else if (recurAlloc && proxy){
+                domClass.add(self.dogear, "icon-dogear-both");
+                tipText = "Proxied, recurring and allocated";
+                showTip = true;
+              } else if (recur && !recurAlloc){
+                domClass.add(self.dogear, "icon-dogear-recurring-stopped");
+                tipText = "Recurring not allocated";
+                showTip = true;
+              } else if (recurAlloc && !recur && !proxy){
+                domClass.add(self.dogear, "icon-dogear-recurring");
+                tipText = "Recurring and allocated";
+                showTip = true;
+              } else if (proxy && !recur && !recurAlloc){
+                domClass.add(self.dogear, "icon-dogear-proxy");
+                tipText = "Proxied";
+                showTip = true;
+              }
+            } else if (self.idea.pledgeType === "time"){
+              if (recurTime){
+                 domClass.add(self.dogear, "icon-dogear-recurring-stopped");
+                 tipText = "Recurring but no time reported";
+                 showTip = true;
+               } else if(recurTimeAlloc){
+                 domClass.add(self.dogear, "icon-dogear-recurring");
+                 tipText = "Recurring and time reported";
+                 showTip = true;
+               }
+            }
+
+            if (showTip){
+              $(self.dogear).tooltip({placement: 'right', title: tipText});
+            }
+            
           }
         },
 
@@ -63,7 +188,6 @@ define([
         postCreate: function(){
           this.inherited(arguments);
           var self = this;
-
           var _csrf = $('#addIdea_csrf').val();
 
           function connect(){
@@ -94,63 +218,6 @@ define([
           this.usernameLink.innerHTML = this.user.username;
 
           this.setState(this.currentUser);
-
-          
-          //if I'm supporting this idea, then hide the great idea button
-
-
-
-          
-
-          //sharing
-          /*
-          on(this.shareEmail, "click", function(){
-
-
-            dom.byId("shareEmailMessage").innerHTML = lang.replace(
-              shareEmailTemplate,
-              {
-                name: self.idea.name,
-                purpose: self.idea.purpose,
-                created: moment(self.idea.created).format('h:mm A - D MMM YY'),
-                link: "http://coordel.com/ideas/" + self.idea._id
-              });
-
-              dom.byId("shareEmailSubject").value = self.currentUser.fullName + " shared a great idea from Coordel";
-
-              $("#shareEmailAddress").focus();
-          });
-
-          on(this.shareTwitter, "click", function(){
-            dom.byId("shareTwitterMessage").innerHTML = lang.replace(
-              shareTwitterTemplate,
-              {
-                username: self.currentUser.fullName,
-                name: self.idea.name,
-                link: 'http://coordel.com/ideas/'+self.idea._id
-              }
-            );
-          });
-          */
-
-
-
-
-          $("#payment-form").submit(function(event) {
-            // disable the submit button to prevent repeated clicks
-            $('#payment-submit-button').attr("disabled", "disabled");
-
-            Stripe.createToken({
-                number: $('#card-number').val(),
-                cvc: $('#card-cvc').val(),
-                exp_month: $('#card-expiry-month').val(),
-                exp_year: $('#card-expiry-year').val()
-            }, stripeResponseHandler);
-
-            // prevent the form from submitting with the default action
-            return false;
-          });
-
 
           on(this.domNode, 'mouseover', function(e){
             if (self.currentUser){
@@ -221,7 +288,7 @@ define([
               })
             });
 
-          on(this.doReply, 'click', function(e){
+          on(self.doReply, 'click', function(e){
             if (self.doingInvite){
               $(self.doInvite).popover('hide');
               self.doingInvite = false;
@@ -253,7 +320,7 @@ define([
             });
           });
 
-          on(this.doInvite, 'click', function(e){
+          on(self.doInvite, 'click', function(e){
             if (self.doingReply){
               $(self.doReply).popover('hide');
               self.doingReply = false;
@@ -262,7 +329,33 @@ define([
               $(self.doShare).popover('hide');
               self.doingShare = false;
             }
-            dom.byId("inviteName-"+self.idea._id).focus();
+
+            var contactTab = dom.byId("inviteContactTab-"+self.idea._id)
+            , emailTab = dom.byId("inviteEmailTab-"+self.idea._id)
+            , contactTabContain = dom.byId("inviteContactTabContainer-"+self.idea._id)
+            , emailTabContain = dom.byId("inviteEmailTabContainer-"+self.idea._id);
+
+            on(emailTab, "click", function(e){
+              domClass.add(emailTabContain, "active");
+              domClass.remove(contactTabContain, "active");
+              domClass.add(dom.byId("inviteContactPickerContainer-"+self.idea._id), "hide");
+              domClass.remove(dom.byId("inviteEmailContainer-"+self.idea._id), "hide");
+            });
+
+            on(contactTab, "click", function(e){
+              domClass.remove(emailTabContain, "active");
+              domClass.add(contactTabContain, "active");
+              domClass.remove(dom.byId("inviteContactPickerContainer-"+self.idea._id), "hide");
+              domClass.add(dom.byId("inviteEmailContainer-"+self.idea._id), "hide");
+            });
+
+            //only show contacts that aren't already in the project
+            var contactList = array.filter(self.contacts, function(item){
+              return array.indexOf(self.idea.users, item.appId) === -1;
+            });
+
+            new contactPicker({contacts:contactList, placeholder: "Select contact"}).placeAt("inviteContactPickerContainer-"+self.idea._id);
+            
             self.doingInvite = !self.doingInvite;
             var emailHandle = on(dom.byId("submitEmailInvite-"+self.idea._id), "click", function(e){
               e.preventDefault();
@@ -285,11 +378,9 @@ define([
                 $(self.doInvite).popover('hide');
               });
             });
-
           });
 
-
-          on(this.doShare, 'click', function(e){
+          on(self.doShare, 'click', function(e){
             if (self.doingReply){
               $(self.doReply).popover('hide');
               self.doingReply = false;
@@ -303,7 +394,7 @@ define([
           });
 
           //pledge support
-          on(this.pledgeSupport, 'click', function(e){
+          on(self.pledgeSupport, 'click', function(e){
             xhr.post("/ideas/" + self.idea._id + "/supported", {
                 data: {
                   userid: self.currentUser.id,
@@ -323,18 +414,179 @@ define([
           });
 
           //pledge time
-          on(this.pledgeTime, 'click', function(e){
+          on(self.pledgeTime, 'click', function(e){
             //need to set the value of the idea for submission
             dom.byId("supportTimeIdea").value = self.idea._id;
           });
 
           //pledge money
-          on(this.pledgeMoney, 'click', function(e){
+          on(self.pledgeMoney, 'click', function(e){
             //need to set the value of the idea for submission
             dom.byId("supportMoneyIdea").value = self.idea._id;
           });
 
+          //allocate money
+          on(self.releaseMoney, 'click', function(e){
+            //need to set the value of the idea for submission
+            dom.byId("allocateIdea").value = self.idea._id;
+
+            //get the pledges for this idea and find mine
+            xhr('/ideas/' + self.idea._id + '/pledges/money', {handleAs: 'json'}).then(function(list){
+          
+              list = array.filter(list, function(item){
+                return item.creator === self.currentUser.appId;
+              });
+
+              //
+              var pledge = false;
+              if (list.length){
+                pledge = list[0];
+              }
+              
+              if (pledge){
+                allocateForm.showPledge(pledge);
+              } else {
+                allocateForm.showError();
+              }
+
+            });
+          });
+
+          //add proxy
+          on(self.addProxy, 'click', function(e){
+            //need to set the value of the idea for submission
+            dom.byId("proxyIdea").value = self.idea._id;
+
+            //get the pledges for this idea and find mine
+            xhr('/ideas/' + self.idea._id + '/pledges/money', {handleAs: 'json'}).then(function(list){
+          
+              list = array.filter(list, function(item){
+                return item.creator === self.currentUser.appId;
+              });
+
+              //
+              var pledge = false;
+              if (list.length){
+                pledge = list[0];
+              }
+              
+              if (pledge){
+                addProxyForm.showPledge(pledge);
+              } else {
+                addProxyForm.showError();
+              }
+
+            });
+          });
+
+          on(self.cancelMoney, "click", function(e){
+            dom.byId("cancelMoneyIdea").value = self.idea._id;
+            //get the pledges for this idea and find mine
+            xhr('/ideas/' + self.idea._id + '/pledges/money', {handleAs: 'json'}).then(function(list){
+              
+              list = array.filter(list, function(item){
+                return item.creator === self.currentUser.appId;
+              });
+
+              //
+              var pledge = false;
+              if (list.length){
+                pledge = list[0];
+              }
+    
+              if (pledge){
+                cancelMoneyForm.showPledge(pledge);
+              } else {
+                cancelMoneyForm.showError();
+              }
+            });
+          });
+
+          on(self.reportTime, "click", function(e){
+            dom.byId("reportTimeIdea").value = self.idea._id;
+            xhr('/ideas/' + self.idea._id + '/pledges/time', {handleAs: 'json'}).then(function(list){
+              list = array.filter(list, function(item){
+                return item.creator === self.currentUser.appId;
+              });
+
+              var pledge = false;
+              if (list.length){
+                pledge = list[0];
+              }
+    
+              if (pledge){
+                reportTimeForm.showPledge(pledge);
+              } else {
+                reportTimeForm.showError();
+              }
+
+            });
+          });
+
+          on(self.cancelTime, "click", function(e){
+            dom.byId("cancelTimeIdea").value = self.idea._id;
+            xhr('/ideas/' + self.idea._id + '/pledges/time', {handleAs: 'json'}).then(function(list){
+              list = array.filter(list, function(item){
+                return item.creator === self.currentUser.appId;
+              });
+
+              var pledge = false;
+              if (list.length){
+                pledge = list[0];
+              }
+    
+              if (pledge){
+                cancelTimeForm.showPledge(pledge);
+              } else {
+                cancelTimeForm.showError();
+              }
+
+            });
+          });
+
+          on(self.removeProxy, "click", function(e){
+            dom.byId("removeProxyIdea").value = self.idea._id;
+            xhr('/ideas/' + self.idea._id + '/pledges/money', {handleAs: 'json'}).then(function(list){
+              list = array.filter(list, function(item){
+                return item.creator === self.currentUser.appId;
+              });
+
+              console.log("list", list);
+
+              var pledge = false;
+              if (list.length){
+                pledge = list[0];
+              }
+              
+              if (pledge){
+                removeProxyForm.showPledge(pledge);
+              } else {
+                removeProxyForm.showError();
+              }
+
+            });
+          });
+
+          on(self.doFeedback, "click", function(e){
+            console.log("feedback clicked");
+            dom.byId("feedbackIdea").value = self.idea._id;
+            xhr('/ideas/' + self.idea._id + '/users', {handleAs: 'json'}).then(function(list){
+              console.log("prefilter list of users", list, self.currentUser);
+              list = array.filter(list, function(item){
+                return item.appId !== self.currentUser.appId;
+              });
+
+              console.log("user list", list, feedbackForm);
+
+              
+              feedbackForm.showControls(list);
+
+            });
+
+          });
         }
+
+
     });
 
 });

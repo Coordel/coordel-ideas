@@ -27,11 +27,13 @@ define(["dojo/text!./templates/purposeHelp.html", "dojo/domReady!"],function(pur
       });
 
       $("#addName").bind('focus', function(e){
+        /*
         $(this).popover({
           placement: 'right',
           html: true,
           content: '<span>here is the test</span>'
         });
+      */
       });
 
       $("#addName").bind('blur', function(e){
@@ -39,12 +41,14 @@ define(["dojo/text!./templates/purposeHelp.html", "dojo/domReady!"],function(pur
       });
 
       $("#addPurpose").bind('focus', function(){
+        /*
         $(this).popover({
           placement: 'right',
           html: true,
           title: 'Purpose',
           content: purposeHelp
         });
+*/
       });
 
       $("#addPurpose").bind('blur', function(){

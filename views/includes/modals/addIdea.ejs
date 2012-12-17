@@ -1,5 +1,5 @@
 <div>
-  <div id="addIdeaModal" data-backdrop="true" class="modal hide in">  
+  <div id="addIdeaModal" data-backdrop="false" class="modal hide in">  
     <div class="modal-header">  
     <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
     <h4 style="text-align: center">What's your great idea?</h4>  
@@ -9,14 +9,17 @@
     
       <fieldset>
         <label></label>
-        <input id="addName" name="ideaName" type="text" max="65" style="width: 520px" placeholder="Name your idea...">
+        <input id="addName" name="ideaName" type="text" max="65" style="width: 520px;" placeholder="Name your idea...">
         <span id="addNameCount" class="pull-right muted">65</span>
         <label></label>
         <textarea id="addPurpose" name="ideaPurpose" rows="5" maxchars="560" style="width: 520px" placeholder="Give the purpose of your idea..."></textarea>
         <span id="addPurposeCount" class="pull-right muted">560</span>
-        <div id="addPurposePopver" class="hide">
-          Here is something that you shouldn't see
+        <div style="font-size: 12px; color:#888">
+          <div>
+            <strong style="font-size:14px">></strong> in front of a domain ( <strong>></strong>coordel.com ) points the idea at the domain owner.
+          </div>
         </div>
+        
         <input id="addIdea_csrf" type="hidden" id="_csrf" name="_csrf" value="<%=token%>">
       </fieldset>
    

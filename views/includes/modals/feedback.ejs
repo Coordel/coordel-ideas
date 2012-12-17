@@ -1,0 +1,52 @@
+<div >
+  <div id="feedbackModal" data-backdrop="false" class="modal hide in">  
+    <div class="modal-header">  
+    <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
+    <h4 style="text-align: center">Give feedback</h4>  
+  </div>  
+  
+  <div class="modal-body feedback"> 
+
+    <div id="feedbackAction">
+      <fieldset style="width: 427px; margin: auto;">
+        <div id="feedbackSelectContainer"></div>
+
+        <div class="pull-right">
+          <table class="table table-bordered">
+            <tr>
+              <td>
+                <strong><div id="echoFeedbackCoordination">3</div></strong>
+                <div>COORDINATION</div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong><div id="echoFeedbackPerformance">2</div></strong>
+                <div>PERFORMANCE</div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div id="feedbackCoordination"></div>
+        <div id="feedbackPerformance"></div>
+        <div class="clearfix"></div>
+        <div>
+          <textarea id="feedbackComment" class="text" style="width: 413px" rows="3" placeholder="Additional comments..."></textarea>
+        </div>
+        <div>
+          <dl>
+            <dt>Coordination</dt>
+            <dd>Collaborative, gets the right people involved, is transparent, communicates well</dd>
+            <dt>Performance</dt>
+            <dd>Meets deadlines, does high-quality work, demonstrates expertise</dd>
+          </dl>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+  <div class="modal-footer" style="text-align: left">
+    <input id="feedbackSubmit" type="submit" value="Submit" class="btn btn-primary pull-right">
+    <input id="feedbackIdea" type="hidden">
+  </div>            
+</div>
