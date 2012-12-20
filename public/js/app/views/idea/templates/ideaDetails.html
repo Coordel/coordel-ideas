@@ -1,39 +1,42 @@
 <div>
   <div class="details-content">
-    <img class="purpose" src="img/purpose.png" alt="purpose" data-placement="left" rel="tooltip" title="Purpose of this Idea">
-    <div data-dojo-attach-point="purposeContainer"></div>
+    <div style="margin-bottom: 10px">
+      <span><img class="purpose idea-purpose-icon" src="img/purpose.png" alt="purpose" data-placement="left" rel="tooltip" ><span> <span data-dojo-attach-point="purposeContainer"></span>
+    </div>
+    <div>
+      <span><i class="icon-time idea-deadline-icon"></i><span> <span data-dojo-attach-point="deadlineContainer"></span>
+    </div>
   </div>
-  <div data-dojo-attach-point="detailsFiles" class="details-files">
+  
+  <div data-dojo-attach-point="detailsFiles" class="details-files hide" style="border-top: 1px solid #ddd; padding:8px">
   </div>
-  <div class="mini-stats clearfix">
-    <ul>
-      <li class="invitations stats">
-        <div>
-          <strong data-dojo-attach-point="invited">0</strong>
-          INVITED
-        </div>
-      </li>
-      <li class="supporting stats">
-        <div>
-          <strong data-dojo-attach-point="supporting">0</strong>
-          SUPPORTING
-        </div>
-      </li>
-      <li class="following stats">
-        <div>
-          <strong data-dojo-attach-point="following">0</strong>
-          FOLLOWING
-        </div>
-      </li>
-      <li class="participating stats">
-        <div>
-          <strong data-dojo-attach-point="participating">0</strong>
-          PARTICIPATING
-        </div>
-      </li>
-    </ul>
+  <div data-dojo-attach-point="userImages" class="hide" style="border-top: 1px solid #ddd; padding: 8px">
   </div>
-  <div data-dojo-attach-point="purposeFooter" class="details-footer">
-    footer
+  <div data-dojo-attach-point="activityContainer" class="activity hide" style="border-top: 1px solid #ddd; padding: 12px 2px 0">
   </div>
+  <table class="table profile-stats">
+    <tr>
+      <th colspan="2" style="border-right: 1px solid #ddd">Money Support</th>
+      <th colspan="2">Time Support</th>
+    </tr>
+    <tr>
+      <td>
+        <strong data-dojo-attach-point="moneyPledged"></strong>
+        PLEDGED
+      </td>
+      <td>
+        <strong data-dojo-attach-point="moneyAllocated"></strong>
+        ALLOCATED
+      </td>
+      <td>
+        <strong data-dojo-attach-point="timePledged"></strong>
+        PLEDGED
+      </td>
+      <td style="border-right: none">
+        <strong data-dojo-attach-point="timeReported"></strong>
+        REPORTED
+      </td>
+    </tr>
+  </table>
+  <div data-dojo-attach-point="purposeFooter" class="details-footer"></div>
 </div>

@@ -62,12 +62,103 @@ module.exports = function(store) {
             }
           });
         },
-        feedback: function(cb){
-          couch.db.view('coordel/userFeedbackComments', {startkey: [user.appId], endkey: [user.appId, {}]}, function(e, feedback){
+        activity: function(cb){
+          couch.db.view('coordel/userActivityReport', {startkey: [user.appId], endkey:[user.appId, {}], group: true, group_level: 2, reduce: true}, function(e, rows){
+            if (e){
+              cb('error'+e);
+            } else {
+              var act = {};
+              var tasks = [];
+              var other = [];
+              var keys = ['message'
+                , 'project-gave-feedback'
+                , 'idea-invites-sent'
+                , 'task-cleared-issue'
+                , 'task-raised-issue'
+                , 'task-submitted'
+                , 'task-created'
+                , 'task-agreed-done'
+                , 'task-delegated'
+                , 'task-declined'
+                , 'task-accepted'
+                , 'task-returned'
+                , 'task-left'];
+              var map = {
+                message: 'MESSAGES',
+                "project-gave-feedback": 'GAVE FEEDBACK',
+                "project-invites-sent": "INVITED",
+                "task-cleared-issue": "CLEARED ISSUES",
+                "task-raised-issue": "RAISED ISSUES",
+                "task-created": "CREATED",
+                "task-submitted": "COMPLETED",
+                "task-agreed-done": "AGREED DONE",
+                "task-delegated": "DELEGATED",
+                "task-declined": "DECLINED",
+                "task-accepted": "ACCEPTED",
+                "task-returned": "RETURNED",
+                "task-left": "LEFT"
+              };
+              _.each(rows, function(item){
+                var name = item.key[1];
+                if (_.indexOf(keys, name)> -1){
+                  var entry = {name: map[name], value:item.value, key: name};
+                  if (name.indexOf('task') > -1){
+                    tasks.push(entry);
+                  } else {
+                    other.push(entry);
+                  }
+                }
+              });
+              act.tasks = tasks;
+              act.other = other;
+              console.log("activity rows", act);
+              cb(null, act);
+            }
+          });
+        },
+        supportingTypes: function(cb){
+          couch.db.view('coordel/userSupportAccount', {
+            startkey: [user.appId],
+            endkey: [user.appId, {}]}, function(e, acct){
             if (e){
               cb('error '+e);
             } else {
-              console.log("feedback", feedback);
+
+              acct = _.map(acct, function(item){
+                return item.value;
+              });
+           
+              var result = {
+               
+                withTime: 0,
+                withMoney: 0
+              };
+
+              if (acct.length){
+                _.each(acct, function(item){
+                  if (item.docType === "money-pledge") {
+                    if (item.status === "PLEDGED"){
+                      
+                      result.withMoney = result.withMoney + 1;
+                    } else if (item.status === "PROXIED"){
+                      result.withMoney = result.withMoney + 1;
+                    }
+                  } else if (item.docType === "time-pledge") {
+                    if (item.status === "PLEDGED"){
+                      result.withTime = result.withTime + 1;
+                    }
+                  }
+                });
+              }
+              cb(null, result);
+            }
+          });
+        },
+        feedback: function(cb){
+          couch.db.view('coordel/userFeedbackV2', {endkey: [user.appId], startkey: [user.appId, {}], descending: true}, function(e, feedback){
+            if (e){
+              cb('error '+e);
+            } else {
 
               feedback = _.map(feedback, function(item){
                 return item.value;
@@ -102,7 +193,6 @@ module.exports = function(store) {
                 f.performance.avg = f.performance.sum/f.performance.count;
 
                 f.avg = Math.round((f.coordination.avg + f.performance.avg) / 2);
-                console.log("feedback", f);
                 
                 cb(null, f);
               } else {
@@ -116,8 +206,22 @@ module.exports = function(store) {
         if (e){
           fn(e);
         } else {
-          console.log("profile ", profile);
           fn(null, profile);
+        }
+      });
+    },
+
+    findFeedbackComments: function(appId, fn){
+      store.couch.db.view('coordel/userFeedbackV2', {startkey: [appId], endkey: [appId, {}]}, function(e, feedback){
+        if (e){
+          fn('error '+e);
+        } else {
+
+          feedback = _.map(feedback, function(item){
+            return item.value;
+          });
+
+          fn(null, feedback);
         }
       });
     },

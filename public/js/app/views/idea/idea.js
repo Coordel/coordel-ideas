@@ -53,7 +53,7 @@ define([
           var self = this
             , idea = self.idea;
 
-          console.log("setting feedback state", self.showFeedback);
+          //console.log("setting feedback state", self.showFeedback);
 
           //if I'm the creator of this idea, then hide the support button
           if (user.app.id === idea.creator){
@@ -119,7 +119,7 @@ define([
 
           //feedback
           if (self.showFeedback){
-            console.log("show feedback");
+            //console.log("show feedback");
             //if I'm a participant in this idea, I can give feedback
             var has = array.filter(self.idea.assignments, function(assign){
               return (assign.status === "ACCEPTED" && assign.role !== "FOLLOWER" && assign.username === self.currentUser.appId);
@@ -217,7 +217,10 @@ define([
 
           this.usernameLink.innerHTML = this.user.username;
 
-          this.setState(this.currentUser);
+          if (this.currentUser){
+            this.setState(this.currentUser);
+          }
+          
 
           on(this.domNode, 'mouseover', function(e){
             if (self.currentUser){
@@ -233,6 +236,7 @@ define([
 
           on(this.toggler, 'click', function(e){
             if (self.collapsed){
+              domClass.add(self.domNode, "idea-spaced");
               //open
               //domClass.remove(self.detailsContainer, "hide");
               this.innerHTML = "collapse";
@@ -242,6 +246,7 @@ define([
               ideaStream({idea:self.idea}).placeAt(self.streamContainer);
 
             } else {
+               domClass.remove(self.domNode, "idea-spaced");
               //close
               //domClass.add(self.detailsContainer, "hide");
               array.forEach(registry.findWidgets(self.detailsContainer), function(item){
@@ -551,7 +556,7 @@ define([
                 return item.creator === self.currentUser.appId;
               });
 
-              console.log("list", list);
+              //console.log("list", list);
 
               var pledge = false;
               if (list.length){
@@ -568,15 +573,15 @@ define([
           });
 
           on(self.doFeedback, "click", function(e){
-            console.log("feedback clicked");
+            //console.log("feedback clicked");
             dom.byId("feedbackIdea").value = self.idea._id;
             xhr('/ideas/' + self.idea._id + '/users', {handleAs: 'json'}).then(function(list){
-              console.log("prefilter list of users", list, self.currentUser);
+              //console.log("prefilter list of users", list, self.currentUser);
               list = array.filter(list, function(item){
                 return item.appId !== self.currentUser.appId;
               });
 
-              console.log("user list", list, feedbackForm);
+              //console.log("user list", list, feedbackForm);
 
               
               feedbackForm.showControls(list);

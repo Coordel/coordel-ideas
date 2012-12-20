@@ -258,12 +258,14 @@ p {
   width: 28px;
   height: 28px;
 }
+/*
 .details .purpose {
   position: absolute;
   left: 32px;
   opacity: 0.6;
   filter: alpha(opacity=60);
 }
+*/
 .details-content {
   margin-bottom: 12px;
 }

@@ -143,7 +143,6 @@ module.exports = function(store) {
     });
   }
   
-
   Idea = {
 
     findById: function(id, fn) {
@@ -152,7 +151,7 @@ module.exports = function(store) {
       //returns supporting time investors (idea.users) + LLEN ideas:[id]:supporting + money investors (get pledges startkey[id], endkey[id,{}])
     },
 
-    addUserFeedback: function(args, fn){
+    addFeedback: function(args, fn){
       //{ideaId, "xadfdfd", appId: "1",feedback: {from: "2", coordination: 88, performance: 98, comment: "comment", created: "date"} }
       var couch = store.couch;
 
@@ -171,6 +170,14 @@ module.exports = function(store) {
                 assign.feedback = [];
               }
               assign.feedback.push(args.feedback);
+
+              idea = Idea.addActivity({
+                verb: "FEEDBACK",
+                sender: args.user
+              }, idea);
+
+
+
               couch.db.save(idea, function(e, o){
                 if (e){
                   fn({
@@ -327,6 +334,26 @@ module.exports = function(store) {
         } else {
           //console.log("timeline", o);
           fn(null, o);
+        }
+      });
+    },
+
+    trending: function(fn){
+      //the timeline gets ideas from the redis global:timeline set
+      store.redis.zrevrange('global:trending', 0, -1, function(e, keys){
+        if (e){
+          console.log('zrange error',e);
+          fn(e);
+        } else {
+          console.log('trending keys', keys);
+          Idea.findBatch(keys, function(e, ideas){
+            if (e){
+              console.log('zrange error ideas', e);
+            } else {
+              console.log('zrange ideas', ideas);
+              fn(null, ideas);
+            }
+          });
         }
       });
     },
@@ -519,6 +546,7 @@ module.exports = function(store) {
       a.body = message;
       a.verb = "POST";
       a.docType = "message";
+      a.fromIdea = true,
       a.time = timestamp;
       a.created = timestamp;
       a.creator = user.appId;
@@ -541,6 +569,8 @@ module.exports = function(store) {
     addActivity: function(opts, idea){
       var username = opts.sender.appId
         , fullName = opts.sender.fullName;
+
+      delete opts.sender;
       
       var defaults = {
         actor: {id:username, name:fullName, type:"PERSON"},

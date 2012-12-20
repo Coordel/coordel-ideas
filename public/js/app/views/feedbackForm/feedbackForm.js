@@ -85,6 +85,8 @@ define(["dojo/dom"
         created: moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ")
       };
 
+      feedback.comment = "";
+      
       if (comment.trim().length){
         feedback.comment = comment;
       }
@@ -99,6 +101,7 @@ define(["dojo/dom"
       console.log("feedback", feedback);
       
       remote.put(feedback).then(function(res){
+        console.log("post feedback response", res);
         $('#feedbackModal').modal('hide');
       });
       

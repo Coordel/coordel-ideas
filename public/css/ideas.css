@@ -4,6 +4,75 @@
   width: 345px;
 }
 
+/* blueprints */
+.blueprint {
+ padding: 12px;
+ border-bottom: 1px solid #ddd;
+}
+
+.empty-blueprint {
+  padding: 24px 12px;
+  font-size: 22px;
+  color: #dedede;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.user-image {
+  height: 24px;
+  width: 24px;
+  border-radius: 3px;
+  display: inline-block;
+}
+/* idea details */
+.details .purpose, .blueprint .purpose {
+  height: 12px;
+  width: 12px;
+  display: inline-block;
+}
+
+/* activity report */
+.activity .report-entry {
+  width: 22.50%;
+  display: inline-block;
+  padding: 12px 0;
+  margin: 0 .9% 1em;
+  vertical-align: top;
+  text-decoration: none;
+  background: #F3F3F3;
+  border-radius: 5px;
+}
+
+.idea, .contact, .feedback {
+  background-color: #fff;
+}
+
+.stream-header {
+  border-top-right-radius: 6px;
+  border-top-left-radius: 6px;
+}
+
+.stream-footer {
+  border-bottom-right-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.stream-entry:hover .activity .report-entry {
+  background: #fff;
+}
+
+.report-entry .entry-value {
+  font-size: 18px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.report-entry .entry-name {
+  font-size: 10px;
+  text-transform: uppercase;
+  text-align:center;
+}
+
 .dogear .tooltip {
   min-width: 100px;
 }
@@ -63,7 +132,7 @@
 }
 
 .rounded-column, .stream-container{
-  border: 1px solid #ccc;
+  /*border: 1px solid #ccc;*/
 }
 
 .bg-gray {
@@ -133,6 +202,21 @@
   margin-top:12px; 
   border-bottom-right-radius: 6px;
   border-bottom-left-radius:6px;
+}
+
+.idea-spaced {
+  margin: 20px 0;
+  -moz-box-shadow: 0 0 5px #888;
+  -webkit-box-shadow: 0 0 5px#888;
+  box-shadow: 0 0 5px #888;
+}
+
+
+.idea .details .profile-stats {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom: 1px solid #ddd; 
+  margin-top: 0; 
 }
 
 .profile-stats th {

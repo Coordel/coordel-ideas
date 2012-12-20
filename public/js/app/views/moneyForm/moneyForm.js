@@ -9,7 +9,7 @@ define(["dojo/dom",
 
   var paymentFormControl = {
 
-    hasPaymentMethod: true,
+    hasPaymentMethod: false,
 
     bitcoinPrices: false,
 

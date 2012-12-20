@@ -3,20 +3,20 @@
   <div id="profile-container" class="nav user-profile bg-white rounded-column" style="min-height: 95px;margin-bottom:20px"></div>
   <div class="bg-white rounded">
     <ul class="nav nav-tabs nav-stacked">
-      <li class="active"> 
+      <li id="subNavTimeline"> 
         <a href="/"><i class="icon-chevron-right menu-chevron"></i>Timeline</a>
       </li>
-      <li>
-        <a href="/"><i class="icon-chevron-right menu-chevron"></i>Trending</a>
+      <li id="subNavTrending">
+        <a href="/trending"><i class="icon-chevron-right menu-chevron"></i>Trending</a>
       </li>
     </ul>
   </div>
   <% include includes/about %>
 </div>
 <div class="main-column">
-  <div class="stream-container bg-white no-padding">
-    <div class="stream-header">
-      <h4>Ideas</h4>
+  <div class="stream-container no-padding">
+    <div class="stream-header bg-white">
+      <h4 id="mainColumnHeader">Ideas</h4>
       <div></div>
     </div>
     <div class="stream">
@@ -24,7 +24,7 @@
         
       </div>
     </div>
-    <div class="stream-footer">
+    <div class="stream-footer bg-white">
       <div style="margin: 0 auto; width: 100px;">
         <img class="logo" src="lib/coordel-bootstrap/img/logo.png"/>
         <div></div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title><%= title%></title>
     <meta name="description" content="A description of the page" />
@@ -45,14 +45,13 @@
     </div>
     <div class="wrapper clearfix">
       <div class="left-column">
-        <div id="profile-container" class="nav user-profile bg-white rounded-column" style="min-height: 95px;margin-bottom:20px"></div>
         <div class="bg-white rounded">
           <ul class="nav nav-tabs nav-stacked">
-            <li class="active"> 
-              <a><i class="icon-chevron-right menu-chevron"></i>Coord blueprints</a>
+            <li id="subNavCoordBlueprints" class="active"> 
+              <a href="#coords"><i class="icon-chevron-right menu-chevron"></i>Coord blueprints</a>
             </li>
-            <li>
-              <a><i class="icon-chevron-right menu-chevron"></i>Task blueprints</a>
+            <li id="subNavTaskBlueprints" >
+              <a href="#tasks"><i class="icon-chevron-right menu-chevron"></i>Task blueprints</a>
             </li>
           </ul>
         </div>
@@ -61,7 +60,7 @@
       <div class="main-column">
         <div class="stream-container bg-white no-padding">
           <div class="stream-header">
-            <h4>Coord blueprints</h4>
+            <h4 id="mainColumnHeader">Coord blueprints</h4>
             <div></div>
           </div>
           <div class="stream">
@@ -112,6 +111,8 @@
       // load our app module and wait for the DOM to be ready
       require(['app/controllers/app', 'dojo/domReady!' ], function(app){
         //this let's us bootstrap the ideas from the server
+        
+        app.showBlueprints({_csrf:'<%=_csrf%>', blueprints: JSON.parse(unescape('<%-blueprints%>')), user: JSON.parse(unescape('<%- user%>')), username: '<%=username%>', menu: '<%=menu%>'});
         
       });
     </script>

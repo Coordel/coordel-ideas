@@ -25,14 +25,14 @@
     <script data-dojo-config="async: 1, dojoBlankHtmlUrl: '/blank.html',
         packages: [ {
             name: 'app',
-            location: location.pathname.replace(/\/[^/]+$/, '') + 'js/app'
+            location: '/js/app'
         } ]"
     src="//ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js"></script>
     <script>
       // load our app module and wait for the DOM to be ready
       require(['app/controllers/app', 'dojo/domReady!' ], function(app){
         //this let's us bootstrap the ideas from the server
-        app.init({_csrf:'<%=_csrf%>', ideas:JSON.parse(unescape('<%- ideas%>')), profile: JSON.parse(unescape('<%-profile%>')), user: JSON.parse(unescape('<%- user%>')), contacts: JSON.parse(unescape('<%- contacts%>')), menu: '<%=menu%>'});
+        app.init({_csrf:'<%=_csrf%>', ideas:JSON.parse(unescape('<%- ideas%>')), profile: JSON.parse(unescape('<%-profile%>')), user: JSON.parse(unescape('<%- user%>')), contacts: JSON.parse(unescape('<%- contacts%>')), menu: '<%=menu%>', subNav: '<%=subNav%>'});
       });
     </script>
 

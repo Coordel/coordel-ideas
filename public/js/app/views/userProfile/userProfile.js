@@ -7,8 +7,9 @@ define([
     "dojo/on",
     "dojo/dom-class",
     "dojo/topic",
-    "dojo/request"
-], function(declare, _WidgetBase, _TemplatedMixin, template, tipHtml, on, domClass, topic, request) {
+    "dojo/request",
+    "dojo/_base/lang"
+], function(declare, _WidgetBase, _TemplatedMixin, template, tipHtml, on, domClass, topic, request, lang) {
  
   return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -22,7 +23,11 @@ define([
     postCreate: function(){
       this.inherited(arguments);
       var self = this;
-      console.log("self.user", self.miniProfile);
+
+      var tipValues = {
+        coordination: Math.round(self.miniProfile.feedback.coordination.avg),
+        performance: Math.round(self.miniProfile.feedback.performance.avg)
+      };
 
       if (self.user.app.localCurrency){
         self.localCurrency = self.user.app.localCurrency;
@@ -51,10 +56,10 @@ define([
       }
 
       self.setAccount();
-
-      $(self.feedbackScore).tooltip({
-        title: tipHtml,
-        placement: "right",
+      
+      $(self.feedbackAvg).tooltip({
+        title: lang.replace(tipHtml, tipValues),
+        placement: "bottom",
         html: true
       });
 

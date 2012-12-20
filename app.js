@@ -91,30 +91,6 @@ passport.use(new TwitterStrategy({
     //console.log("token to save", act);
 
     return done(null, act);
-    /*
-    Account.findOne({ domain: 'twitter.com', uid: profile.id }, function(err, account) {
-      if (err) { return done(err); }
-      if (account) { return done(null, account); }
-
-      var account = new Account();
-      account.domain = 'twitter.com';
-      account.uid = profile.id;
-      
-      account.tokens.push(t);
-      return done(null, account);
-    });
-*/
-    // asynchronous verification, for effect...
-    /*
-    process.nextTick(function () {
-      
-      // To keep the example simple, the user's Twitter profile is returned to
-      // represent the logged-in user.  In a typical application, you would want
-      // to associate the Twitter account with a user record in your database,
-      // and return that user instead.
-      return done(null, profile);
-    });
-*/
   }
 ));
 
@@ -274,6 +250,10 @@ app.post('/redeem'); //set up as Redeem Invite goal in alytics
 
 //user's apps
 app.put('/users/apps/:appId', Users.setAppValues);
+app.get('/contacts/:contactId/profile', Users.getContactMiniProfile);
+
+//user's blueprints
+app.post('/users/:appId/blueprints', Users.copyBlueprint);
 
 
 //ideas client pages
@@ -287,7 +267,7 @@ app.put('/ideas/:id/time');
 app.del('/ideas/:id/time/');
 app.get('/ideas/:id/users', Ideas.findUsers);
 app.get('/ideas/:id/users/:appId/feedback', Ideas.getUserFeedback);
-app.post('/ideas/:id/users/:appId/feedback', Ideas.addUserFeedback);
+app.post('/ideas/:id/users/:appId/feedback', Ideas.addFeedback);
 app.get('/ideas/:id/pledges/money', Ideas.findMoneyPledges);
 app.get('/ideas/:id/pledges/time', Ideas.findTimePledges);
 app.post('/ideas/:id/money', Ideas.supportMoney); //set up as Support Money in analytics
@@ -296,11 +276,13 @@ app.del('/ideas/:id/money');
 app.post('/ideas/:id/shared/:service'); //set up as Share Idea in analytics (with third party services--twitter, app.net, etc)
 
 app.get('/', loadUser, App.index);
+app.get('/trending', App.trending);
 app.get('/blueprints', App.blueprints);
 app.get('/supporting', App.supporting);
 app.get('/contacts', App.contacts);
 app.get('/money', App.moneyPledged);
 app.get('/time', App.timePledged);
+app.get('/feedback', App.feedback);
 app.get('/:username', App.ideas);
 
 

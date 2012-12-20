@@ -16,6 +16,7 @@ UsersController = function(store) {
   var App = require('../models/userApp')(store);
   var Profile = require('../models/profile')(store);
   var Token = require('../models/token')(store);
+  var Blueprint = require('../models/blueprint')(store);
 
   var Schema = {
     properties: {
@@ -145,8 +146,53 @@ UsersController = function(store) {
 
   var Users = {
 
+    copyBlueprint: function(req, res){
+      var appId = req.params.appId
+        , blueprint = JSON.parse(req.body.blueprint);
+
+      console.log("copy blueprint", appId, blueprint);
+      var stamp = moment().format(store.timeFormat);
+      blueprint.username = appId;
+      blueprint.creator = appId;
+      blueprint.created = stamp;
+      blueprint.updated = stamp;
+      blueprint.updater = appId;
+
+      Blueprint.create(blueprint, function(e, o){
+        if (e){
+          res.json({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          res.json({
+            success: true,
+            blueprint: o
+          });
+        }
+      });
+    },
+
     login: function(req, res){
       res.render('user/login');
+    },
+
+    getContactMiniProfile: function(req, res){
+      var appId = req.params.appId
+        , contactId = req.params.contactId;
+
+      var user = {};
+      user.appId = contactId;
+      Profile.findMiniProfile(user, function(e, o){
+        if (e){
+          res.json({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          res.json(o);
+        }
+      });
     },
 
     manualLogin: function(req, res){
@@ -357,6 +403,8 @@ UsersController = function(store) {
 
       
     },
+
+
 
     validateRegistration: function(req, res){
 

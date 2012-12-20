@@ -3,10 +3,12 @@ define([
     "dijit/_WidgetBase",
     "dijit/_TemplatedMixin",
     "dojo/text!./templates/miniProfile.html",
+    "dojo/text!./templates/feedbackTip.html",
     "dojo/on",
     "dojo/dom-class",
-    "dojo/topic"
-], function(declare, _WidgetBase, _TemplatedMixin, template, on, domClass, topic) {
+    "dojo/topic",
+    "dojo/_base/lang"
+], function(declare, _WidgetBase, _TemplatedMixin, template, tipHtml, on, domClass, topic, lang) {
  
   return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -32,10 +34,8 @@ define([
       this.ideas.innerHTML = profile.ideas;
       this.ideasLink.href = '/'+user.username;
       this.supporting.innerHTML = profile.supporting;
-      this.time.innerHTML = user.account.pledgedTimeIdeas.length;
-      this.money.innerHTML = user.account.pledgedIdeas.length + user.account.proxiedIdeas.length;
-
-      console.log("in miniprofile", profile);
+      this.time.innerHTML = profile.supportingTypes.withTime;
+      this.money.innerHTML = profile.supportingTypes.withMoney;
 
       if (profile.feedback){
         
@@ -47,6 +47,17 @@ define([
           domClass.add(self.feedbackImage, "hide");
         }
       }
+
+       var tipValues = {
+        coordination: Math.round(self.miniProfile.feedback.coordination.avg),
+        performance: Math.round(self.miniProfile.feedback.performance.avg)
+      };
+
+      $(self.feedbackAvg).tooltip({
+        title: lang.replace(tipHtml, tipValues),
+        placement: "bottom",
+        html: true
+      });
 
       topic.subscribe("coordel/addIdea", function(idea){
         if (self.user.appId === idea.creator){

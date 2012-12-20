@@ -75,18 +75,16 @@ IdeasController = function(store, socket) {
 
   var Ideas = {
 
-    addUserFeedback: function(req, res){
-      var ideaId = req.params.id
-        , appId = req.params.appId
-        , feedback = req.body;
+    addFeedback: function(req, res){
 
       var args = {
         ideaId: req.params.id,
         appId: req.params.appId,
+        user: req.session.currentUser,
         feedback: req.body
       };
 
-      Idea.addUserFeedback(args, function(e, o){
+      Idea.addFeedback(args, function(e, o){
         if (e){
           res.json(e);
         } else {
@@ -131,6 +129,140 @@ IdeasController = function(store, socket) {
               cb(null, idea);
             }
           });
+        },
+        activity: function(cb){
+          store.couch.db.view('coordel/projectActivityReport', {startkey: [id], endkey:[id, {}], group: true, group_level: 2, reduce: true}, function(e, rows){
+            if (e){
+              cb('error'+e);
+            } else {
+              var act = {};
+              var tasks = [];
+              var other = [];
+              var keys = ['message'
+                , 'project-gave-feedback'
+                , 'idea-invites-sent'
+                , 'task-cleared-issue'
+                , 'task-raised-issue'
+                , 'task-submitted'
+                , 'task-created'
+                , 'task-agreed-done'
+                , 'task-delegated'
+                , 'task-declined'
+                , 'task-accepted'
+                , 'task-returned'
+                , 'task-left'];
+              var map = {
+                message: 'MESSAGES',
+                "project-gave-feedback": 'FEEDBACK',
+                "project-invites-sent": "INVITED",
+                "task-cleared-issue": "CLEARED ISSUES",
+                "task-raised-issue": "RAISED ISSUES",
+                "task-created": "CREATED",
+                "task-submitted": "COMPLETED",
+                "task-agreed-done": "AGREED DONE",
+                "task-delegated": "DELEGATED",
+                "task-declined": "DECLINED",
+                "task-accepted": "ACCEPTED",
+                "task-returned": "RETURNED",
+                "task-left": "LEFT"
+              };
+              _.each(rows, function(item){
+                var name = item.key[1];
+                if (_.indexOf(keys, name)> -1){
+                  var entry = {name: map[name], value:item.value, key: name};
+                  if (name.indexOf('task') > -1){
+                    tasks.push(entry);
+                  } else {
+                    other.push(entry);
+                  }
+                }
+              });
+              act.tasks = tasks;
+              act.other = other;
+              console.log("activity rows", act);
+              cb(null, act);
+            }
+          });
+        },
+        userDetails: function(cb){
+          Idea.findUsers(id, function(e, users){
+            if (e){
+              cb(e);
+            } else {
+              cb(null, users);
+            }
+          });
+        },
+        account: function(cb){
+          console.log("idea idea support account", id);
+          store.couch.db.view('coordel/ideaSupportAccount', {
+            startkey: [id],
+            endkey: [id, {}]}, function(e, acct){
+            if (e){
+              cb('error '+e);
+            } else {
+              console.log("idea support account", acct);
+              acct = _.map(acct, function(item){
+                return item.value;
+              });
+           
+              var result = {
+                pledges: [],
+                pledged: 0,
+                pledgedIdeas: [],
+                recurringPledges: [],
+                recurringAllocatedPledges: [],
+                recurringTimePledges: [],
+                recurringAllocatedTimePledges: [],
+                proxied: 0,
+                proxiedIdeas: [],
+                allocated: 0,
+                allocatedIdeas: [],
+                pledgedTimeIdeas: [],
+                pledgedTime: 0
+              };
+
+              if (acct.length){
+                result.pledges = acct;
+                _.each(acct, function(item){
+                  if (item.docType === "money-pledge") {
+                    if (item.status === "PLEDGED"){
+                      result.pledged = result.pledged + item.amount;
+                      result.pledgedIdeas.push(item.project);
+                      //this shows the user that this is a recurring pledge
+                      if (item.type === "RECURRING"){
+                        result.recurringPledges.push(item.project);
+                      }
+                    } else if (item.status === "PROXIED"){
+                      //console.log("proxied", item);
+                      result.proxied = result.proxied + item.amount;
+                      result.proxiedIdeas.push(item.project);
+                    } else if (item.status === "ALLOCATED"){
+                      //this shows the user that this is an allocated recurring pledge
+                      if (item.type === "RECURRING"){
+                        result.recurringAllocatedPledges.push(item.project);
+                      }
+                    }
+                  } else if (item.docType === "time-pledge") {
+                    if (item.status === "PLEDGED"){
+                      result.pledgedTime = result.pledgedTime + item.amount;
+                      result.pledgedTimeIdeas.push(item.project);
+                      if (item.type === "RECURRING"){
+                        result.recurringTimePledges.push(item.project);
+                      }
+                    } else if (item.status === "ALLOCATED"){
+                      if (item.type === "RECURRING"){
+                        result.recurringAllocatedTimePledges.push(item.project);
+                      }
+                    }
+                  }
+                });
+              }
+
+              cb(null, result);
+            }
+          });
+
         },
         supporting: function(cb){
           store.redis.smembers('ideas:' + id + ':supporting', function(e, o){
@@ -181,7 +313,10 @@ IdeasController = function(store, socket) {
             supporting: supporting,
             following: following,
             participating: participating,
-            invited: invited
+            invited: invited,
+            userDetails: results.userDetails,
+            activity: results.activity,
+            account: results.account
           });
         }
       });

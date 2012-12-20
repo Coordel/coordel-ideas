@@ -16,34 +16,12 @@ AppController = function(store) {
   var App = {
 
     index: function(req, res){
+      var user = req.session.currentUser;
 
       async.parallel({
-        profile: function(cb){
-          Profile.findMiniProfile(req.session.currentUser, function(e, o){
-            if (e){
-              cb('error' + e);
-            } else {
-              cb(null, o);
-            }
-          });
-        },
-        userApp: function(cb){
-          UserApp.findById(req.session.currentUser.appId, function(e, o){
-            if (e){
-              cb('error' + e);
-            } else {
-              cb(null, o);
-            }
-          });
-        },
-        supportAccount: function(cb){
-          Profile.findSupportAccount(req.session.currentUser, function(e, o){
-            if (e){
-              console.log("error", e);
-              cb('error' + e);
-            } else {
-              cb(null, o);
-            }
+        extendedUser: function(cb){
+          extendUser(req.session.currentUser, function(e, ext){
+            cb(null,ext);
           });
         },
         timeline: function(cb){
@@ -54,11 +32,48 @@ AppController = function(store) {
               cb(null, o);
             }
           });
+        }
+      },
+      function(e, results) {
+
+        //compress the user
+        var ext = compressExtendedUser(results.extendedUser);
+
+        //get the ideas
+        var ideas = [];
+        _.each(results.timeline, function(i){
+          //since the project was stored as a string, we need to parse it before returning it.
+          ideas.push(JSON.parse(i));
+        });
+        
+        res.render('index', {
+          token: res.locals.token,
+          title: 'Coordel',
+          menu: '#menuIdeas',
+          subNav: 'timeline',
+          user: ext.user,
+          ideas: compress(ideas),
+          profile: ext.profile,
+          contacts: ext.contacts,
+          username: req.session.username,
+          _csrf: req.session._csrf
+        });
+      });
+    },
+
+    trending: function(req, res){
+      var user = req.session.currentUser;
+
+      async.parallel({
+        extendedUser: function(cb){
+          extendUser(req.session.currentUser, function(e, ext){
+            cb(null,ext);
+          });
         },
-        contacts: function(cb){
-          UserApp.findContacts(req.session.currentUser, function(e, o){
+        trending: function(cb){
+           Idea.trending(function(e, o){
             if (e){
-              cb('error'+e );
+              cb('error' +e);
             } else {
               cb(null, o);
             }
@@ -67,44 +82,25 @@ AppController = function(store) {
       },
       function(e, results) {
 
+        //compress the user
+        var ext = compressExtendedUser(results.extendedUser);
+
+        //get the ideas
         var ideas = [];
-        _.each(results.timeline, function(i){
+        _.each(results.trending, function(i){
           //since the project was stored as a string, we need to parse it before returning it.
-          ideas.push(JSON.parse(i));
+          ideas.push(i);
         });
-
-        var contactList = [];
-        _.each(results.contacts, function(c){
-
-          contactList.push(c);
-        });
-
-        //now we need to stringify and escape the objects for tranfer
-        ideas = escape(JSON.stringify(ideas));
-        contactList = escape(JSON.stringify(contactList));
-
-        //console.log("contactList", contactList);
-
-        //update the user
-        var user = req.session.currentUser;
-        user.imageUrl = 'http://www.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png');
-        user.app = results.userApp;
-        user.account = results.supportAccount;
-        user = escape(JSON.stringify(user));
-
-
-        //prepare the profile
-        var profile = escape(JSON.stringify(results.profile));
-
-        //console.log("ideas and user", ideas, user);
+        
         res.render('index', {
           token: res.locals.token,
           title: 'Coordel',
           menu: '#menuIdeas',
-          ideas: ideas,
-          contacts: contactList,
-          user: user,
-          profile: profile,
+          subNav: 'trending',
+          user: ext.user,
+          ideas: compress(ideas),
+          profile: ext.profile,
+          contacts: ext.contacts,
           username: req.session.username,
           _csrf: req.session._csrf
         });
@@ -142,12 +138,23 @@ AppController = function(store) {
     },
 
     blueprints: function(req, res){
-      res.render('blueprints.ejs', {
-        token: res.locals.token,
-        title: 'Coordel Blueprints',
-        username: req.session.username,
-        _csrf: req.session._csrf
+      store.couch.db.view('coordel/sharedTemplates', function(e, o){
+
+        var templates = _.map(o, function(item){
+          return item.value;
+        });
+
+        res.render('blueprints.ejs', {
+          token: res.locals.token,
+          title: 'Coordel Blueprints',
+          menu: "#menuBlueprints",
+          blueprints: compress(templates),
+          user: compress(req.session.currentUser),
+          username: req.session.username,
+          _csrf: req.session._csrf
+        });
       });
+     
     },
 
     moneyPledged: function(req, res){
@@ -245,6 +252,37 @@ AppController = function(store) {
           subNav: 'timePledged',
           user: ext.user,
           ideas: compress(results.ideas),
+          profile: ext.profile,
+          contacts: ext.contacts,
+          username: req.session.username,
+          _csrf: req.session._csrf
+        });
+      });
+    },
+
+    feedback: function(req, res){
+      var user = req.session.currentUser;
+      async.parallel({
+        extendedUser: function(cb){
+          extendUser(req.session.currentUser, function(e, ext){
+            cb(null,ext);
+          });
+        }
+      },
+      function(e, results) {
+
+        //console.log("ideas", results.ideas);
+
+        //compress the user
+        var ext = compressExtendedUser(results.extendedUser);
+        
+        res.render('user', {
+          token: res.locals.token,
+          title: req.session.currentUser.fullName,
+          menu: '#menuMe',
+          subNav: 'feedback',
+          user: ext.user,
+          ideas: compress([]),
           profile: ext.profile,
           contacts: ext.contacts,
           username: req.session.username,
@@ -397,6 +435,15 @@ AppController = function(store) {
             cb(null, o);
           }
         });
+      },
+      feedback: function(cb){
+        Profile.findFeedbackComments(user.appId, function(e, o){
+          if(e){
+            cb('error'+e);
+          } else {
+            cb(null, o);
+          }
+        });
       }
     },
     function(e, results) {
@@ -407,6 +454,7 @@ AppController = function(store) {
       user.imageUrl = 'http://www.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png');
       user.app = results.userApp;
       user.account = results.supportAccount;
+      user.feedback = results.feedback;
 
       //put the user into the extension
       ext.user = user;
