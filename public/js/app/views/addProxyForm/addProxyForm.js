@@ -2,9 +2,10 @@ define(["dojo/dom"
     , "dojo/on"
     , "dojo/dom-class"
     , "dojo/_base/array"
+    , "dojo/topic"
     , "app/models/pledges"
     , "app/views/contactPicker/contactPicker"
-    , "dojo/domReady!"],function(dom, on, domClass, array, stores, contactPicker){
+    , "dojo/domReady!"],function(dom, on, domClass, array, topic, stores, contactPicker){
 
   var addProxyFormControl = {
 
@@ -41,10 +42,25 @@ define(["dojo/dom"
       on(dom.byId("coinbaseAuthorize"), "click", function(){
         coinbaseAuthorize();
       });
+
+      on(dom.byId("proxySubmit"), "click", function(){
+        self.submit();
+      });
+
+      $('#addProxyModal').on('hidden', function () {
+        //clear all the fields
+        self.resetAll();
+      });
     },
 
-    showAuthorize: function(){
+    resetAll: function(){
+      var self = this;
+      self.picker.value = "";
+      self.picker.inputControl.value = "";
+    },
 
+
+    showAuthorize: function(){
       domClass.remove(dom.byId("proxyAuthorize"), "hide");
       domClass.add(dom.byId("proxyAction"), "hide");
       domClass.add(dom.byId("proxySubmit"), "hide");
@@ -60,11 +76,13 @@ define(["dojo/dom"
         return item.appId !== self.user.appId;
       });
       
-      var cp = new contactPicker({contacts: list, placeholder: "Select proxy"}).placeAt("proxySelectContainer");
+      self.picker = new contactPicker({contacts: list, placeholder: "Select proxy"}).placeAt("proxySelectContainer");
     },
 
     showPledge: function(pledge){
       var self = this;
+
+      self.pledge = pledge;
 
       //set the amounts
       dom.byId("proxyPledgeType").innerHTML = pledge.type.toLowerCase();
@@ -111,7 +129,30 @@ define(["dojo/dom"
     },
 
     submit: function(){
-     
+      //change the status to PROXIED
+      //add the chosen user as the proxy
+      //set the date proxied
+
+      var self = this
+        , timestamp = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ")
+        , appId = self.user.app.id;
+    
+
+      var pledge =  self.pledge;
+
+      pledge.status = "PROXIED";
+      pledge.proxy = self.picker.value;
+      pledge.proxied = timestamp;
+
+      console.log("pledge", pledge);
+
+      var db = stores.moneyStore();
+      
+      db.put(pledge).then(function(res){
+        $('#addProxyModal').modal('hide');
+        console.log("adding proxy", pledge.project);
+        topic.publish("coordel/ideaAction", "addProxy", pledge.project);
+      });
     }
 
   };

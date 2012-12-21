@@ -158,7 +158,7 @@ define(["dojo/dom",
           addProxy.init(args.user, prices, args.contacts);
           cancelMoneyForm.init(args.user, prices);
           cancelTimeForm.init(args.user);
-          removeProxyForm.init(args.user, prices);
+          removeProxyForm.init(args.user, prices, args.contacts);
           feedbackForm.init(args.user);
         });
 

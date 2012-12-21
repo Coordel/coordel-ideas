@@ -2,9 +2,10 @@ define(["dojo/dom"
     , "dojo/on"
     , "dojo/dom-class"
     , "dojo/_base/array"
+    , "dojo/topic"
     , "app/models/pledges"
     , "app/views/contactPicker/contactPicker"
-    , "dojo/domReady!"],function(dom, on, domClass, array, stores, contactPicker){
+    , "dojo/domReady!"],function(dom, on, domClass, array, topic, stores, contactPicker){
 
   var removeProxyFormControl = {
 
@@ -26,6 +27,11 @@ define(["dojo/dom"
       if (user.app.localCurrency){
         self.localCurrency = user.app.localCurrency;
       }
+
+      on(dom.byId("removeProxySubmit"), "click", function(){
+        self.submit();
+      });
+
     },
 
     showProxy: function(){
@@ -38,20 +44,34 @@ define(["dojo/dom"
         return item.appId !== self.user.appId;
       });
       
-      var cp = new contactPicker({contacts: list, placeholder: "Select proxy"}).placeAt("removeProxySelectContainer");
-      cp.inputControl.value = "This is the proxy";
-      cp.inputControl.disabled = true;
+      self.picker = new contactPicker({contacts: list, placeholder: "Select proxy"}).placeAt("removeProxySelectContainer");
+      self.picker.inputControl.value = "This is the proxy";
+      self.picker.inputControl.disabled = true;
     },
 
     showPledge: function(pledge){
       var self = this;
       console.log("showPledge removeProxy", pledge);
 
-      //set the amounts
+
+
+      self.pledge = pledge;
+
+      //set the amount
       dom.byId("removeProxyPledgeType").innerHTML = pledge.type.toLowerCase();
       self.setLocalAmount(pledge.amount);
       self.setBtcAmount(pledge.amount);
-      self.setOwnershipPoints(pledge.amount);
+
+      
+      console.log("contacts" , self.contacts);
+      var proxy = false;
+      array.forEach(self.contacts, function(item){
+        if (item.appId === pledge.proxy){
+          self.picker.value = item.appId;
+          self.picker.inputControl.value = item.fullName;
+        }
+      });
+      
 
       if (pledge.type === "RECURRING"){
         domClass.add(dom.byId("removeProxyOnceInstructions"), "hide");
@@ -92,7 +112,31 @@ define(["dojo/dom"
     },
 
     submit: function(){
-     
+      //change the status to PLEDGED
+      //remove the proxy
+      //remove date proxied
+
+      var self = this
+        , timestamp = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ")
+        , appId = self.user.app.id;
+    
+
+      var pledge =  self.pledge;
+
+      pledge.status = "PLEDGED";
+      delete pledge.proxy;
+      delete pledge.proxied;
+
+      console.log("pledge", pledge);
+
+      var db = stores.moneyStore();
+      
+
+      db.put(pledge).then(function(res){
+        $('#removeProxyModal').modal('hide');
+        console.log("adding proxy", pledge.project);
+        topic.publish("coordel/ideaAction", "removeProxy", pledge.project);
+      });
     }
 
   };

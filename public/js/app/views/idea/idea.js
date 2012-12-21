@@ -61,6 +61,7 @@ define([
           domClass.remove(self.pledgeTimeContainer, "hide");
           domClass.add(self.reportTimeContainer, "hide");
           domClass.add(self.cancelTimeContainer, "hide");
+          domClass.replace(self.dogear, "");
         },
 
         setState: function(user){
@@ -238,6 +239,14 @@ define([
                   $(self.domNode).delay(200).fadeOut().fadeIn('fast');
                   break;
                 case "pledgeTime":
+                  //do a highlight to indicate something happened
+                  $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  break;
+                case "addProxy":
+                  //do a highlight to indicate something happened
+                  $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  break;
+                case "removeProxy":
                   //do a highlight to indicate something happened
                   $(self.domNode).delay(200).fadeOut().fadeIn('fast');
                   break;
