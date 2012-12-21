@@ -11,7 +11,7 @@ define([
     "dojo/_base/lang",
     "dojo/dom",
     "dojo/request/xhr",
-    "dojo/topic",
+    "dojo/topic", "dojo/fx/easing", "dojo/_base/fx",
     "app/views/idea/ideaDetails",
     "app/views/idea/ideaStream",
     "dijit/registry",
@@ -25,7 +25,7 @@ define([
     "app/views/removeProxyForm/removeProxyForm",
     "app/views/feedbackForm/feedbackForm"
 
-], function(declare, _WidgetBase, _TemplatedMixin, template, replyHtml,inviteHtml, shareHtml, on, domClass, lang, dom, xhr, topic, ideaDetails, ideaStream, registry, array, allocateForm, addProxyForm, contactPicker, cancelMoneyForm, reportTimeForm, cancelTimeForm, removeProxyForm, feedbackForm) {
+], function(declare, _WidgetBase, _TemplatedMixin, template, replyHtml,inviteHtml, shareHtml, on, domClass, lang, dom, xhr, topic, easing, fx, ideaDetails, ideaStream, registry, array, allocateForm, addProxyForm, contactPicker, cancelMoneyForm, reportTimeForm, cancelTimeForm, removeProxyForm, feedbackForm) {
 
     return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -49,12 +49,26 @@ define([
 
         collapsed: true,
 
+        resetState: function(){
+          var self = this;
+
+          domClass.remove(self.pledgeSupportContainer, "hide");
+          domClass.remove(self.pledgeMoneyContainer, "hide");
+          domClass.add(self.releaseMoneyContainer, "hide");
+          domClass.add(self.addProxyContainer, "hide");
+          domClass.add(self.removeProxyContainer, "hide");
+          domClass.add(self.cancelMoneyContainer, "hide");
+          domClass.remove(self.pledgeTimeContainer, "hide");
+          domClass.add(self.reportTimeContainer, "hide");
+          domClass.add(self.cancelTimeContainer, "hide");
+        },
+
         setState: function(user){
           var self = this
             , idea = self.idea;
 
-          //console.log("setting feedback state", self.showFeedback);
-
+          self.resetState();
+        
           //if I'm the creator of this idea, then hide the support button
           if (user.app.id === idea.creator){
             domClass.add(self.pledgeSupportContainer, "hide");
@@ -119,7 +133,7 @@ define([
 
           //feedback
           if (self.showFeedback){
-            //console.log("show feedback");
+    
             //if I'm a participant in this idea, I can give feedback
             var has = array.filter(self.idea.assignments, function(assign){
               return (assign.status === "ACCEPTED" && assign.role !== "FOLLOWER" && assign.username === self.currentUser.appId);
@@ -130,6 +144,8 @@ define([
             }
           }
 
+  
+
           //DOGEARS
           if (self.showDogears){
             var recur = array.indexOf(user.account.recurringPledges, idea._id)>-1
@@ -139,45 +155,49 @@ define([
               , proxy = array.indexOf(user.account.proxiedIdeas, idea._id)>-1;
 
 
+
             var showTip = false
               , tipText = "";
+
+
 
             //if both recur and proxy, show both, otherwise show the right one
             if (self.idea.pledgeType === "money"){
               if (recur && proxy){
-                domClass.add(self.dogear, "icon-dogear-both-stopped");
+                domClass.replace(self.dogear, "icon-dogear-both-stopped");
                 tipText = "Proxied and recurring but not allocated";
                 showTip = true;
               } else if (recurAlloc && proxy){
-                domClass.add(self.dogear, "icon-dogear-both");
+                domClass.replace(self.dogear, "icon-dogear-both");
                 tipText = "Proxied, recurring and allocated";
                 showTip = true;
               } else if (recur && !recurAlloc){
-                domClass.add(self.dogear, "icon-dogear-recurring-stopped");
+                domClass.replace(self.dogear, "icon-dogear-recurring-stopped");
                 tipText = "Recurring not allocated";
                 showTip = true;
               } else if (recurAlloc && !recur && !proxy){
-                domClass.add(self.dogear, "icon-dogear-recurring");
+                domClass.replace(self.dogear, "icon-dogear-recurring");
                 tipText = "Recurring and allocated";
                 showTip = true;
               } else if (proxy && !recur && !recurAlloc){
-                domClass.add(self.dogear, "icon-dogear-proxy");
+                domClass.replace(self.dogear, "icon-dogear-proxy");
                 tipText = "Proxied";
                 showTip = true;
               }
             } else if (self.idea.pledgeType === "time"){
               if (recurTime){
-                 domClass.add(self.dogear, "icon-dogear-recurring-stopped");
+                 domClass.replace(self.dogear, "icon-dogear-recurring-stopped");
                  tipText = "Recurring but no time reported";
                  showTip = true;
                } else if(recurTimeAlloc){
-                 domClass.add(self.dogear, "icon-dogear-recurring");
+                 domClass.replace(self.dogear, "icon-dogear-recurring");
                  tipText = "Recurring and time reported";
                  showTip = true;
                }
             }
 
             if (showTip){
+              $(self.dogear).tooltip('destroy');
               $(self.dogear).tooltip({placement: 'right', title: tipText});
             }
             
@@ -195,6 +215,63 @@ define([
             return false;
           }
 
+          var sptHandle = topic.subscribe("coordel/supportAccount", function(acct){
+            console.log("supportAccount", acct, self.currentUser.account);
+  
+            //self.currentUser.account = acct;
+            if (self.currentUser.appId === self.idea.creator){
+              self.user.account = acct;
+            }
+
+            self.setState(self.currentUser);
+          });
+
+
+
+          topic.subscribe("coordel/ideaAction", function(action, ideaId){
+      
+            if (self.idea._id === ideaId){
+              console.log("ideaAction", action, ideaId, self.idea._id, self.subNavId);
+              switch (action) {
+                case "pledgeMoney":
+                  //do a highlight to indicate something happened
+                  $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  break;
+                case "pledgeTime":
+                  //do a highlight to indicate something happened
+                  $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  break;
+                case "cancelMoney":
+                  if (self.subNavId === "subNavMoney"){
+                    console.log("should destroy");
+                    sptHandle.remove();
+                    self.destroy();
+                  } else {
+                    $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  }
+                  break;
+                case "cancelTime":
+                  if (self.subNavId === "subNavTime"){
+                    console.log("should destroy");
+                    sptHandle.remove();
+                    self.destroy();
+                  } else {
+                    $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  }
+                  break;
+                case "allocate":
+                  if (self.subNavId === "subNavMoney"){
+                    console.log("should destroy");
+                    sptHandle.remove();
+                    self.destroy();
+                  } else {
+                    $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  }
+                  break;
+              }
+            }
+            
+          });
 
           if (this.idea.creatorDetails){
             this.user = this.idea.creatorDetails;
@@ -556,8 +633,6 @@ define([
                 return item.creator === self.currentUser.appId;
               });
 
-              //console.log("list", list);
-
               var pledge = false;
               if (list.length){
                 pledge = list[0];
@@ -573,17 +648,14 @@ define([
           });
 
           on(self.doFeedback, "click", function(e){
-            //console.log("feedback clicked");
+         
             dom.byId("feedbackIdea").value = self.idea._id;
             xhr('/ideas/' + self.idea._id + '/users', {handleAs: 'json'}).then(function(list){
-              //console.log("prefilter list of users", list, self.currentUser);
+        
               list = array.filter(list, function(item){
                 return item.appId !== self.currentUser.appId;
               });
-
-              //console.log("user list", list, feedbackForm);
-
-              
+  
               feedbackForm.showControls(list);
 
             });

@@ -22,42 +22,17 @@ define([
     postCreate: function(){
       this.inherited(arguments);
       var self = this
-        , user = this.user
-        , profile = this.miniProfile;
+        , user = this.user;
 
-      this.profileImage.src = user.imageUrl;
-      this.profileName.innerHTML = user.fullName;
-      this.profileName.href = "/" + user.username;
+      //image and link
+      self.profileImage.src = user.imageUrl;
+      self.profileName.innerHTML = user.fullName;
+      self.profileName.href = "/" + user.username;
 
+      //miniProfile and feedback
+      self.ideasLink.href = '/'+user.username;
+      self.setProfile();
 
-      //miniProfile
-      this.ideas.innerHTML = profile.ideas;
-      this.ideasLink.href = '/'+user.username;
-      this.supporting.innerHTML = profile.supporting;
-      this.time.innerHTML = profile.supportingTypes.withTime;
-      this.money.innerHTML = profile.supportingTypes.withMoney;
-
-      if (profile.feedback){
-        
-        if (profile.feedback.avg > 0){
-          //set the average
-          self.feedbackAvg.innerHTML = profile.feedback.avg;
-        } else {
-          //hide the feedback graphic
-          domClass.add(self.feedbackImage, "hide");
-        }
-      }
-
-       var tipValues = {
-        coordination: Math.round(self.miniProfile.feedback.coordination.avg),
-        performance: Math.round(self.miniProfile.feedback.performance.avg)
-      };
-
-      $(self.feedbackAvg).tooltip({
-        title: lang.replace(tipHtml, tipValues),
-        placement: "bottom",
-        html: true
-      });
 
       topic.subscribe("coordel/addIdea", function(idea){
         if (self.user.appId === idea.creator){
@@ -71,6 +46,50 @@ define([
         var count = parseInt(self.supporting.innerHTML, 10) + num;
         self.supporting.innerHTML = count.toString();
       });
+
+      topic.subscribe("coordel/miniProfile", function(mini){
+        console.log("miniProfile got new profile", mini);
+        self.miniProfile = mini;
+        self.setProfile();
+      });
+    },
+
+    setProfile: function(){
+      var self = this
+        , profile = self.miniProfile;
+
+      self.ideas.innerHTML = profile.ideas;
+      self.supporting.innerHTML = profile.supporting;
+      self.time.innerHTML = profile.supportingTypes.withTime;
+      self.money.innerHTML = profile.supportingTypes.withMoney;
+
+      if (profile.feedback){
+        
+        if (profile.feedback.avg > 0){
+          //set the average
+          self.feedbackAvg.innerHTML = profile.feedback.avg;
+          //tooltip
+          var tipValues = {
+            coordination: Math.round(self.miniProfile.feedback.coordination.avg),
+            performance: Math.round(self.miniProfile.feedback.performance.avg)
+          };
+
+          console.log("setting miniProfile", tipValues);
+
+          $(self.feedbackAvg).tooltip("destroy");
+
+          $(self.feedbackAvg).tooltip({
+            title: lang.replace(tipHtml, tipValues),
+            placement: "bottom",
+            html: true
+          });
+
+        } else {
+          //hide the feedback graphic
+          domClass.add(self.feedbackImage, "hide");
+        }
+      }
+
     }
   });
 });

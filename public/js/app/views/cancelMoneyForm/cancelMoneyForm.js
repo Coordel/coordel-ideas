@@ -1,4 +1,4 @@
-define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/domReady!"],function(dom, on, domClass, stores){
+define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/topic", "app/models/pledges", "dojo/domReady!"],function(dom, on, domClass, topic, stores){
 
   var cancelMoneyFormControl = {
 
@@ -16,6 +16,10 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/dom
       if (user.app.localCurrency){
         self.localCurrency = user.app.localCurrency;
       }
+
+      on(dom.byId("cancelMoneySubmit"), "click", function(e){
+        self.submit();
+      });
     },
 
     showError: function(){
@@ -28,6 +32,7 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/dom
     showPledge: function(pledge){
       var self = this;
       console.log("showing pledge", pledge);
+      self.pledge = pledge;
       //set the amounts
       dom.byId("cancelMoneyPledgeType").innerHTML = pledge.type.toLowerCase();
       self.setLocalAmount(pledge.amount);
@@ -51,7 +56,26 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/dom
     },
 
     submit: function(){
-     
+      //there can be two types of pledges RECURRING and ONE-TIME. default ONE-TIME
+      var self = this
+        , timestamp = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ")
+        , appId = self.user.app.id;
+
+      var pledge =  self.pledge;
+
+      pledge.status = "CANCELLED";
+      pledge.cancelled = timestamp;
+      pledge.cancelledBy = self.user.appId;
+
+      console.log("pledge", pledge);
+
+      var db = stores.moneyStore();
+      
+      db.put(pledge).then(function(res){
+        $('#cancelMoneyPledgeModal').modal('hide');
+        topic.publish("coordel/ideaAction", "cancelMoney", pledge.project);
+      });
+
     }
   };
 

@@ -1,4 +1,10 @@
-define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/domReady!"],function(dom, on, domClass, stores){
+define(["dojo/dom"
+    , "dojo/on"
+    , "dojo/dom-class"
+    , "dojo/request"
+    , "dojo/topic"
+    , "app/models/pledges"
+    , "dojo/domReady!"],function(dom, on, domClass, request, topic, stores){
 
   var allocateFormControl = {
 
@@ -10,6 +16,8 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/dom
 
     init: function(user, prices){
       var self = this;
+
+      self._csrf = $('#addIdea_csrf').val();
 
       self.user = user;
       self.bitcoinPrices = prices;
@@ -36,6 +44,10 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/dom
         coinbaseAuthorize();
       });
 
+      on(dom.byId("allocateSubmit"), "click", function(){
+        self.submit();
+      });
+
      
     },
 
@@ -53,6 +65,8 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/dom
 
     showPledge: function(pledge){
       var self = this;
+
+      self.pledge = pledge;
 
       //set the amounts
       dom.byId("allocatePledgeType").innerHTML = pledge.type.toLowerCase();
@@ -88,8 +102,7 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/dom
       var self = this;
       var newValue = btcAmount / 0.075;
 
-      newValue = accounting.formatNumber(newValue, [precision = 4], [thousand = ","], [decimal = "."]);
-      console.log("btcAmount", btcAmount, "newValue", newValue);
+      newValue = accounting.formatNumber(newValue, [precision = 3], [thousand = ","], [decimal = "."]);
       dom.byId("allocateOwnershipPoints").innerHTML = newValue;
     },
 
@@ -100,6 +113,55 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/dom
 
    
     submit: function(){
+      //there can be two types of pledges RECURRING and ONE-TIME. default ONE-TIME
+      var self = this
+        , timestamp = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ")
+        , appId = self.user.app.id;
+      
+
+      //get the amount from the BTC field
+      var amount = self.pledge.amount;
+
+
+      var alloc = {
+        docType: "allocation",
+        project: dom.byId("allocateIdea").value,
+        pledgeId: self.pledge._id,
+        amount: amount,
+        created: timestamp,
+        allocator: appId,
+        creator: self.pledge.creator,
+        status: "STARTED"
+      };
+
+      //update the pledge status to ALLOCATED
+      self.pledge.status = "ALLOCATED";
+
+      console.log("allocation", alloc, "pledge", self.pledge);
+
+      
+      var url = '/api/v1/pledges/allocations';
+      request.post(url, {
+          data: {
+            alloc: JSON.stringify(alloc),
+            pledge: JSON.stringify(self.pledge)
+          },
+          headers: {
+              "X-CSRF-Token": self._csrf //for object property name, use quoted notation shown in second
+          },
+          handleAs: "json"
+        }).then(function(resp){
+          if (resp.success){
+            console.log("successful", resp.allocation);
+            topic.publish("coordel/ideaAction", "allocate", self.pledge.project);
+            $('#allocateModal').modal('hide');
+          } else {
+            console.log("failed", resp.errors);
+          }
+           
+          //the login won't work for sure because we don't have a password
+          //but we can go through the error to see if the email already exists
+        });
      
     }
   };

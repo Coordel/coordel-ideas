@@ -168,7 +168,7 @@ var Ideas = require('./server/controllers/ideas')(store, socket);
 var Intro = require('./server/controllers/intro')(store);
 var Coinbase = require('./server/controllers/coinbase')();
 var Bitcoin = require('./server/controllers/bitcoin')(store);
-var Pledges = require('./server/controllers/pledges')(store);
+var Pledges = require('./server/controllers/pledges')(store, socket);
 
 //tidy
 //store.redis.del('user:devcoordel', 'user:dev@coordel.com');
@@ -373,7 +373,11 @@ app.get(v1 + '/ideas/:id/stream', Ideas.findStream);
 
 
 app.post(v1 + '/pledges/money', Pledges.create);
+app.put(v1 + '/pledges/money/:pledgeId', Pledges.save);
+app.post(v1 + '/pledges/allocations', Pledges.allocate);
 app.post(v1 + '/pledges/time', Pledges.create);
+app.put(v1 + '/pledges/time/:pledgeId', Pledges.save);
+
 
 
 

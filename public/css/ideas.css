@@ -4,6 +4,10 @@
   width: 345px;
 }
 
+.bg-green {
+  background-color: #5BB75B;
+}
+
 /* blueprints */
 .blueprint {
  padding: 12px;
@@ -131,8 +135,9 @@
   border-right: 1px solid #ccc;
 }
 
-.rounded-column, .stream-container{
+.stream-container{
   /*border: 1px solid #ccc;*/
+  background-color: #dedede;
 }
 
 .bg-gray {

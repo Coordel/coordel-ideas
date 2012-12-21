@@ -1,4 +1,4 @@
-define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/domReady!"],function(dom, on, domClass, stores){
+define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/topic", "app/models/pledges", "dojo/domReady!"],function(dom, on, domClass, topic, stores){
 
   var timeFormControl = {
 
@@ -25,6 +25,19 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/dom
         self.setHours(hours);
         self.validate(hours);
       });
+
+       $('#supportTimeModal').on('hidden', function () {
+        //clear all the fields
+        self.resetAll();
+      });
+
+    },
+
+    resetAll: function(){
+      dom.byId("supportTimeHours").value = "";
+      dom.byId("supportTimePledge").checked = true;
+      dom.byId("supportTimeRecurringPledge").checked = false;
+      dom.byId("supportTimeSubmit").disabled = true;
     },
 
     setHours: function(hours){
@@ -76,6 +89,7 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "app/models/pledges", "dojo/dom
       var db = stores.timeStore();
       db.add(pledge).then(function(res){
         $('#supportTimeModal').modal('hide');
+        topic.publish("coordel/ideaAction", "pledgeTime", pledge.project);
       });
     }
   };

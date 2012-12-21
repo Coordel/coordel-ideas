@@ -24,11 +24,6 @@ define([
       this.inherited(arguments);
       var self = this;
 
-      var tipValues = {
-        coordination: Math.round(self.miniProfile.feedback.coordination.avg),
-        performance: Math.round(self.miniProfile.feedback.performance.avg)
-      };
-
       if (self.user.app.localCurrency){
         self.localCurrency = self.user.app.localCurrency;
       }
@@ -47,22 +42,9 @@ define([
         }
       }
 
-      if (self.miniProfile.feedback){
-        if (self.miniProfile.feedback.avg > 0){
-          self.feedbackAvg.innerHTML = self.miniProfile.feedback.avg;
-        } else {
-          domClass.add(self.feedbackImage, "hide");
-        }
-      }
-
       self.setAccount();
+      self.setProfile();
       
-      $(self.feedbackAvg).tooltip({
-        title: lang.replace(tipHtml, tipValues),
-        placement: "bottom",
-        html: true
-      });
-
       topic.subscribe("coordel/addIdea", function(idea){
         if (self.user.appId === idea.creator){
           var count = parseInt(self.ideas.innerHTML, 10) + 1;
@@ -75,6 +57,47 @@ define([
         var count = parseInt(self.supporting.innerHTML, 10) + num;
         self.supporting.innerHTML = count.toString();
       });
+
+      topic.subscribe("coordel/miniProfile", function(mini){
+        self.miniProfile = mini;
+        self.setProfile();
+      });
+
+      topic.subscribe("coordel/supportAccount", function(acct){
+        self.user.account = acct;
+        self.setAccount();
+      });
+
+    },
+
+    setProfile: function(){
+      var self = this
+        , profile = this.miniProfile;
+
+      if (profile.feedback){
+        if (profile.feedback.avg > 0){
+
+          self.feedbackAvg.innerHTML = profile.feedback.avg;
+
+          var tipValues = {
+            coordination: Math.round(profile.feedback.coordination.avg),
+            performance: Math.round(profile.feedback.performance.avg)
+          };
+
+          $(self.feedbackAvg).tooltip("destroy");
+
+          $(self.feedbackAvg).tooltip({
+            title: lang.replace(tipHtml, tipValues),
+            placement: "bottom",
+            html: true
+          });
+
+        } else {
+
+          domClass.add(self.feedbackImage, "hide");
+
+        }
+      }
     },
 
     setAccount: function(){

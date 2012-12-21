@@ -14,7 +14,8 @@ IdeasController = function(store, socket) {
   var Idea = require('../models/idea')(store)
     , UserApp = require('../models/userApp')(store)
     , MoneyPledge = require('../models/moneyPledge')(store)
-    , TimePledge = require('../models/timePledge')(store);
+    , TimePledge = require('../models/timePledge')(store)
+    , Profile = require('../models/profile')(store);
 
   function parsePurpose(purpose){
     //NOTE: this is just rudimentary
@@ -84,11 +85,32 @@ IdeasController = function(store, socket) {
         feedback: req.body
       };
 
+      console.log("in addFeedback", args);
+
+      var user = {appId: args.appId};
+
       Idea.addFeedback(args, function(e, o){
+        console.log("addFeedback", e, o);
         if (e){
-          res.json(e);
+          res.json({
+            success: false,
+            errors: [e]
+          });
         } else {
-          res.json(o);
+          console.log("addFeedback response", o);
+          Profile.findMiniProfile(user, function(e, mini){
+            console.log("after findMiniProfile", e, mini);
+            if (e){
+              //TODO log error
+            } else {
+              console.log("new mini profile in ideas.js", user.appId, mini);
+              socket.emit('miniProfile:'+user.appId, mini);
+            }
+          });
+          res.json({
+            success: true,
+            idea: o
+          });
         }
       });
     },
@@ -194,7 +216,7 @@ IdeasController = function(store, socket) {
           });
         },
         account: function(cb){
-          console.log("idea idea support account", id);
+          console.log("idea support account", id);
           store.couch.db.view('coordel/ideaSupportAccount', {
             startkey: [id],
             endkey: [id, {}]}, function(e, acct){
@@ -219,7 +241,8 @@ IdeasController = function(store, socket) {
                 allocated: 0,
                 allocatedIdeas: [],
                 pledgedTimeIdeas: [],
-                pledgedTime: 0
+                pledgedTime: 0,
+                reportedTime: 0
               };
 
               if (acct.length){
@@ -240,9 +263,15 @@ IdeasController = function(store, socket) {
                     } else if (item.status === "ALLOCATED"){
                       //this shows the user that this is an allocated recurring pledge
                       if (item.type === "RECURRING"){
+                        //the pledged amount recurs so add it
+                        result.pledged = result.pledged + item.amount;
                         result.recurringAllocatedPledges.push(item.project);
                       }
                     }
+                  } else if (item.docType === "allocation"){
+
+                    result.allocated = result.allocated + item.amount;
+
                   } else if (item.docType === "time-pledge") {
                     if (item.status === "PLEDGED"){
                       result.pledgedTime = result.pledgedTime + item.amount;
@@ -252,6 +281,7 @@ IdeasController = function(store, socket) {
                       }
                     } else if (item.status === "ALLOCATED"){
                       if (item.type === "RECURRING"){
+                        result.reportedTime = result.reportedTime + item.amount;
                         result.recurringAllocatedTimePledges.push(item.project);
                       }
                     }

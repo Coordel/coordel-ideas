@@ -4,12 +4,13 @@ define(["dojo/dom",
   "dojo/request",
   "dojo/_base/array",
   "dojo/dom-construct",
+  "dojo/topic",
   "app/models/pledges",
-  "dojo/domReady!"],function(dom, on, domClass, request, array, build, stores){
+  "dojo/domReady!"],function(dom, on, domClass, request, array, build, topic, stores){
 
   var paymentFormControl = {
 
-    hasPaymentMethod: false,
+    hasPaymentMethod: true,
 
     bitcoinPrices: false,
 
@@ -262,6 +263,7 @@ define(["dojo/dom",
       var db = stores.moneyStore();
       db.add(pledge).then(function(res){
         $('#supportMoneyModal').modal('hide');
+        topic.publish("coordel/ideaAction", "pledgeMoney", pledge.project);
       });
     }
   };

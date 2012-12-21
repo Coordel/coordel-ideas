@@ -10,8 +10,12 @@
   "status": "PLEDGED|PROXIED|ALLOCATED|CANCELLED",
   "proxy": "person who has the proxy",
   "proxied": "date the pledge was proxied",
+  "cancelled": "date the pledge was cancelled"
+
+  /*
   "moneyPledges": ["has the entries for all recurring money pledges"],
   "moneyAlloctions": ["has the ids of all allocations"]
+  */
 }
 
 {
@@ -19,11 +23,10 @@
   "_rev": "1-xxx",
   "docType": "time-pledge",
   "project": "id of thing to which pledge is made",
-  "username": "person who made the time pledge",
+
   "created": "",
   "creator": "",
-  "updated": "",
-  "updater": "",
+
   "type": "ONE-TIME|RECURRING",
   "status": "PLEDGED|REPORTED|CANCELLED",
   "timePledges": ["has the entries for single or recurring pledged hours"],
@@ -33,16 +36,16 @@
 {
   "_id": "xxx",
   "_rev": "1-xxx",
-  "docType": "money-allocation",
+  "docType": "allocation",
   "project": "id of thing to which pledge is made",
   "pledgeId": "money-pledge document",
-  "amount": "amount of allocation",
+  "amount": "amount of allocation in BTC",
   "notes": "text describing transaction",
-  "proxy": "person who released if proxied",
-  "username": "person who pledged if not proxied",
   "status": "STARTED|COMPLETED|FAILED",
-  "created": "",
-  "updated": ""
+  "created": "date of allocation start",
+  "creator": "person who did the allocation (proxy or person who did the pledge)",
+  "completed": "date allocation successful",
+  "failed": "date allocation failed"
 }
 
 {

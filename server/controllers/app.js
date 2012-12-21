@@ -154,7 +154,6 @@ AppController = function(store) {
           _csrf: req.session._csrf
         });
       });
-     
     },
 
     moneyPledged: function(req, res){
@@ -172,7 +171,7 @@ AppController = function(store) {
               console.log("error", e);
              
             } else {
-              console.log('account', o);
+              //console.log('account', o);
               var batch = _.union(o.pledgedIdeas, o.proxiedIdeas, o.recurringAllocatedPledges);
               Idea.findBatch(batch, function(e, o){
                 if (e){
@@ -224,7 +223,7 @@ AppController = function(store) {
               console.log("error", e);
              
             } else {
-              console.log('account', o);
+              //console.log('account', o);
               Idea.findBatch(o.pledgedTimeIdeas, function(e, o){
                 if (e){
                   cb('error '+e);
@@ -403,7 +402,7 @@ AppController = function(store) {
             console.log("mini profile error", e);
             cb('error' + e);
           } else {
-            console.log("mini profile", o);
+            //console.log("mini profile", o);
             cb(null, o);
           }
         });
@@ -467,7 +466,7 @@ AppController = function(store) {
       //add the contacts to the extension
       ext.contacts = contacts;
 
-      console.log("profile", results.profile);
+      //console.log("profile", results.profile);
 
       //add the profile to the extension
       ext.profile = results.profile;

@@ -180,15 +180,10 @@ module.exports = function(store) {
 
               couch.db.save(idea, function(e, o){
                 if (e){
-                  fn({
-                    success: false,
-                    errors: [e]
-                  });
+                  fn(e);
                 } else {
-                  fn({
-                    success: true,
-                    idea: idea
-                  });
+                  idea._rev = o.rev;
+                  fn(null, idea);
                 }
               });
             }
@@ -420,7 +415,7 @@ module.exports = function(store) {
 
     support: function(ideaId, userId, fn){
 
-      //console.log("ideaId", ideaId, "userId", userId);
+      console.log("ideaId", ideaId, "userId", userId);
 
       var multi = store.redis.multi();
       //creates a supporting entry for this user and adds the supporting user to the idea
@@ -441,7 +436,6 @@ module.exports = function(store) {
             store.redis.zincrby('global:trending', 1, ideaId);
             //console.log("trending added");
           }
-
           fn(null, o);
         }
       });

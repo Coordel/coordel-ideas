@@ -50,8 +50,24 @@ module.exports = function(store) {
       });
     },
 
+    allocate: function(alloc, fn){
+      store.couch.db.save(alloc, function(e, o){
+        if (e){
+          fn(e);
+        } else {
+          fn(null, o);
+        }
+      });
+    },
+
     save: function(pledge, fn){
-      //couchdb put pledge
+      store.couch.db.save(pledge, function(e, o){
+        if (e){
+          fn(e);
+        } else {
+          fn(null, o);
+        }
+      });
     },
 
     remove: function(pledge, fn){

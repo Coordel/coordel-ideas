@@ -49,7 +49,7 @@ define(["dojo/dom"
     },
 
     showError: function(){
-        console.log("showing error");
+  
         domClass.add(dom.byId("feedbackAction"), "hide");
         domClass.add(dom.byId("feedbackSubmit"), "hide");
         domClass.remove(dom.byId("feedbackError"), "hide");
@@ -57,7 +57,6 @@ define(["dojo/dom"
 
     showControls: function(users){
         var self = this;
-        console.log("users", users);
 
         if (self.contactPicker){
           self.contactPicker.destroy();
@@ -97,12 +96,13 @@ define(["dojo/dom"
           "X-CSRF-Token": self._csrf //for object property name, use quoted notation shown in second
         }
       });
-
-      console.log("feedback", feedback);
       
       remote.put(feedback).then(function(res){
         console.log("post feedback response", res);
         $('#feedbackModal').modal('hide');
+        $("#feedbackPerformance").slider("value", 50);
+        $("#feedbackCoordination").slider("value", 50);
+        $("#feedbackComment").attr("value", "");
       });
       
     }

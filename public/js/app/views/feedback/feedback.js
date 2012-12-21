@@ -20,8 +20,6 @@ define([
       this.inherited(arguments);
       var self = this;
 
-      console.log("contacts in feedback", self.contacts);
-
       self.contacts = array.filter(self.contacts, function(item){
         return item;
       });
@@ -31,10 +29,6 @@ define([
           self.from = item;
         }
       });
-
-      console.log("feedback from ", self.from, self.feedback);
-
-
 
       self.userImage.src = self.from.imageUrl;
       self.userImage.alt = self.from.fullName;

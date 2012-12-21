@@ -19,6 +19,7 @@ define(["dojo/dom",
   "app/views/allocateForm/allocateForm",
   "app/views/addProxyForm/addProxyForm",
   "app/views/cancelMoneyForm/cancelMoneyForm",
+  "app/views/cancelTimeForm/cancelTimeForm",
   "app/views/removeProxyForm/removeProxyForm",
   "app/views/feedbackForm/feedbackForm",
   "app/views/feedback/feedback",
@@ -27,7 +28,7 @@ define(["dojo/dom",
                     , topic, cookie, array, on, domClass, build, request, hash, registry
                     , model, miniProfile, userProfile, idea, blueprint, moneyForm
                     , timeForm, contact, allocate, addProxy
-                    , cancelMoneyForm, removeProxyForm, feedbackForm, feedback){
+                    , cancelMoneyForm, cancelTimeForm, removeProxyForm, feedbackForm, feedback){
 
   var app = {
     max: {
@@ -150,16 +151,18 @@ define(["dojo/dom",
     
       request("/bitcoin/prices", {
         handleAs: "json"
-      }).then(function(prices){
-        self.bitcoinPrices = prices;
-        moneyForm.init(args.user, prices);
-        allocate.init(args.user, prices);
-        addProxy.init(args.user, prices, args.contacts);
-        cancelMoneyForm.init(args.user, prices);
-        removeProxyForm.init(args.user, prices);
-        feedbackForm.init(args.user);
-        
-      });
+        }).then(function(prices){
+          self.bitcoinPrices = prices;
+          moneyForm.init(args.user, prices);
+          allocate.init(args.user, prices);
+          addProxy.init(args.user, prices, args.contacts);
+          cancelMoneyForm.init(args.user, prices);
+          cancelTimeForm.init(args.user);
+          removeProxyForm.init(args.user, prices);
+          feedbackForm.init(args.user);
+        });
+
+
     },
 
     setSubNav: function(subnav){
@@ -224,6 +227,25 @@ define(["dojo/dom",
       socket.on("stream", function(item){
         console.log("SOCKET REPLY", item);
         topic.publish("coordel/stream", item);
+      });
+
+      socket.on("miniProfile:"+self.user.appId, function(item){
+        console.log("SOCKET miniProfile", item);
+        self.model.miniProfile = item;
+        if (self.currentMenu === "#menuMe"){
+          self.setUserNav();
+        }
+        topic.publish("coordel/miniProfile", item);
+      });
+
+      socket.on("supportAccount:"+self.user.appId, function(item){
+        console.log("SOCKET account", item);
+        self.model.currentUser.account = item;
+        topic.publish("coordel/supportAccount", item);
+      });
+
+      socket.on("supporting:"+self.user.appId, function(item){
+        topic.publish("coordel/supportIdea", item);
       });
 
 
@@ -500,14 +522,14 @@ define(["dojo/dom",
       }
       
       domClass.add(money, "hide");
-      if (user.account.pledgedIdeas.length + user.account.proxiedIdeas.length > 0){
-        money.innerHTML = user.account.pledgedIdeas.length + user.account.proxiedIdeas.length;
+      if (mini.supportingTypes.withMoney > 0){
+        money.innerHTML = mini.supportingTypes.withMoney;
         domClass.remove(money, "hide");
       }
      
       domClass.add(time, "hide");
-      if (user.account.pledgedTimeIdeas.length){
-        time.innerHTML = user.account.pledgedTimeIdeas.length;
+      if (mini.supportingTypes.withTime > 0){
+        time.innerHTML = mini.supportingTypes.withTime;
         domClass.remove(time, "hide");
       }
 
@@ -519,9 +541,6 @@ define(["dojo/dom",
       }
 
     }
-
-    
-
     
   };
 

@@ -111,7 +111,7 @@ module.exports = function(store) {
               });
               act.tasks = tasks;
               act.other = other;
-              console.log("activity rows", act);
+              //console.log("activity rows", act);
               cb(null, act);
             }
           });
@@ -141,6 +141,8 @@ module.exports = function(store) {
                       
                       result.withMoney = result.withMoney + 1;
                     } else if (item.status === "PROXIED"){
+                      result.withMoney = result.withMoney + 1;
+                    } else if (item.status === "ALLOCATED" && item.type === "RECURRING"){
                       result.withMoney = result.withMoney + 1;
                     }
                   } else if (item.docType === "time-pledge") {
@@ -269,7 +271,8 @@ module.exports = function(store) {
                 allocated: 0,
                 allocatedIdeas: [],
                 pledgedTimeIdeas: [],
-                pledgedTime: 0
+                pledgedTime: 0,
+                reportedTime: 0
               };
 
               if (acct.length){
@@ -288,11 +291,17 @@ module.exports = function(store) {
                       result.proxied = result.proxied + item.amount;
                       result.proxiedIdeas.push(item.project);
                     } else if (item.status === "ALLOCATED"){
+                      result.allocatedIdeas.push(item.project);
                       //this shows the user that this is an allocated recurring pledge
                       if (item.type === "RECURRING"){
+                        result.pledged = result.pledged + item.amount;
                         result.recurringAllocatedPledges.push(item.project);
                       }
                     }
+                  } else if (item.docType === "allocation"){
+
+                    result.allocated = result.allocated + item.amount;
+
                   } else if (item.docType === "time-pledge") {
                     if (item.status === "PLEDGED"){
                       result.pledgedTime = result.pledgedTime + item.amount;
