@@ -117,17 +117,13 @@ define(["dojo/dom"
       var self = this
         , timestamp = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ")
         , appId = self.user.app.id;
-      
-
-      //get the amount from the BTC field
-      var amount = self.pledge.amount;
-
+    
 
       var alloc = {
         docType: "allocation",
         project: dom.byId("allocateIdea").value,
         pledgeId: self.pledge._id,
-        amount: amount,
+        amount: self.pledge.amount,
         created: timestamp,
         allocator: appId,
         creator: self.pledge.creator,

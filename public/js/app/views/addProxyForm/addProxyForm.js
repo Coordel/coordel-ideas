@@ -108,7 +108,6 @@ define(["dojo/dom"
       var newValue = btcAmount / 0.075;
 
       newValue = accounting.formatNumber(newValue, [precision = 4], [thousand = ","], [decimal = "."]);
-      console.log("btcAmount", btcAmount, "newValue", newValue);
       dom.byId("proxyOwnershipPoints").innerHTML = newValue;
     },
 
@@ -144,13 +143,10 @@ define(["dojo/dom"
       pledge.proxy = self.picker.value;
       pledge.proxied = timestamp;
 
-      console.log("pledge", pledge);
-
       var db = stores.moneyStore();
       
       db.put(pledge).then(function(res){
         $('#addProxyModal').modal('hide');
-        console.log("adding proxy", pledge.project);
         topic.publish("coordel/ideaAction", "addProxy", pledge.project);
       });
     }

@@ -5,6 +5,7 @@ define([
     "dojo/text!./templates/ideaDetails.html",
     "dojo/text!./templates/file.html",
     "dojo/text!./templates/user.html",
+    "dojo/text!./templates/giver.html",
     "dojo/text!./templates/reportEntry.html",
     "dojo/on",
     "dojo/dom-class",
@@ -14,7 +15,7 @@ define([
     "dojo/store/JsonRest",
     "dojo/_base/array",
     "dojo/request"
-], function(declare, _WidgetBase, _TemplatedMixin, template, fileHtml, userHtml, reportHtml, on, domClass, topic, lang, build, JsonRest, array, request) {
+], function(declare, _WidgetBase, _TemplatedMixin, template, fileHtml, userHtml, giverHtml, reportHtml, on, domClass, topic, lang, build, JsonRest, array, request) {
  
   return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -33,9 +34,6 @@ define([
       this.store = new JsonRest({
         target: "/api/v1/ideas/"
       });
-
-      console.log("idea", self.idea.name, self.idea);
-
       
       self.showDetails();
   
@@ -46,26 +44,24 @@ define([
 
       self.store.get(self.idea._id).then(function(details){
 
-        console.log("fresh idea", details);
         var idea = details.idea;
 
         self.account = details.account;
-        self.setAccount();
+        self.gaveMoney = details.gaveMoney;
+        self.gaveTime = details.gaveTime;
 
-        console.log(details.userDetails.length);
-        
-        if (details.userDetails.length && details.userDetails.length > 1){
-          self.showUsers(details.userDetails);
-        }
+        self.setAccount();
        
         if (details.activity && (details.activity.tasks.length || details.activity.other.length)){
           self.showActivity(details.activity);
         }
 
+        //NOTE: decided that files was about the app and didn't add value to share and support
+        /*
         if (idea._attachments){
-          console.log("attachments" , idea._attachments);
           self.showFiles(idea);
         }
+        */
         
         //expanded info
         self.purposeContainer.innerHTML = idea.purpose.replace(/\n/g, "<br>");
@@ -74,12 +70,6 @@ define([
 
         $('.idea-purpose-icon').tooltip({title: "Idea purpose", placement: "left"});
         $('.idea-deadline-icon').tooltip({title: "Idea deadline", placement:"left"});
-
-        $("[rel=tooltip]").tooltip({
-          placement: "bottom",
-          trigger: "hover"
-        });
-
       });
       
     },
@@ -91,29 +81,44 @@ define([
         var account = self.account;
         self.moneyPledged.innerHTML = self.getLocalAmount(account.pledged + account.proxied);
         self.moneyAllocated.innerHTML = self.getLocalAmount(account.allocated);
-        self.timePledged.innerHTML = account.pledgedTime + " hours";
-        self.timeReported.innerHTML = account.reportedTime || "0" + " hours";
+        self.timePledged.innerHTML = account.pledgedTime + " hrs";
+        self.timeReported.innerHTML = account.reportedTime  + " hrs";
+
+        if (self.gaveMoney.length || self.gaveTime.length){
+          domClass.remove(self.gaveList, "hide");
+          self.showGave();
+        }
+
+        $("[rel=tooltip]").tooltip({
+          placement: "bottom",
+          trigger: "hover"
+        });
 
       });
     },
 
     getLocalAmount: function(btcAmount){
+   
       var self = this;
+
       var localValue = self.bitcoinPrices[self.localCurrency]["24h"];
+
       var symbol = self.bitcoinPrices[self.localCurrency].symbol;
+ 
       var newValue = btcAmount * localValue;
+
       newValue = accounting.formatNumber(newValue, [precision = 2], [thousand = ","], [decimal = "."]);
+
       if (symbol){
         newValue = symbol + newValue;
       } else {
         newValue = newValue + " " + self.localCurrency;
       }
+  
       return newValue;
     },
 
     showActivity: function(activity){
-
-      console.log("activity", activity);
      
       var self = this
         , row;
@@ -137,8 +142,34 @@ define([
       }
     },
 
+    showGave: function(){
+      var self = this
+        , img = {}
+        , row;
+
+      array.forEach(self.gaveTime, function(item){
+        img.id=item.user.appId;
+        img.imageUrl = item.user.imageUrl;
+        img.fullName = item.user.fullName;
+        img.amount = item.amount.toString() + 'hr';
+        row = build.toDom(lang.replace(giverHtml, img));
+
+        build.place(row, self.gaveTimeContainer);
+      });
+
+      array.forEach(self.gaveMoney, function(item){
+        img.id=item.user.appId;
+        img.imageUrl = item.user.imageUrl;
+        img.fullName = item.user.fullName;
+        img.amount = self.getLocalAmount(item.amount);
+        row = build.toDom(lang.replace(giverHtml, img));
+
+        build.place(row, self.gaveMoneyContainer);
+      });
+
+    },
+
     showUsers: function(users){
-      console.log("users", users);
       var self = this
         , img = {}
         , row;
@@ -149,24 +180,16 @@ define([
         img.id=user.appId;
         img.imageUrl = user.imageUrl;
         img.fullName = user.fullName;
-        console.log("img", img);
         row = build.toDom(lang.replace(userHtml, img));
-
-       
-
         build.place(row, self.userImages);
-
       });
     },
 
     showFiles: function(idea){
       var self = this;
-      console.log("showing files", idea._attachments);
       domClass.remove(self.detailsFiles, "hide");
       Object.keys(idea._attachments).forEach(function(key) {
-        console.log("key", key);
         var node = lang.replace(fileHtml, {filename: key});
-        console.log("file node", node);
         build.place(node, self.detailsFiles);
       });
     }

@@ -21,9 +21,9 @@ module.exports = function(store) {
 
     },
 
-    findByIdea: function(idea, fn){
+    findByIdea: function(ideaId, fn){
       //couchdb view ideaPledges startkey[idea._id] endkey[idea._id, {}]
-      store.couch.db.view('coordel/ideaMoneyPledges', {startkey: [idea], endkey:[idea,{}], include_docs: true}, function(e, o){
+      store.couch.db.view('coordel/ideaMoneyPledges', {startkey: [ideaId], endkey:[ideaId,{}], include_docs: true}, function(e, o){
         if (e){
           fn(e);
         } else {
@@ -60,8 +60,8 @@ module.exports = function(store) {
       });
     },
 
-    save: function(pledge, fn){
-      store.couch.db.save(pledge, function(e, o){
+    save: function(doc, fn){
+      store.couch.db.save(doc, function(e, o){
         if (e){
           fn(e);
         } else {

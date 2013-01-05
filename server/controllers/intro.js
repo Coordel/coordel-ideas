@@ -26,7 +26,19 @@ IntroController = function(store) {
       });
     },
     blueprints: function(req, res){
-      res.render('intro/index', {token: res.locals.token, title: 'Coordel', menu: '#menuBlueprints', ideas: JSON.stringify([])});
+      res.render('intro/blueprints', {token: res.locals.token, title: 'Coordel', menu: '#menuBlueprints', ideas: JSON.stringify([])});
+    },
+    preview: function(req, res){
+      res.render('intro/preview', {token: res.locals.token, title: "Coordel", menu: "#menuCoordel", ideas: JSON.stringify([])});
+    },
+    tos: function(req, res){
+      res.render('other/tos', {token: res.locals.token, title: "Terms of Service"});
+    },
+    privacy: function(req, res){
+      res.render('other/privacy', {token: res.locals.token, title: "Coordel Privacy Policy"});
+    },
+    about: function(req, res){
+      res.render('other/about', {token: res.locals.token, title: "About Coordel"});
     }
   };
 

@@ -15,7 +15,7 @@
         <div class="controls muted">
           <label style="font-size: 12px" class="checkbox">
           <input style="margin-bottom:0" type="checkbox" checked="true">
-          Remember me <span style="padding: 0 4px">&#149;</span> <span><a href="#">Forgot Password</a></span> 
+          Remember me <span style="padding: 0 4px">&#149;</span> <span><a href="/password">Forgot Password</a></span> 
           </label>
           <input type='hidden' name='_csrf' value="<%=token%>">
         </div>
@@ -35,16 +35,42 @@
     </form>
   </div>
   <% include ../includes/about %>
+  <% include ../includes/donations %>
 </div>
 <div class="main-column">
+  <div id="infoHeader" class="info-container bg-white rounded-column">
+    <div class="hero-unit">
+      <div class="sigma-parent sigma-expand">
+        <div class="sigma-expand" id="sigma-1"></div>
+      </div>
+      <div class="intro">
+        <h1>Publish Success Stories</h1>
+        <p>Coordel coordinates publishing sucesses for reuse</p>
+      </div>
+      <div class="sigma-expand" id="mouselayer-sigma-1"></div>
+    </div>
+    
+  </div>
   <div class="stream-container bg-white no-padding">
   <div class="stream-header">
-    <h4 id="container-header">Success stories</h4>
+    <h4 id="container-header">Blueprints</h4>
     <div></div>
   </div>
   <div class="stream">
-    <div id="stream-items-container" class="stream-items">
-      main
+    <div id="stream-items-container" class="stream-items padding-20">
+      <h2>Get it right & reuse</h2>
+      <div>
+        <img class="pull-right" style="margin-left: 20px" src="img/features/blueprint.png">
+
+        <p>Coordel helps you get the most out of your expertise. When you have captured a job well done in specific tasks or Coords, Coordel lets you blueprint and re-use them with just one click.</p>
+
+        <p>Whereas Coords are designed to help you get started and manage the work required to reach your goals, Blueprints are there to make sure you can repeat successful Coords. You can also blueprint tasks that have worked well for you.</p>
+
+        <p>Just click on the "Blueprint" icon and you are ready to re-use the task or Coord. Coordel automatically calculates a new deadline based on the time it took to complete it before.</p>
+
+        <p>A blueprinted task will either be added to the currently selected Coord, or default to Private if one isn’t selected.</p>
+        
+      </div>
     </div>
   </div>
   <div class="stream-footer">

@@ -29,7 +29,7 @@ define(["dojo/dom",
         self.localCurrency = user.app.localCurrency;
       }
 
-      if (user.app.hasPaymentMethod){
+      if (user.app.coinbaseAccessToken){
         self.hasPaymentMethod = true;
       }
 

@@ -1,0 +1,150 @@
+{
+  "save": {
+    "verb": "saved",
+    "preposition": "in"
+  },
+  "archive": {
+    "verb":"archived",
+    "preposition": "in"
+  },
+  "someday": {
+    "verb":"saved for someday",
+    "preposition": "in"
+  },
+  "post": {
+    "verb":"added",
+    "preposition": "to"
+  },
+  "update": {
+    "verb":"updated",
+    "preposition": "in"
+  },
+  "defer": {
+    "verb":"deferred",
+    "preposition": "in"
+  },
+  "complete": {
+    "verb": "concluded coord",
+    "preposition": "in"
+  },
+  "pause": {
+    "verb": "paused",
+    "preposition": "in"
+  },
+  "cancel": {
+    "verb": "cancelled",
+    "preposition": "in"
+  },
+  "resume": {
+    "verb": "resumed",
+    "preposition": "in"
+  },
+  "invite": {
+    "verb": "invited",
+    "preposition": "to"
+  },
+  "delegate": {
+    "verb": "delegated",
+    "preposition": "to"
+  },
+  "join": {
+    "verb": "joined",
+    "preposition": ""
+  },
+  "follow": {
+    "verb": "followed",
+    "preposition": ""
+  },
+  "unfollow": {
+    "verb": "unfollowed",
+    "preposition": ""
+  },
+  "accept": {
+    "verb":"accepted",
+    "preposition": "in"
+  },
+  "make-responsible": {
+    "verb": "made responsible for",
+    "preposition": "in"
+  },
+  "own": {
+    "verb": "took responsibility for",
+    "preposition": ""
+  },
+  "raise-issue": {
+    "verb": "raised an issue with",
+    "preposition": "in"
+  },
+  "clear-issue": {
+    "verb": "cleared the issue with",
+    "preposition": "in"
+  },
+  "reassign": {
+    "verb": "reassigned",
+    "preposition": "in"
+  },
+  "unassign": {
+    "verb": "unassigned",
+    "preposition": "in"
+  },
+  "assign": {
+    "verb":"assigned",
+    "preposition": "to"
+  },
+  "dismiss": {
+    "verb": "dismissed",
+    "preposition": "from"
+  },
+  "decline": {
+    "verb": "declined",
+    "preposition": "in"
+  },
+  "delete": {
+    "verb": "deleted",
+    "preposition": "in"
+  },
+  "submit": {
+    "verb": "proposed done",
+    "preposition": "to"
+  },
+  "return": {
+    "verb": "returned",
+    "preposition": "to"
+  },
+  "approve": {
+    "verb": "agreed done",
+    "preposition": "in"
+  },
+  "finish": {
+    "verb":"finished",
+    "preposition": "in"
+  },
+  "propose-change": {
+    "verb": "proposed change",
+    "preposition": "in"
+  },
+  "agree-change": {
+    "verb": "agreed the change",
+    "preposition": "to"
+  },
+  "leave": {
+    "verb": "left",
+    "preposition": ""
+  },
+  "feedback": {
+    "verb": "gave feedback",
+    "preposition": "in"
+  },
+  "ack": {
+    "verb": "acknowledged cancel",
+    "preposition": "in"
+  },
+  "add-blocking": {
+    "verb": "added as blocking",
+    "preposition": ""
+  },
+  "remove-blocking": {
+    "verb": "removed from blocking",
+    "preposition": ""
+  }
+}

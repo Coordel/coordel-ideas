@@ -8,16 +8,12 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/topic", "app/models/pledg
       var self = this;
       self.user = user;
 
-      console.log('init cancel time');
-
       on(dom.byId("cancelTimeSubmit"), "click", function(){
-        console.log("submit cancel time");
         self.submit();
       });
     },
 
     showError: function(){
-      console.log("showing error");
       domClass.add(dom.byId("cancelTimeAction"), "hide");
       domClass.add(dom.byId("cancelTimeSubmit"), "hide");
       domClass.remove(dom.byId("cancelTimeError"), "hide");

@@ -4,6 +4,8 @@
     <script src="lib/bootstrap/js/bootstrap.min.js"></script>
     <script src="lib/moment/moment.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="lib/sigma/sigma.min.js"></script>
+    <script src="lib/sigma/sigma.fisheye.js"></script>
 
     <% include ../includes/modals %>
     <!-- dojo           -->
@@ -20,6 +22,99 @@
         app.init({ideas:JSON.parse(unescape('<%- ideas%>')), menu: "<%=menu%>"});
       });
     </script>
+
+    <script type="text/javascript">
+      function init() {
+        function getRandomColor(a, b) {
+
+          var r = Math.random();
+          return 'rgb('+
+                 ((a.r+(b.r-a.r)*r)|0).toString() +
+                 ','+
+                 ((a.g+(b.g-a.g)*r)|0).toString() +
+                 ','+
+                 ((a.b+(b.b-a.b)*r)|0).toString() +
+                 ')';
+        };
+
+        var colorFrom = {
+          r: 0 ,
+          g: 68,
+          b: 204
+        };
+
+        var colorTo = {
+          r: 67,
+          g: 169,
+          b: 228
+        };
+
+        /**
+         * sigma.js instance 1 (banner) :
+         */
+        s1 = sigma.init(document.getElementById('sigma-1')).configProperties({
+          drawHoverNodes: false
+        }).drawingProperties({
+          labelThreshold: 10000,
+          defaultEdgeType: 'curve'
+        }).mouseProperties({
+          mouseEnabled: false
+        }).graphProperties({
+          scalingMode: 'outside'
+        });
+
+        var i, N = 300, E = 50;
+
+        for(i=0;i<N;i++){
+          s1.addNode(i,{
+            'x': Math.random(),
+            'y': Math.random(),
+            'size': 0.5+5*Math.random(),
+            'color': getRandomColor(colorFrom,colorTo)
+          });
+        }
+
+        for(i=0;i<E;i++){
+          s1.addEdge(i,Math.random()*N|0,Math.random()*N|0);
+        }
+
+        s1.draw();
+
+        var newParent = document.getElementById('mouselayer-sigma-1');
+        var mouseLayer = document.getElementById('sigma_mouse_1');
+
+        newParent.appendChild(mouseLayer);
+
+        mouseLayer.addEventListener('mouseover', function() {
+          s1.activateFishEye();
+        }, true);
+        mouseLayer.addEventListener('mouseout', function() {
+          s1.desactivateFishEye().draw(2,2,2);
+        }, true);
+
+        /**
+         * Resize every instances on window resizing, and
+         * some divs :
+         */
+        function resize(event){
+          for(var key in sigma.instances) {
+            sigma.instances[key].resize();
+          }
+        };
+
+        window.onresize = resize;
+        resize();
+      }
+
+      /**
+       * Wait for the DOM to be ready to start :
+       */
+      if (document.addEventListener) {
+        document.addEventListener("DOMContentLoaded", init, false);
+      } else {
+        window.onload = init;
+      }
+</script>
 
   </body>
 </html>

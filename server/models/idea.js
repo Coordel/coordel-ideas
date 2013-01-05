@@ -152,7 +152,7 @@ module.exports = function(store) {
     },
 
     addFeedback: function(args, fn){
-      //{ideaId, "xadfdfd", appId: "1",feedback: {from: "2", coordination: 88, performance: 98, comment: "comment", created: "date"} }
+      //{ideaId, "xadfdfd", appId: "1", name: "Dev Coordel" , feedback: {from: "2", coordination: 88, performance: 98, comment: "comment", created: "date"} }
       var couch = store.couch;
 
       couch.db.get(args.ideaId, function(e, idea){
@@ -172,6 +172,12 @@ module.exports = function(store) {
               assign.feedback.push(args.feedback);
 
               idea = Idea.addActivity({
+                target: {
+                  id: args.appId,
+                  name: args.name,
+                  type: "PERSON"
+                },
+                body: args.feedback,
                 verb: "FEEDBACK",
                 sender: args.user
               }, idea);
@@ -189,6 +195,39 @@ module.exports = function(store) {
             }
           });
         }
+      });
+    },
+
+    findUserBatch: function(keys, fn){
+      //console.log('appIds', appIds);
+      var couch = store.couch
+        , multi = store.redis.multi();
+
+      keys.forEach(function(id){
+        var akey = 'coordelapp:' + id;
+        //console.log("GET USER APP FOR KEY", akey);
+        multi.hgetall(akey);
+      });
+
+      multi.exec(function(err, apps){
+        if (err) return fn(err);
+        
+        //need to send back only the contact info
+        apps = _.map(apps, function(a){
+          if (a){
+            return {
+              firstName: a.firstName,
+              fullName: a.fullName,
+              appId: a.id,
+              lastName: a.lastName,
+              user: a.user,
+              userId: a.userId,
+              username: a.username,
+              imageUrl: 'http://www.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+            };
+          }
+        });
+        return fn(null, apps);
       });
     },
 
@@ -441,6 +480,40 @@ module.exports = function(store) {
       });
     },
 
+    invite: function(appId, ideaId, sender){
+
+      store.couch.db.get(ideaId, function(e, idea){
+
+        if (!idea.users){
+          idea.users = [];
+        }
+
+        var has = (dojo.indexOf(idea.users, appId) > -1);
+
+        if (!has){
+          //console.log("didn't have user in project");
+          idea.users.push(appId);
+
+          if (!idea.assignments){
+            idea.assignments = [];
+          }
+
+          idea.assignments.push({
+            username: appId,
+            role: "FOLLOWER",
+            status: "INVITE"
+          });
+
+          self.addActivity({
+            object: {id: username, name: name, type: "PERSON"},
+            target: {id: idea._id, name: idea.name, type: "PROJECT"},
+            verb: "INVITE",
+            sender: sender
+          }, idea);
+        }
+      });
+    },
+
     follow: function(id, sender, fn){
       var self = Idea;
       //get the idea
@@ -524,8 +597,6 @@ module.exports = function(store) {
         , timestamp = moment().format(store.timeFormat);
         
       a.actor.id = user.appId;
-      a.actor.username = user.username;
-      a.actor.email = user.email;
       a.actor.name = user.fullName;
       a.actor.type = "PERSON";
       a.target.id = idea._id;
@@ -561,13 +632,13 @@ module.exports = function(store) {
     },
 
     addActivity: function(opts, idea){
-      var username = opts.sender.appId
+      var appId = opts.sender.appId
         , fullName = opts.sender.fullName;
 
       delete opts.sender;
       
       var defaults = {
-        actor: {id:username, name:fullName, type:"PERSON"},
+        actor: {id:appId, name:fullName, type:"PERSON"},
         object: {id: idea._id, name: idea.name, type: "PROJECT"},
         time: moment().format(store.timeFormat),
         users: idea.users,

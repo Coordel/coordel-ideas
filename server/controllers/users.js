@@ -177,6 +177,10 @@ UsersController = function(store) {
       res.render('user/login');
     },
 
+    resetPassword: function(req, res){
+      res.render('user/resendPassword');
+    },
+
     getContactMiniProfile: function(req, res){
       var appId = req.params.appId
         , contactId = req.params.contactId;
@@ -277,6 +281,8 @@ UsersController = function(store) {
         });
       }
     },
+
+   
 
     checkUsername: function(req, res){
       //checks that this username is available

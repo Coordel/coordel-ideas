@@ -56,6 +56,8 @@ AppController = function(store) {
           profile: ext.profile,
           contacts: ext.contacts,
           username: req.session.username,
+          imageUrl: req.session.currentUser.imageUrl,
+          fullName: req.session.currentUser.fullName,
           _csrf: req.session._csrf
         });
       });
@@ -102,6 +104,8 @@ AppController = function(store) {
           profile: ext.profile,
           contacts: ext.contacts,
           username: req.session.username,
+          imageUrl: req.session.currentUser.imageUrl,
+          fullName: req.session.currentUser.fullName,
           _csrf: req.session._csrf
         });
       });
@@ -132,6 +136,8 @@ AppController = function(store) {
           profile: ext.profile,
           contacts: ext.contacts,
           username: req.session.username,
+          imageUrl: req.session.currentUser.imageUrl,
+          fullName: req.session.currentUser.fullName,
           _csrf: req.session._csrf
         });
       });
@@ -151,6 +157,8 @@ AppController = function(store) {
           blueprints: compress(templates),
           user: compress(req.session.currentUser),
           username: req.session.username,
+          imageUrl: req.session.currentUser.imageUrl,
+          fullName: req.session.currentUser.fullName,
           _csrf: req.session._csrf
         });
       });
@@ -203,6 +211,8 @@ AppController = function(store) {
           profile: ext.profile,
           contacts: ext.contacts,
           username: req.session.username,
+          imageUrl: req.session.currentUser.imageUrl,
+          fullName: req.session.currentUser.fullName,
           _csrf: req.session._csrf
         });
       });
@@ -224,7 +234,8 @@ AppController = function(store) {
              
             } else {
               //console.log('account', o);
-              Idea.findBatch(o.pledgedTimeIdeas, function(e, o){
+              var batch = _.union(o.pledgedTimeIdeas, o.recurringAllocatedTimePledges);
+              Idea.findBatch(batch, function(e, o){
                 if (e){
                   cb('error '+e);
                 } else {
@@ -254,6 +265,61 @@ AppController = function(store) {
           profile: ext.profile,
           contacts: ext.contacts,
           username: req.session.username,
+          imageUrl: req.session.currentUser.imageUrl,
+          fullName: req.session.currentUser.fullName,
+          _csrf: req.session._csrf
+        });
+      });
+    },
+
+    proxiedToMe: function(req, res){
+      var user = req.session.currentUser;
+
+      async.parallel({
+        extendedUser: function(cb){
+          extendUser(user, function(e, ext){
+            cb(null,ext);
+          });
+        },
+        ideas: function(cb){
+          Profile.findSupportAccount(user, function(e, o){
+            if (e){
+              console.log("error", e);
+             
+            } else {
+              //console.log('account', o);
+              Idea.findBatch(o.proxiedToMeIdeas, function(e, o){
+                if (e){
+                  cb('error '+e);
+                } else {
+                  cb(null, o);
+                }
+              });
+            }
+          });
+        }
+      },
+      function(e, results) {
+
+        _.each(results.ideas, function(item){
+          item.pledgeType="money";
+        });
+
+        //compress the user
+        var ext = compressExtendedUser(results.extendedUser);
+        
+        res.render('user', {
+          token: res.locals.token,
+          title: req.session.currentUser.fullName,
+          menu: '#menuMe',
+          subNav: 'proxiedToMe',
+          user: ext.user,
+          ideas: compress(results.ideas),
+          profile: ext.profile,
+          contacts: ext.contacts,
+          username: req.session.username,
+          imageUrl: req.session.currentUser.imageUrl,
+          fullName: req.session.currentUser.fullName,
           _csrf: req.session._csrf
         });
       });
@@ -285,6 +351,8 @@ AppController = function(store) {
           profile: ext.profile,
           contacts: ext.contacts,
           username: req.session.username,
+          imageUrl: req.session.currentUser.imageUrl,
+          fullName: req.session.currentUser.fullName,
           _csrf: req.session._csrf
         });
       });
@@ -327,6 +395,8 @@ AppController = function(store) {
           profile: ext.profile,
           contacts: ext.contacts,
           username: req.session.username,
+          imageUrl: req.session.currentUser.imageUrl,
+          fullName: req.session.currentUser.fullName,
           _csrf: req.session._csrf
         });
       });
@@ -372,6 +442,8 @@ AppController = function(store) {
           profile: ext.profile,
           contacts: ext.contacts,
           username: req.session.username,
+          imageUrl: req.session.currentUser.imageUrl,
+          fullName: req.session.currentUser.fullName,
           _csrf: req.session._csrf
         });
       });

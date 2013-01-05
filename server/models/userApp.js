@@ -261,6 +261,10 @@ module.exports = function(store) {
         if (appIds.length){
           multi.exec(function(err, apps){
             if (err) return fn(err);
+
+            apps = _.filter(apps, function(a){
+              return a;
+            });
             
             //need to send back only the contact info
             apps = _.map(apps, function(a){

@@ -108,8 +108,8 @@ define([
         self.moneyPledged.innerHTML = self.getLocalAmount(account.pledged);
         self.moneyProxied.innerHTML = self.getLocalAmount(account.proxied);
         self.moneyAllocated.innerHTML = self.getLocalAmount(account.allocated);
-        self.timePledged.innerHTML = account.pledgedTime + " hours";
-        self.timeReported.innerHTML = account.reportedTime || "0" + " hours";
+        self.timePledged.innerHTML = account.pledgedTime + " hrs";
+        self.timeReported.innerHTML = account.reportedTime  + " hrs";
 
       });
     },

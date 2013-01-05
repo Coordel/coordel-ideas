@@ -10,6 +10,67 @@
     <link href="css/ideas.css" rel="stylesheet" media="screen">
     <link rel="shortcut icon" href="img/favicon.gif" />
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <style type="text/css">
+      .social-container {
+        overflow: hidden;
+        margin: 0 auto;
+    /*    padding-left: 70px; */
+      }
+
+      /* Custom page style : */
+      .hero-unit {
+        position: relative;
+        color: #fff;
+      }
+
+      .hero-unit h1 {
+        letter-spacing: 0;
+        color: #fff;
+        font-size: 56px;
+      }
+
+      .hero-unit h1,
+      .hero-unit p {
+        text-shadow: 1px 1px 4px #000;
+      }
+
+      .hero-unit div.intro {
+        position: relative;
+      }
+
+      .intro img {
+        top: -60px;
+        right: -56px;
+        position: absolute;
+      }
+
+      .centered {
+        text-align: center;
+      }
+
+      #introduction,
+      #introduction * {
+        font-size: 16px;
+      }
+
+      /* sigma.js context : */
+      .sigma-parent {
+        position: relative;
+        border-radius: 6px;
+        -moz-border-radius: 6px;
+        -webkit-border-radius: 6px;
+        background: #222;
+      }
+      
+      .sigma-expand {
+        position: absolute;
+        width: 100%;
+        height: 302px;
+        top: 0;
+        left: 0;
+      }
+
+    </style>
   </head>
   <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -20,18 +81,19 @@
           
           <div class="top-divider pull-right"></div>
         -->
+        <!--
           <form class="navbar-search pull-right">
             <input type="text" class="search-query" placeholder="Search">
-          </form>
-          
+          </form> -->
+          <a style="padding: 10px 0" class="pull-right"><img src="img/logo.png"/></a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li id="menuIdeas" class="active"><a id="menuIdeas" href="/intro"><i class="c-icon-idea"></i>Ideas</a></li>
-              <li id="menuCoordel"><a href="/preview"><i class="c-icon-coordel"></i>Get to work</a></li>
-              <li id="menuBlueprints"><a href="/success"><i class="c-icon-blueprint"></i>Success stories</a></li>
+              <li id="menuIdeas"><a id="menuIdeas" href="/intro"><i class="c-icon-idea"></i>Share & support Ideas</a></li>
+              <li id="menuCoordel"><a href="/preview"><i class="c-icon-coordel"></i>Make Ideas happen</a></li>
+              <li id="menuBlueprints"><a href="/success"><i class="c-icon-blueprint"></i>Publish success stories</a></li>
             </ul>
           </div><!--/.nav-collapse -->
-          <a style="margin-left: 63px; cursor: default" class="brand"><img src="img/logo.png"/></a>
+          
         </div>
       </div>
     </div>

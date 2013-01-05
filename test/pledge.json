@@ -26,7 +26,7 @@
 
   "created": "",
   "creator": "",
-
+  "amount": "hours",
   "type": "ONE-TIME|RECURRING",
   "status": "PLEDGED|REPORTED|CANCELLED",
   "timePledges": ["has the entries for single or recurring pledged hours"],
@@ -37,15 +37,26 @@
   "_id": "xxx",
   "_rev": "1-xxx",
   "docType": "allocation",
+  "byProxy": "true/false (true if the person who did the allocation was a proxy)", 
   "project": "id of thing to which pledge is made",
   "pledgeId": "money-pledge document",
   "amount": "amount of allocation in BTC",
   "notes": "text describing transaction",
   "status": "STARTED|COMPLETED|FAILED",
   "created": "date of allocation start",
-  "creator": "person who did the allocation (proxy or person who did the pledge)",
+  "creator": "person who did the allocation (proxy or person)",
   "completed": "date allocation successful",
   "failed": "date allocation failed"
+}
+
+{
+  "_id": "xxx",
+  "_rev": "1-xxx",
+  "docType": "proxy-allocation",
+  "project": "id of idea to which pledge is made",
+  "status": "ALLOCATED|DEALLOCATED",
+  "created": "date of initial allocation",
+  "creator": "person who proxy allocated/deallocated"
 }
 
 {
@@ -55,7 +66,8 @@
   "project": "id of thing to which pledge is made",
   "username": "person who made the report",
   "pledgeId": "time-pledge document",
-  "hours": "hours reported",
-  "notes": "text describing transaction",
-  "date": ""
+  "amount": "hours reported",
+  "created": "",
+  "creator": "",
+  "status": "STARTED|COMPLETED|FAILED"
 }

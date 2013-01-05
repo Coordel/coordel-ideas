@@ -1,0 +1,37 @@
+<div >
+  <div id="proxyAllocateModal" data-backdrop="false" class="modal hide in">  
+    <div class="modal-header">  
+    <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
+    <h4 style="text-align: center">Allocate pledges proxied to you</h4>  
+  </div>  
+  
+  <div class="modal-body"> 
+  
+    <div id="proxyAllocateError" class="alert alert-error hide">
+      Woops, either we didn't find your proxied pledges or something went wrong. Please close this dialog and try again. If the problem continues, please contact <strong><a style="color: #B94A48;" href="http://coordel.desk.com">Support</a></strong>.
+    </div>
+
+    <div id="proxyAllocateAction" class=" pledge-allocation">
+      <fieldset style="width: 400px; margin: auto;">
+       
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Proxied by</th>
+              <th>Type</th>
+              <th>BTC</th>
+              <th>USD</th>
+            </tr>
+          </thead>
+          <tbody id="proxyAllocationPledgesContainer">
+            
+          </tbody>
+        </table>
+      </fieldset>
+    </div>
+  </div>
+  <div class="modal-footer" style="text-align: left">
+    <input id="proxyAllocateSubmit" type="submit" value="Confirm" class="btn btn-primary pull-right">
+    <input id="proxyAllocateIdea" type="hidden">
+  </div>            
+</div>

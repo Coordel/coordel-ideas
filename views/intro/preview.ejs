@@ -1,0 +1,140 @@
+<% include header %>
+<div class="left-column">
+  <div style="padding-bottom: 7px;" class="user-login bg-gray rounded-column">
+    <form action="/sessions" method="post" style="margin-bottom: 0;">
+      <div>
+        <div class="controls">
+          <input style="width: 303px" placeholder="Username or e-mail" type="text" name="login-username" id="login-username">
+        </div>
+      </div>
+      <div>
+        <div class="controls">
+          <input style="width: 225px;" placeholder="Password" type="password"  name="login-password" id="login-password">
+          <input type="submit" value="Sign in" class="btn login btn-primary pull-right">
+        </div>
+        <div class="controls muted">
+          <label style="font-size: 12px" class="checkbox">
+          <input style="margin-bottom:0" type="checkbox" checked="true">
+          Remember me <span style="padding: 0 4px">&#149;</span> <span><a href="/password">Forgot Password</a></span> 
+          </label>
+          <input type='hidden' name='_csrf' value="<%=token%>">
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="user-signup bg-gray rounded-column">
+    <form action="/signup" method="post" style="margin-bottom: 0;">
+      <div class="controls clearfix">
+        <input style="width: 303px" placeholder="Full name" type="text" name="signup-fullname" id="signup-fullname">
+        <input style="width: 303px" placeholder="E-mail" type="text" name="signup-email" id="signup-email">
+        <input style="width: 303px" placeholder="Password" type="password" name="signup-password" id="signup-password">
+        <input style="margin-bottom: 0" type="submit" value="Sign up for Coordel" class="btn submit btn-warning pull-right">
+        <input type="hidden" name="origin" value="index-signup">
+        <input type="hidden" name="_csrf" value="<%=token%>">
+      </div>
+    </form>
+  </div>
+  <!--
+  <div class="bg-white rounded">
+    <ul class="nav nav-tabs nav-stacked">
+      <li id="subNavIdeas"> 
+        <a href="#coordination"><i class="icon-chevron-right menu-chevron"></i>Coordination<span id="navPreviewCoordination" class="label pull-right"></span></a>
+      </li>
+      <li  id="subNavSupporting">
+        <a href="#performance"><i class="icon-chevron-right menu-chevron"></i>Performance<span id="navPreviewSupporting" class="label pull-right"></span></a>
+      </li>
+    </ul>
+  </div>
+-->
+  <% include ../includes/about %>
+  <% include ../includes/donations %>
+</div>
+<div class="main-column">
+  <div id="infoHeader" class="info-container bg-white rounded-column">
+    <div  id="myCarousel" class="carousel slide" style="height: 302px">  
+      <!-- Carousel items -->  
+      <div class="carousel-inner">  
+        <div class="active item">
+          <div class="hero-unit">
+
+            <div class="sigma-parent sigma-expand">
+
+              <div class="sigma-expand" id="sigma-1"></div>
+
+            </div>
+
+            <div class="intro">
+              <h1>Make Great Ideas Happen</h1>
+              <p>Coordel coordinates working together on Ideas</p>
+              <img src="/img/features.png"/>
+            </div>
+            <div class="sigma-expand" id="mouselayer-sigma-1"></div>
+
+          </div>
+        </div>  
+        <div class="item">
+          <div class="hero-unit">
+            <div class="sigma-parent sigma-expand">
+              <img src="/img/coordination.png"/>
+            </div>
+            <div class="intro">
+              <h1>Coordinate your Work Better</h1>
+              <p>As fast and simple as email, but better coordinated </p>
+            </div>
+          </div>
+        </div>  
+        <div class="item">
+          <div class="hero-unit">
+            <div class="sigma-parent sigma-expand">
+              <img src="/img/performance.png"/>
+            </div>
+            <div class="intro">
+              <h1>Perform your Work Better</h1>
+              <p>Just like a to-do list, but turbo charged</p>
+            </div>
+          </div>
+        </div>  
+      </div>  
+      <!-- Carousel nav -->  
+      <a class="carousel-control left" href="#myCarousel" data-slide="prev">‹</a>  
+      <a class="carousel-control right" href="#myCarousel" data-slide="next">›</a>  
+    </div>
+    
+  </div>
+  <div class="stream-container bg-white no-padding">
+  <div class="stream-header">
+    <h4 id="container-header">Features</h4>
+  </div>
+  <div class="stream">
+    <div id="stream-items-container" class="stream-items padding-20">
+      <div>
+        <p>See how Coordel makes you more productive so you have time to work on ideas that you support.</p>
+        <p>Coordel's features support better <a href="#coordination">coordination</a> of work with others and increased personal <a href="#performance">performance</a>. You'll be more productive so you can support more Ideas.</p>
+
+        <div class="padding-20">
+          <img style="border: 1px solid #000000" class="full-screen-image border-radius-4" alt="Productivity Tasks Software Features" src="/img/features/newtask.png">
+        </div>
+      </div>
+      <div id="coordination" class="support">
+        <h2>Coordination</h4>
+        <div>
+          <% include features/coordination %>
+        </div>
+      </div>
+      <div id="performance" class="support">
+        <h2>Performance</h4>
+        <div>
+          <% include features/performance %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="stream-footer">
+    <div style="margin: 0 auto; width: 100px;">
+      <img class="logo" src="lib/coordel-bootstrap/img/logo.png"/>
+      <div></div>
+    </div>
+  </div>
+</div>
+</div>
+<% include footer %>

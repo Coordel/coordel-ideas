@@ -23,7 +23,15 @@
           <div class="btn-group pull-right">
             <button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown"><i class="c-icon-cog"></i><span class="caret"></span></button>
             <ul class="dropdown-menu">
-              <li><a href="/settings/profile">Profile</a></li>
+              <li>
+                <a href="/settings/profile" style="clearfix">
+                  <img style="float:left;margin-right: 4px"  height="36" width="36" src="<%=imageUrl %>" class="img-rounded"/>
+                  <div><%=fullName%></div>
+                  <div style="font-size: 12px; color: #999; line-height: 16px">Edit profile</div>
+              
+                </a>
+                <div class="clearfix"></div>
+              </li>
               <li class="divider"></li>
               <li id="sign-out" data-token="<%=token%>"><a>Sign out</a></li>
             </ul>

@@ -135,6 +135,11 @@ function authenticateFromLoginToken(req, res, next) {
 }
 
 function loadUser(req, res, next) {
+  var oldLink = false;
+  if (req.query.p){
+    console.log("it's an old link");
+    oldLink = true;
+  }
   /*
   if (req.session) {
     var username = req.session.username;
@@ -152,8 +157,20 @@ function loadUser(req, res, next) {
     console.log('there is a logintoken');
     authenticateFromLoginToken(req, res, next);
   } else {
-    console.log('redirecting to intro');
-    res.redirect('/intro');
+    if (oldLink){
+
+      var url = '/'+req.query.p;
+      if (req.query.f){
+        url = url + '/'+req.query.f;
+      }
+      console.log('redirecting to' + url);
+      res.redirect(url);
+    } else {
+      console.log('redirecting to intro');
+      res.redirect('/intro');
+    }
+    
+    
   }
 }
 
@@ -236,9 +253,13 @@ store.redis.smembers('coordel-users', function(e, members){
 
 //client app routes
 app.get('/intro', Intro.index);
-app.get('/preview', intro.app);
+app.get('/preview', Intro.preview);
 app.get('/login', Users.login);
+app.get('/password', Users.resetPassword);
 app.get('/success', Intro.blueprints);
+app.get('/tos', Intro.tos);
+app.get('/privacy', Intro.privacy);
+app.get('/about', Intro.about);
 
 
 app.post('/sessions', Users.manualLogin); //set up as Login in analytics
@@ -270,6 +291,7 @@ app.get('/ideas/:id/users/:appId/feedback', Ideas.getUserFeedback);
 app.post('/ideas/:id/users/:appId/feedback', Ideas.addFeedback);
 app.get('/ideas/:id/pledges/money', Ideas.findMoneyPledges);
 app.get('/ideas/:id/pledges/time', Ideas.findTimePledges);
+app.get('/ideas/:id/pledges/proxy', Ideas.findProxyPledges);
 app.post('/ideas/:id/money', Ideas.supportMoney); //set up as Support Money in analytics
 app.put('/ideas/:id/money');
 app.del('/ideas/:id/money');
@@ -282,6 +304,7 @@ app.get('/supporting', App.supporting);
 app.get('/contacts', App.contacts);
 app.get('/money', App.moneyPledged);
 app.get('/time', App.timePledged);
+app.get('/proxy', App.proxiedToMe);
 app.get('/feedback', App.feedback);
 app.get('/:username', App.ideas);
 
@@ -362,6 +385,7 @@ app.get('/:username', loadUser, users.show);
 
 //api
 app.post(v1 + '/account');
+app.put(v1 + '/account/password'); //resets password and resends to user
 app.get(v1 + '/users/email/', Users.checkEmail); //checks if email exists, returns json object with error or success members
 app.get(v1 + '/users/username/', Users.checkUsername); //checks if username exists, returns json object with error or success members
 
@@ -372,11 +396,17 @@ app.post(v1 + '/ideas');
 app.get(v1 + '/ideas/:id/stream', Ideas.findStream);
 
 
+
+
 app.post(v1 + '/pledges/money', Pledges.create);
 app.put(v1 + '/pledges/money/:pledgeId', Pledges.save);
 app.post(v1 + '/pledges/allocations', Pledges.allocate);
+app.post(v1 + '/pledges/timeReports', Pledges.reportTime);
 app.post(v1 + '/pledges/time', Pledges.create);
 app.put(v1 + '/pledges/time/:pledgeId', Pledges.save);
+
+
+app.post(v1 + '/proxies/allocations', Pledges.proxyAllocate);
 
 
 

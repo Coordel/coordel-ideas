@@ -17,18 +17,21 @@ define(["dojo/dom",
   "app/views/timeForm/timeForm",
   "app/views/contact/contact",
   "app/views/allocateForm/allocateForm",
+  "app/views/reportTimeForm/reportTimeForm",
   "app/views/addProxyForm/addProxyForm",
   "app/views/cancelMoneyForm/cancelMoneyForm",
   "app/views/cancelTimeForm/cancelTimeForm",
   "app/views/removeProxyForm/removeProxyForm",
   "app/views/feedbackForm/feedbackForm",
   "app/views/feedback/feedback",
+  "app/views/proxyAllocateForm/proxyAllocateForm",
+  "app/controllers/features",
   "app/views/addForm/addForm",
   "dojo/domReady!" ], function(dom
                     , topic, cookie, array, on, domClass, build, request, hash, registry
                     , model, miniProfile, userProfile, idea, blueprint, moneyForm
-                    , timeForm, contact, allocate, addProxy
-                    , cancelMoneyForm, cancelTimeForm, removeProxyForm, feedbackForm, feedback){
+                    , timeForm, contact, allocate, reportTimeForm, addProxy
+                    , cancelMoneyForm, cancelTimeForm, removeProxyForm, feedbackForm, feedback, proxyAllocateForm, features){
 
   var app = {
     max: {
@@ -45,6 +48,37 @@ define(["dojo/dom",
     coordbp: [],
 
     taskbp: [],
+
+    
+    init: function(args){
+      var self = this;
+      self.user = args.user;
+      console.log("init app", args );
+      this.currentMenu = args.menu;
+      this.subNav = args.subNav;
+      this.model= model.init(args);
+      this.contacts = args.contacts;
+      this.show();
+     
+      timeForm.init(args.user);
+    
+      request("/bitcoin/prices", {
+        handleAs: "json"
+        }).then(function(prices){
+          self.bitcoinPrices = prices;
+          moneyForm.init(args.user, prices);
+          allocate.init(args.user, prices);
+          reportTimeForm.init(args.user);
+          addProxy.init(args.user, prices, args.contacts);
+          proxyAllocateForm.init(args.user, prices, args.contacts);
+          cancelMoneyForm.init(args.user, prices);
+          cancelTimeForm.init(args.user);
+          removeProxyForm.init(args.user, prices, args.contacts);
+          feedbackForm.init(args.user);
+        });
+
+
+    },
 
     showBlueprints: function(args){
 
@@ -137,33 +171,6 @@ define(["dojo/dom",
       
     },
 
-    init: function(args){
-      var self = this;
-      self.user = args.user;
-      console.log("init app", args );
-      this.currentMenu = args.menu;
-      this.subNav = args.subNav;
-      this.model= model.init(args);
-      this.contacts = args.contacts;
-      this.show();
-     
-      timeForm.init(args.user);
-    
-      request("/bitcoin/prices", {
-        handleAs: "json"
-        }).then(function(prices){
-          self.bitcoinPrices = prices;
-          moneyForm.init(args.user, prices);
-          allocate.init(args.user, prices);
-          addProxy.init(args.user, prices, args.contacts);
-          cancelMoneyForm.init(args.user, prices);
-          cancelTimeForm.init(args.user);
-          removeProxyForm.init(args.user, prices, args.contacts);
-          feedbackForm.init(args.user);
-        });
-
-
-    },
 
     setSubNav: function(subnav){
       var self = this;
@@ -194,6 +201,10 @@ define(["dojo/dom",
           options.header = "Pledged time";
           options.subNavId = "subNavTime";
         break;
+        case 'proxiedToMe':
+          options.header = "Proxied to me";
+          options.subNavId = "subNavProxy";
+        break;
         case 'contacts':
           options.header = "Contacts";
           options.subNavId = "subNavContacts";
@@ -215,75 +226,10 @@ define(["dojo/dom",
 
       var self = this;
 
-      var socket = io.connect(window.location.host);
-
-      //register for socketio events
-      socket.on("idea", function (idea) {
-        console.log("SOCKET IDEA", idea);
-        self.model.timeline.notify(idea);
-        topic.publish("coordel/addIdea", idea);
-      });
-
-      socket.on("stream", function(item){
-        console.log("SOCKET REPLY", item);
-        topic.publish("coordel/stream", item);
-      });
-
-      socket.on("miniProfile:"+self.user.appId, function(item){
-        console.log("SOCKET miniProfile", item);
-        self.model.miniProfile = item;
-        if (self.currentMenu === "#menuMe"){
-          self.setUserNav();
-        }
-        topic.publish("coordel/miniProfile", item);
-      });
-
-      socket.on("supportAccount:"+self.user.appId, function(item){
-        console.log("SOCKET account", item);
-        self.model.currentUser.account = item;
-        topic.publish("coordel/supportAccount", item);
-      });
-
-      socket.on("supporting:"+self.user.appId, function(item){
-        topic.publish("coordel/supportIdea", item);
-      });
-
-
-
-      if (this.currentMenu === "#menuIdeas"){
-        if (self.model.currentUser){
-          self.showMiniProfile();
-          self.setSubNav(self.subNav);
-          if (self.subNav && self.subNav === "trending"){
-            self.showTimeline({unsorted: true});
-          } else {
-            self.showTimeline();
-          }
-        } else {
-          self.showTimeline();
-        }
+      if (self.currentMenu === "#menuCoordel"){
+        features.init();
       }
 
-      if (self.model.currentUser && this.currentMenu === "#menuMe"){
-        self.showUserProfile();
-        self.setSubNav(self.subNav);
-  
-        if (self.subNav && self.subNav === "contacts"){
-          self.showContacts();
-        } else if (self.subNav && self.subNav === "supporting"){
-          self.showTimeline({showFeedback: true});
-        } else if (self.subNav && self.subNav === "feedback"){
-          self.showFeedback();
-        } else {
-          self.showTimeline({showDogears: true});
-        }
-        
-      }
-
-      $('#sign-out').click(function(){
-        $('#sign-out-form').submit();
-      });
-  
       //menu
 
       $("#menuIdeas").click(function(){
@@ -311,6 +257,84 @@ define(["dojo/dom",
       }
 
       setMenu(this.currentMenu);
+
+      var socket = io.connect(window.location.host);
+
+      //register for socketio events
+      socket.on("idea", function (idea) {
+        console.log("SOCKET IDEA", idea);
+        self.model.timeline.notify(idea);
+        topic.publish("coordel/addIdea", idea);
+      });
+
+      socket.on("stream", function(item){
+        console.log("SOCKET REPLY", item);
+        topic.publish("coordel/stream", item);
+      });
+
+      if (self.user){
+        socket.on("miniProfile:"+self.user.appId, function(item){
+          console.log("SOCKET miniProfile", item);
+          self.model.miniProfile = item;
+          if (self.currentMenu === "#menuMe"){
+            self.setUserNav();
+          }
+          topic.publish("coordel/miniProfile", item);
+        });
+
+        socket.on("supportAccount:"+self.user.appId, function(item){
+          console.log("SOCKET account", item);
+          self.model.currentUser.account = item;
+          topic.publish("coordel/supportAccount", item);
+        });
+
+        socket.on("supporting:"+self.user.appId, function(item){
+          topic.publish("coordel/supportIdea", item);
+        });
+      }
+      
+
+
+      if (this.currentMenu === "#menuIdeas"){
+        if (self.model.currentUser){
+          self.showMiniProfile();
+          self.setSubNav(self.subNav);
+          if (self.subNav && self.subNav === "trending"){
+            self.showTimeline({unsorted: true});
+          } else {
+            self.showTimeline();
+          }
+        } else {
+          self.showTimeline();
+        }
+      }
+
+      if (self.model.currentUser && this.currentMenu === "#menuMe"){
+        self.showUserProfile();
+        self.setSubNav(self.subNav);
+
+        if (self.model.currentUser.account.proxiedToMe > 0){
+          domClass.remove(dom.byId("subNavProxy"), "hide");
+          dom.byId("navProxy").innerHTML = self.model.currentUser.account.proxiedToMe;
+        }
+  
+        if (self.subNav && self.subNav === "contacts"){
+          self.showContacts();
+        } else if (self.subNav && self.subNav === "supporting"){
+          self.showTimeline({showFeedback: true});
+        } else if (self.subNav && self.subNav === "feedback"){
+          self.showFeedback();
+        } else {
+          self.showTimeline({showDogears: true});
+        }
+        
+      }
+
+      $('#sign-out').click(function(){
+        $('#sign-out-form').submit();
+      });
+  
+      
 
       $("[rel=tooltip]").tooltip({
         placement: "bottom",

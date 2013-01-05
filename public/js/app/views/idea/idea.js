@@ -23,9 +23,10 @@ define([
     "app/views/reportTimeForm/reportTimeForm",
     "app/views/cancelTimeForm/cancelTimeForm",
     "app/views/removeProxyForm/removeProxyForm",
-    "app/views/feedbackForm/feedbackForm"
+    "app/views/feedbackForm/feedbackForm",
+    "app/views/proxyAllocateForm/proxyAllocateForm"
 
-], function(declare, _WidgetBase, _TemplatedMixin, template, replyHtml,inviteHtml, shareHtml, on, domClass, lang, dom, xhr, topic, easing, fx, ideaDetails, ideaStream, registry, array, allocateForm, addProxyForm, contactPicker, cancelMoneyForm, reportTimeForm, cancelTimeForm, removeProxyForm, feedbackForm) {
+], function(declare, _WidgetBase, _TemplatedMixin, template, replyHtml,inviteHtml, shareHtml, on, domClass, lang, dom, xhr, topic, easing, fx, ideaDetails, ideaStream, registry, array, allocateForm, addProxyForm, contactPicker, cancelMoneyForm, reportTimeForm, cancelTimeForm, removeProxyForm, feedbackForm, proxyAllocateForm) {
 
     return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -61,6 +62,8 @@ define([
           domClass.remove(self.pledgeTimeContainer, "hide");
           domClass.add(self.reportTimeContainer, "hide");
           domClass.add(self.cancelTimeContainer, "hide");
+          domClass.add(self.proxyAllocateContainer, "hide");
+          domClass.add(self.proxyDeallocateContainer, "hide");
           domClass.replace(self.dogear, "");
         },
 
@@ -101,7 +104,6 @@ define([
             domClass.remove(self.cancelMoneyContainer, "hide");
           }
 
-
           //if this is a recurring pledge that i've allocated, give the option to deallocate or cancel the pledge
           if (array.indexOf(user.account.recurringAllocatedPledges, idea._id)>-1){
             domClass.add(self.pledgeMoneyContainer, "hide");
@@ -111,6 +113,13 @@ define([
             domClass.remove(self.cancelMoneyContainer, "hide");
           }
 
+          if (array.indexOf(user.account.recurringAllocatedTimePledges, idea._id)>-1){
+            domClass.add(self.pledgeTimeContainer, "hide");
+            domClass.remove(self.reportTimeContainer, "hide");
+            //domClass.remove(self.editContainer, "hide"); not dealing with edit for first pass
+            domClass.remove(self.cancelTimeContainer, "hide");
+          }
+
           //if i've already pledged time, remove pledge time;
           if (array.indexOf(user.account.pledgedTimeIdeas, idea._id)>-1){
             domClass.add(self.pledgeTimeContainer, "hide");
@@ -118,18 +127,29 @@ define([
             domClass.remove(self.cancelTimeContainer, "hide");
           }
 
-          //finally, if this is money, then hide idea related and vice-versa
+          //if this is money, then hide time related and vice-versa
           if (self.subNavId === "subNavMoney"){
             domClass.add(self.pledgeTimeContainer, "hide");
             domClass.add(self.reportTimeContainer, "hide");
             domClass.add(self.cancelTimeContainer, "hide");
           }
 
+          //if time, hide money related
           if (self.subNavId === "subNavTime"){
             domClass.add(self.pledgeMoneyContainer, "hide");
             domClass.add(self.releaseMoneyContainer, "hide");
             domClass.add(self.addProxyContainer, "hide");
             domClass.add(self.cancelMoneyContainer, "hide");
+          }
+
+          //if proxy, then show or hide allocation
+          if (self.subNavId === "subNavProxy"){
+         
+            if (array.indexOf(user.account.allocatedProxiedToMeIdeas, self.idea._id) === -1){
+               domClass.remove(self.proxyAllocateContainer, "hide");
+            } else {
+               domClass.remove(self.proxyDeallocateContainer, "hide");
+            }
           }
 
           //feedback
@@ -145,17 +165,15 @@ define([
             }
           }
 
-  
-
           //DOGEARS
           if (self.showDogears){
             var recur = array.indexOf(user.account.recurringPledges, idea._id)>-1
               , recurAlloc = array.indexOf(user.account.recurringAllocatedPledges, idea._id)>-1
               , recurTime = array.indexOf(user.account.recurringTimePledges, idea._id) > -1
-              , recurTimeAlloc = array.indexOf(user.account.recurringTimeAllocatedPledges, idea._id) > -1
-              , proxy = array.indexOf(user.account.proxiedIdeas, idea._id)>-1;
-
-
+              , recurTimeAlloc = array.indexOf(user.account.recurringAllocatedTimePledges, idea._id) > -1
+              , proxy = array.indexOf(user.account.proxiedIdeas, idea._id)>-1
+              , proxyToMe = array.indexOf(user.account.proxiedToMeIdeas, idea._id)> -1
+              , allocatedProxyToMe = array.indexOf(user.account.allocatedProxiedToMeIdeas, idea._id) > -1;
 
             var showTip = false
               , tipText = "";
@@ -163,7 +181,7 @@ define([
 
 
             //if both recur and proxy, show both, otherwise show the right one
-            if (self.idea.pledgeType === "money"){
+            if (self.idea.pledgeType === "money" && self.subNavId !== "subNavProxy"){
               if (recur && proxy){
                 domClass.replace(self.dogear, "icon-dogear-both-stopped");
                 tipText = "Proxied and recurring but not allocated";
@@ -185,16 +203,27 @@ define([
                 tipText = "Proxied";
                 showTip = true;
               }
-            } else if (self.idea.pledgeType === "time"){
+            } else if (self.idea.pledgeType === "money" && self.subNavId === "subNavProxy") {
+              if (allocatedProxyToMe){
+                domClass.replace(self.dogear, "icon-dogear-proxy-started");
+                tipText = "Proxy allocated";
+                showTip = true;
+              } else {
+                domClass.replace(self.dogear, "icon-dogear-proxy-stopped");
+                tipText = "Proxy not allocated";
+                showTip = true;
+              }
+              
+            }  else if (self.idea.pledgeType === "time"){
               if (recurTime){
                  domClass.replace(self.dogear, "icon-dogear-recurring-stopped");
                  tipText = "Recurring but no time reported";
                  showTip = true;
-               } else if(recurTimeAlloc){
+              } else if(recurTimeAlloc){
                  domClass.replace(self.dogear, "icon-dogear-recurring");
                  tipText = "Recurring and time reported";
                  showTip = true;
-               }
+              }
             }
 
             if (showTip){
@@ -217,7 +246,6 @@ define([
           }
 
           var sptHandle = topic.subscribe("coordel/supportAccount", function(acct){
-            console.log("supportAccount", acct, self.currentUser.account);
   
             //self.currentUser.account = acct;
             if (self.currentUser.appId === self.idea.creator){
@@ -229,10 +257,10 @@ define([
 
 
 
-          topic.subscribe("coordel/ideaAction", function(action, ideaId){
+          topic.subscribe("coordel/ideaAction", function(action, ideaId, type){
       
             if (self.idea._id === ideaId){
-              console.log("ideaAction", action, ideaId, self.idea._id, self.subNavId);
+            
               switch (action) {
                 case "pledgeMoney":
                   //do a highlight to indicate something happened
@@ -252,7 +280,7 @@ define([
                   break;
                 case "cancelMoney":
                   if (self.subNavId === "subNavMoney"){
-                    console.log("should destroy");
+        
                     sptHandle.remove();
                     self.destroy();
                   } else {
@@ -261,7 +289,7 @@ define([
                   break;
                 case "cancelTime":
                   if (self.subNavId === "subNavTime"){
-                    console.log("should destroy");
+                 
                     sptHandle.remove();
                     self.destroy();
                   } else {
@@ -270,7 +298,17 @@ define([
                   break;
                 case "allocate":
                   if (self.subNavId === "subNavMoney"){
-                    console.log("should destroy");
+                    sptHandle.remove();
+                    self.destroy();
+                  } else {
+                    $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  }
+                  break;
+                case "proxyAllocate":
+                  $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  break;
+                case "reportTime":
+                  if (self.subNavId === "subNavTime" && type !== "RECURRING"){
                     sptHandle.remove();
                     self.destroy();
                   } else {
@@ -538,6 +576,50 @@ define([
                 allocateForm.showPledge(pledge);
               } else {
                 allocateForm.showError();
+              }
+
+            });
+          });
+
+          on(self.proxyAllocate, 'click', function(e){
+            dom.byId("proxyAllocateIdea").value = self.idea._id;
+            //get the proxied pledges for this idea and find mine
+            xhr('/ideas/' + self.idea._id + '/pledges/money', {handleAs: 'json'}).then(function(list){
+            
+              list = array.filter(list, function(item){
+                return item.proxy === self.currentUser.appId;
+              });
+
+              //
+              var pledge = list.length;
+              
+              
+              if (pledge){
+                proxyAllocateForm.showPledges(list);
+              } else {
+                proxyAllocateForm.showError();
+              }
+
+            });
+          });
+
+          on(self.proxyDeallocate, 'click', function(e){
+            dom.byId("proxyAllocateIdea").value = self.idea._id;
+            //get the proxied pledges for this idea and find mine
+            xhr('/ideas/' + self.idea._id + '/pledges/money', {handleAs: 'json'}).then(function(list){
+            
+              list = array.filter(list, function(item){
+                return item.proxy === self.currentUser.appId;
+              });
+
+              //
+              var pledge = list.length;
+              
+              
+              if (pledge){
+                proxyAllocateForm.showPledges(list);
+              } else {
+                proxyAllocateForm.showError();
               }
 
             });

@@ -31,6 +31,50 @@ IdeasController = function(store, socket) {
 
   }
 
+  //used to sum money and time allocations
+  function getTotalAllocations(array, fn){
+    //this lists everyone who gave time or money
+
+    var list = _.map(array, function(item){
+      return item.doc;
+    });
+
+    var acct = {}
+      , gave = []
+      , users = [];
+
+    //sum up what was given
+    _.each(list, function(item){
+      if (!acct[item.creator]){
+        users.push(item.creator);
+        acct[item.creator] = {amount: item.amount};
+        acct[item.creator].amount = item.amount;
+      } else {
+        acct[item.creator].amount = acct[item.creator].amount + item.amount;
+      }
+
+    });
+
+    //now we need to load the users so we have their details
+    Idea.findUserBatch(users, function(e, users){
+
+      if (e){
+        fn(e);
+      } else {
+        _.each(users, function(user){
+          acct[user.appId].user = user;
+        });
+
+        //now put the accounts into an array for return
+        _.each(acct, function(item){
+          gave.push(item);
+        });
+
+        fn(null, gave);
+      }
+    });
+  }
+
   function updateTimeline(idea, user, fn){
     var multi = store.redis.multi()
       , timestamp = moment().format(store.timeFormat);
@@ -85,36 +129,148 @@ IdeasController = function(store, socket) {
         feedback: req.body
       };
 
-      console.log("in addFeedback", args);
+
+ 
 
       var user = {appId: args.appId};
 
-      Idea.addFeedback(args, function(e, o){
-        console.log("addFeedback", e, o);
+      UserApp.findById(args.appId, function(e, app){
+        args.name = app.fullName;
+        Idea.addFeedback(args, function(e, o){
+          console.log("addFeedback", e, o);
+          if (e){
+            res.json({
+              success: false,
+              errors: [e]
+            });
+          } else {
+            console.log("addFeedback response", o);
+            Profile.findMiniProfile(user, function(e, mini){
+              console.log("after findMiniProfile", e, mini);
+              if (e){
+                //TODO log error
+              } else {
+                console.log("new mini profile in ideas.js", user.appId, mini);
+                socket.emit('miniProfile:'+user.appId, mini);
+              }
+            });
+            res.json({
+              success: true,
+              idea: o
+            });
+          }
+        });
+      });
+    },
+
+    findStream: function(req, res){
+      var id = req.params.id;
+      //console.log("range", req.header('Range'));
+      store.couch.db.view('coordel/projectStream', { startkey: [id, {}], endkey: [id], descending: true}, function (e, stream) {
+        if (e){
+          cb('error ' + e);
+        } else {
+          var map = {}
+            , users = [];
+
+          stream = _.map(stream, function(item){
+            //console.log("stream item", item);
+            var id = item.value.actor.id;
+            if (!map[id]){
+              users.push(id);
+              map[id] = true;
+            }
+            return item.value;
+          });
+
+          Idea.findUserBatch(users, function(e, users){
+            if (e){
+              res.json({
+                success: false,
+                errors: [e]
+              });
+            } else {
+              res.json({
+                success: true,
+                stream: stream,
+                users: users
+              });
+            }
+          });
+        }
+      });
+    },
+
+    /*
+    findStream: function(req, res){
+      var id = req.params.id;
+      console.log("range", req.header('Range'));
+      async.parallel({
+        stream: function(cb){
+          store.couch.db.view('coordel/projectStream', { startkey: [id, {}], endkey: [id], descending: true}, function (e, stream) {
+            if (e){
+              cb('error ' + e);
+            } else {
+              var map = {}
+                , users = [];
+
+              stream = _.map(stream, function(item){
+                var id = item.actor.id;
+                if (!map[id]){
+                  users.push(id);
+                  map[id] = true;
+                }
+                return item.value;
+              });
+
+              Idea.findUserBatch(users, function(e, o){
+                if (e){
+                  res.json({
+                    success: false,
+                    errors: [e]
+                  });
+                } else {
+                  res.json({
+                    success: true,
+                    stream: results.stream,
+                    users: results.users
+                  });
+                }
+              });
+            }
+          });
+        },
+        users: function(cb){
+          Idea.findUsers(id, function(e, o){
+            if (e){
+              cb('error ' + e);
+            } else {
+              console.log("users", o);
+              cb(null, o);
+            }
+          });
+        }
+      },
+      function(e, results) {
+        console.log("findStream", e, results);
         if (e){
           res.json({
             success: false,
             errors: [e]
           });
         } else {
-          console.log("addFeedback response", o);
-          Profile.findMiniProfile(user, function(e, mini){
-            console.log("after findMiniProfile", e, mini);
-            if (e){
-              //TODO log error
-            } else {
-              console.log("new mini profile in ideas.js", user.appId, mini);
-              socket.emit('miniProfile:'+user.appId, mini);
-            }
-          });
           res.json({
             success: true,
-            idea: o
+            stream: results.stream,
+            users: results.users
           });
         }
+        
       });
     },
+    */
 
+    /*
     findStream: function(req, res){
       var id = req.params.id;
       console.log("range", req.header('Range'));
@@ -135,6 +291,7 @@ IdeasController = function(store, socket) {
         }
       });
     },
+    */
 
     findDetails: function(req, res){
       var id= req.params.id;
@@ -180,7 +337,7 @@ IdeasController = function(store, socket) {
                 "task-cleared-issue": "CLEARED ISSUES",
                 "task-raised-issue": "RAISED ISSUES",
                 "task-created": "CREATED",
-                "task-submitted": "COMPLETED",
+                "task-submitted": "PROPOSED DONE",
                 "task-agreed-done": "AGREED DONE",
                 "task-delegated": "DELEGATED",
                 "task-declined": "DECLINED",
@@ -216,14 +373,14 @@ IdeasController = function(store, socket) {
           });
         },
         account: function(cb){
-          console.log("idea support account", id);
+          //console.log("idea support account", id);
           store.couch.db.view('coordel/ideaSupportAccount', {
             startkey: [id],
             endkey: [id, {}]}, function(e, acct){
             if (e){
               cb('error '+e);
             } else {
-              console.log("idea support account", acct);
+              //console.log("idea support account", acct);
               acct = _.map(acct, function(item){
                 return item.value;
               });
@@ -250,7 +407,7 @@ IdeasController = function(store, socket) {
                 _.each(acct, function(item){
                   if (item.docType === "money-pledge") {
                     if (item.status === "PLEDGED"){
-                      result.pledged = result.pledged + item.amount;
+                      result.pledged = parseFloat(result.pledged) + parseFloat(item.amount);
                       result.pledgedIdeas.push(item.project);
                       //this shows the user that this is a recurring pledge
                       if (item.type === "RECURRING"){
@@ -258,30 +415,33 @@ IdeasController = function(store, socket) {
                       }
                     } else if (item.status === "PROXIED"){
                       //console.log("proxied", item);
-                      result.proxied = result.proxied + item.amount;
+                      result.proxied = parseFloat(result.proxied) + parseFloat(item.amount);
                       result.proxiedIdeas.push(item.project);
                     } else if (item.status === "ALLOCATED"){
                       //this shows the user that this is an allocated recurring pledge
                       if (item.type === "RECURRING"){
                         //the pledged amount recurs so add it
-                        result.pledged = result.pledged + item.amount;
+                        result.pledged = parseFloat(result.pledged) + parseFloat(item.amount);
                         result.recurringAllocatedPledges.push(item.project);
                       }
                     }
                   } else if (item.docType === "allocation"){
 
-                    result.allocated = result.allocated + item.amount;
+                    result.allocated = parseFloat(result.allocated) + parseFloat(item.amount);
 
+                  } else if (item.docType === "time-report"){
+                    console.log("time report in ideas.js", parseFloat(result.reportedTime), parseFloat(item.amount));
+                    result.reportedTime = parseFloat(result.reportedTime) + parseFloat(item.amount);
                   } else if (item.docType === "time-pledge") {
                     if (item.status === "PLEDGED"){
-                      result.pledgedTime = result.pledgedTime + item.amount;
+                      result.pledgedTime = parseFloat(result.pledgedTime) + parseFloat(item.amount);
                       result.pledgedTimeIdeas.push(item.project);
                       if (item.type === "RECURRING"){
                         result.recurringTimePledges.push(item.project);
                       }
                     } else if (item.status === "ALLOCATED"){
                       if (item.type === "RECURRING"){
-                        result.reportedTime = result.reportedTime + item.amount;
+                        result.reportedTime = parseFloat(result.reportedTime) + parseFloat(item.amount);
                         result.recurringAllocatedTimePledges.push(item.project);
                       }
                     }
@@ -306,6 +466,36 @@ IdeasController = function(store, socket) {
                 cb (null, 0);
               }
               
+            }
+          });
+        },
+        gaveTime: function(cb){
+          store.couch.db.view('coordel/ideaTimeAllocations', {startkey: [id], endkey:[id,{}], include_docs: true}, function(e,o){
+            if (e){
+              cb(e);
+            } else {
+              getTotalAllocations(o, function(e, gave){
+                if (e){
+                  cb(e);
+                } else {
+                  cb(null, gave);
+                }
+              });
+            }
+          });
+        },
+        gaveMoney: function(cb){
+          store.couch.db.view('coordel/ideaMoneyAllocations', {startkey: [id], endkey:[id,{}], include_docs: true}, function(e,o){
+            if (e){
+              cb(e);
+            } else {
+              getTotalAllocations(o, function(e, gave){
+                if (e){
+                  cb(e);
+                } else {
+                  cb(null, gave);
+                }
+              });
             }
           });
         }
@@ -346,7 +536,9 @@ IdeasController = function(store, socket) {
             invited: invited,
             userDetails: results.userDetails,
             activity: results.activity,
-            account: results.account
+            account: results.account,
+            gaveTime: results.gaveTime,
+            gaveMoney: results.gaveMoney
           });
         }
       });
@@ -376,6 +568,21 @@ IdeasController = function(store, socket) {
       var idea = req.params.id;
 
       MoneyPledge.findByIdea(idea, function(e, o){
+        res.json(o);
+      });
+
+    },
+
+    findProxyPledges: function(req, res){
+      //get all the money pledges for this idea
+      var idea = req.params.id;
+
+      MoneyPledge.findByIdea(idea, function(e, o){
+        if (o.length){
+          o = _.filter(o, function(item){
+            return item.status === "PROXIED";
+          });
+        }
         res.json(o);
       });
 

@@ -49,6 +49,16 @@ module.exports = function(store) {
       });
     },
 
+    reportTime: function(report, fn){
+      store.couch.db.save(report, function(e, o){
+        if (e){
+          fn(e);
+        } else {
+          fn(null, o);
+        }
+      });
+    },
+
     save: function(pledge, fn){
       //couchdb put pledge
     },

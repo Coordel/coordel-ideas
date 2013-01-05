@@ -1,0 +1,17 @@
+
+
+.support img {
+  border: none;
+}
+
+
+
+
+
+.support .qs-content {
+  background: #ffffff;
+  min-height: 178px;
+
+  padding-bottom: 20px;
+  border-top: 1px solid #ddd;
+}

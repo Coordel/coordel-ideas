@@ -90,7 +90,7 @@ module.exports = function(store) {
                 "task-cleared-issue": "CLEARED ISSUES",
                 "task-raised-issue": "RAISED ISSUES",
                 "task-created": "CREATED",
-                "task-submitted": "COMPLETED",
+                "task-submitted": "PROPOSED DONE",
                 "task-agreed-done": "AGREED DONE",
                 "task-delegated": "DELEGATED",
                 "task-declined": "DECLINED",
@@ -146,7 +146,9 @@ module.exports = function(store) {
                       result.withMoney = result.withMoney + 1;
                     }
                   } else if (item.docType === "time-pledge") {
-                    if (item.status === "PLEDGED"){
+                    if (item.status === "PLEDGED") {
+                      result.withTime = result.withTime + 1;
+                    } else if (item.status === "ALLOCATED" && item.type === "RECURRING"){
                       result.withTime = result.withTime + 1;
                     }
                   }
@@ -268,9 +270,13 @@ module.exports = function(store) {
                 recurringAllocatedTimePledges: [],
                 proxied: 0,
                 proxiedIdeas: [],
+                proxiedToMe: 0,
+                proxiedToMeIdeas: [],
+                allocatedProxiedToMeIdeas: [],
                 allocated: 0,
                 allocatedIdeas: [],
                 pledgedTimeIdeas: [],
+                allocatedTimeIdeas: [],
                 pledgedTime: 0,
                 reportedTime: 0
               };
@@ -280,7 +286,7 @@ module.exports = function(store) {
                 _.each(acct, function(item){
                   if (item.docType === "money-pledge") {
                     if (item.status === "PLEDGED"){
-                      result.pledged = result.pledged + item.amount;
+                      result.pledged = parseFloat(result.pledged) + parseFloat(item.amount);
                       result.pledgedIdeas.push(item.project);
                       //this shows the user that this is a recurring pledge
                       if (item.type === "RECURRING"){
@@ -288,29 +294,56 @@ module.exports = function(store) {
                       }
                     } else if (item.status === "PROXIED"){
                       //console.log("proxied", item);
-                      result.proxied = result.proxied + item.amount;
-                      result.proxiedIdeas.push(item.project);
+
+                      if (user.appId === item.creator){
+                        result.proxied = parseFloat(result.proxied) + parseFloat(item.amount);
+                        result.proxiedIdeas.push(item.project);
+                      }
+                      
+                      //it's possible that am the proxy for multiple people on an idea, only add ideas once
+                      if (user.appId === item.proxy && _.indexOf(result.proxiedToMeIdeas, item.project) === -1){
+                        result.proxiedToMe = result.proxiedToMe + 1;
+                        result.proxiedToMeIdeas.push(item.project);
+                      }
                     } else if (item.status === "ALLOCATED"){
                       result.allocatedIdeas.push(item.project);
                       //this shows the user that this is an allocated recurring pledge
                       if (item.type === "RECURRING"){
-                        result.pledged = result.pledged + item.amount;
+                        result.pledged = parseFloat(result.pledged) + parseFloat(item.amount);
                         result.recurringAllocatedPledges.push(item.project);
                       }
                     }
                   } else if (item.docType === "allocation"){
 
-                    result.allocated = result.allocated + item.amount;
+                    result.allocated = parseFloat(result.allocated) + parseFloat(item.amount);
+
+                  } else if (item.docType === "proxy-allocation"){
+                    //track proxies
+                    if (_.indexOf(result.proxiedToMeIdeas, item.project) === -1){
+                      result.proxiedToMe = result.proxiedToMe + 1;
+                      result.proxiedToMeIdeas.push(item.project);
+                    }
+
+                    //track allocated
+                    if (_.indexOf(result.allocatedProxiedToMeIdeas, item.project) === -1){
+                      result.allocatedProxiedToMeIdeas.push(item.project);
+                    }
+
+                  } else if (item.docType === "time-report") {
+                    console.log("got a time report in profile.js", item.amount, result.reportedTime);
+                    result.reportedTime  = parseFloat(result.reportedTime) + parseFloat(item.amount);
 
                   } else if (item.docType === "time-pledge") {
                     if (item.status === "PLEDGED"){
-                      result.pledgedTime = result.pledgedTime + item.amount;
+                      result.pledgedTime = parseFloat(result.pledgedTime) + parseFloat(item.amount);
                       result.pledgedTimeIdeas.push(item.project);
                       if (item.type === "RECURRING"){
                         result.recurringTimePledges.push(item.project);
                       }
                     } else if (item.status === "ALLOCATED"){
+                      result.allocatedTimeIdeas.push(item.project);
                       if (item.type === "RECURRING"){
+                        result.timePledged = parseFloat(result.timePledged) + parseFloat(item.amount);
                         result.recurringAllocatedTimePledges.push(item.project);
                       }
                     }
