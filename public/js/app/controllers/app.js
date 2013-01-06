@@ -25,13 +25,14 @@ define(["dojo/dom",
   "app/views/feedbackForm/feedbackForm",
   "app/views/feedback/feedback",
   "app/views/proxyAllocateForm/proxyAllocateForm",
+  "app/views/proxyDeallocateForm/proxyDeallocateForm",
   "app/controllers/features",
   "app/views/addForm/addForm",
   "dojo/domReady!" ], function(dom
                     , topic, cookie, array, on, domClass, build, request, hash, registry
                     , model, miniProfile, userProfile, idea, blueprint, moneyForm
                     , timeForm, contact, allocate, reportTimeForm, addProxy
-                    , cancelMoneyForm, cancelTimeForm, removeProxyForm, feedbackForm, feedback, proxyAllocateForm, features){
+                    , cancelMoneyForm, cancelTimeForm, removeProxyForm, feedbackForm, feedback, proxyAllocateForm, proxyDeallocateForm, features){
 
   var app = {
     max: {
@@ -71,6 +72,7 @@ define(["dojo/dom",
           reportTimeForm.init(args.user);
           addProxy.init(args.user, prices, args.contacts);
           proxyAllocateForm.init(args.user, prices, args.contacts);
+          proxyDeallocateForm.init(args.user);
           cancelMoneyForm.init(args.user, prices);
           cancelTimeForm.init(args.user);
           removeProxyForm.init(args.user, prices, args.contacts);

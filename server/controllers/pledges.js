@@ -141,6 +141,87 @@ MoneyPledgesController = function(store, socket) {
         }
       });
     },
+    proxyDeallocate: function(req, res){
+      var alloc = JSON.parse(req.body.alloc);
+
+      var timestamp = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ")
+        , appId = alloc.creator
+        , toSave = [];
+
+      var user = {appId: appId};
+
+      async.parallel({
+        alloc: function(cb){
+          console.log("proxy-allocation to deallocate", alloc);
+          MoneyPledge.update(alloc, function(e, o){
+            if (e){
+              cb('error '+ e);
+            } else {
+              cb(null, o);
+            }
+          });
+        },
+        pledges: function(cb){
+          //get all pledges for this project
+          MoneyPledge.findByIdea(alloc.project, function(e, pledges){
+
+            console.log("unfiltered project pledges", pledges);
+
+            //filter for pledges that are recurring and allocated
+            pledges = _.filter(pledges, function(item){
+              return item.status === "ALLOCATED" && item.type === "RECURRING";
+            });
+
+            console.log("idea pledges to proxy deallocate", pledges);
+
+            //set recurring allocated back to proxied
+            _.forEach(pledges, function(item){
+
+              item.status = "PROXIED";
+              toSave.push(item);
+            });
+
+            console.log("recurring", toSave);
+            //merge all allocations and pledges to do a bulk save
+            if (toSave.length){
+              MoneyPledge.save(toSave, function(e, o){
+                if (e){
+                  console.log("error doing bulk update", e);
+                  cb('error '+ e);
+                } else {
+                  cb(null, o);
+                }
+              });
+            } else {
+              cb(null, []);
+            }
+          });
+        }
+      },
+      function(e, results) {
+        if (e){
+          res.json({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          console.log("alloc", alloc);
+          //now we need to get a new profile for the pledge creator and send the updated values
+          Profile.findMiniProfile(user, function(e, mini){
+            socket.emit('miniProfile:'+user.appId, mini);
+          });
+          Profile.findSupportAccount(user, function(e, acct){
+            socket.emit('supportAccount:'+user.appId, acct);
+          });
+          alloc._id = results.alloc.id;
+          alloc._rev = results.alloc.rev;
+          res.json({
+            success: true,
+            allocation: alloc
+          });
+        }
+      });
+    },
     proxyAllocate: function(req, res){
       var alloc = JSON.parse(req.body.alloc);
 
@@ -153,13 +234,24 @@ MoneyPledgesController = function(store, socket) {
       async.parallel({
         alloc: function(cb){
           console.log("proxy-allocation", alloc);
-          MoneyPledge.save(alloc, function(e, o){
+          if (alloc._rev){
+            MoneyPledge.update(alloc, function(e, o){
+              if (e){
+                cb('error '+ e);
+              } else {
+                cb(null, o);
+              }
+            });
+          } else {
+            MoneyPledge.save(alloc, function(e, o){
             if (e){
               cb('error '+ e);
             } else {
               cb(null, o);
             }
           });
+          }
+          
         },
         pledges: function(cb){
           //get all the pledges for this idea
@@ -173,8 +265,6 @@ MoneyPledgesController = function(store, socket) {
             });
 
             console.log("idea pledges to proxy allocate", pledges);
-
-            var toSave = [];
 
             //create allocations for each pledge and update the pledge status to ALLOCATED
             _.forEach(pledges, function(item){

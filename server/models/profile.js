@@ -273,6 +273,9 @@ module.exports = function(store) {
                 proxiedToMe: 0,
                 proxiedToMeIdeas: [],
                 allocatedProxiedToMeIdeas: [],
+                deallocatedProxiedToMeIdeas: [],
+                proxyAllocated: [],
+                proxyDeallocated: [],
                 allocated: 0,
                 allocatedIdeas: [],
                 pledgedTimeIdeas: [],
@@ -325,9 +328,19 @@ module.exports = function(store) {
                     }
 
                     //track allocated
-                    if (_.indexOf(result.allocatedProxiedToMeIdeas, item.project) === -1){
-                      result.allocatedProxiedToMeIdeas.push(item.project);
+                    if (item.status === "ALLOCATED"){
+                      if (_.indexOf(result.allocatedProxiedToMeIdeas, item.project) === -1){
+                        result.allocatedProxiedToMeIdeas.push(item.project);
+                      }
                     }
+
+                    //track deallocated
+                    if (item.status === "DEALLOCATED"){
+                      if (_.indexOf(result.deallocatedProxiedToMeIdeas, item.project) === -1){
+                        result.deallocatedProxiedToMeIdeas.push(item.project);
+                      }
+                    }
+                   
 
                   } else if (item.docType === "time-report") {
                     console.log("got a time report in profile.js", item.amount, result.reportedTime);

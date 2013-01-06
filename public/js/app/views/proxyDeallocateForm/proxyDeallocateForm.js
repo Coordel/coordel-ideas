@@ -3,9 +3,7 @@ define(["dojo/dom"
     , "dojo/dom-class"
     , "dojo/request"
     , "dojo/_base/array"
-    , "dijit/registry"
-    , "app/views/proxyAllocateForm/pledge"
-    , "dojo/domReady!"],function(dom, on, domClass, request, array, registry, p){
+    , "dojo/domReady!"],function(dom, on, domClass, request, array){
 
   var proxyDeallocateFormControl = {
 
@@ -13,62 +11,33 @@ define(["dojo/dom"
 
     user: null,
 
-    contacts: [],
-
-    pledges: [],
-
-    bitcoinPrices: null,
-
-    init: function(user, prices, contacts){
+    init: function(user){
       var self = this;
+
+      console.log("deallocate form init");
 
       self._csrf = $('#addIdea_csrf').val();
 
       self.user = user;
-      self.bitcoinPrices = prices;
-      self.contacts = contacts;
-
-      if (user.app.localCurrency){
-        self.localCurrency = user.app.localCurrency;
-      }
-
-      self.showDeallocate();
 
       on(dom.byId("proxyDeallocateSubmit"), "click", function(){
+        console.log("clicked");
         self.submit();
       });
 
      
     },
 
-    showDellocate: function(){
-      domClass.remove(dom.byId("proxyAllocateAction"), "hide");
-      domClass.remove(dom.byId("proxyAllocateSubmit"), "hide");
-    },
-
-    showPledges: function(pledges){
+    show: function(proxyAllocation){
       var self = this;
-
-      self.pledges = pledges;
-
-      array.forEach(registry.findWidgets(dom.byId("proxyAllocationPledgesContainer")), function(item){
-        item.destroy();
-      });
-
-      array.forEach(pledges, function(item){
-        new p({
-          pledge: item,
-          bitcoinPrices: self.bitcoinPrices,
-          localCurrency: self.localCurrency,
-          contacts: self.contacts
-        }).placeAt(dom.byId("proxyAllocationPledgesContainer"));
-      });
+      self.proxyAllocation = proxyAllocation;
+      console.log("proxyAllocation", self.proxyAllocation);
     },
 
     showError: function(){
-      domClass.add(dom.byId("proxyAllocateAction"), "hide");
-      domClass.add(dom.byId("proxyAllocateSubmit"), "hide");
-      domClass.remove(dom.byId("proxyAllocateError"), "hide");
+      domClass.add(dom.byId("proxyDeallocateAction"), "hide");
+      domClass.add(dom.byId("proxyDealocateSubmit"), "hide");
+      domClass.remove(dom.byId("proxyDeallocateError"), "hide");
     },
    
     submit: function(){
@@ -77,15 +46,11 @@ define(["dojo/dom"
         , timestamp = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ")
         , appId = self.user.app.id;
 
-      var alloc = {
-        docType: "proxy-allocation",
-        project: dom.byId("proxyAllocateIdea").value,
-        created: timestamp,
-        creator: appId,
-        status: "ALLOCATED"
-      };
-
-      var url = '/api/v1/proxies/allocations';
+      var alloc = self.proxyAllocation;
+      
+      alloc.status = "DEALLOCATED";
+      console.log("proxy allocation", alloc);
+      var url = '/api/v1/proxies/deallocations';
       request.post(url, {
           data: {
             alloc: JSON.stringify(alloc)
@@ -95,20 +60,18 @@ define(["dojo/dom"
           },
           handleAs: "json"
         }).then(function(resp){
+          console.log("deallocate response", resp);
           if (resp.success){
-            topic.publish("coordel/ideaAction", "proxyAllocate", self.pledge.project);
-            $('#proxyAllocateModal').modal('hide');
+            $('#proxyDeallocateModal').modal('hide');
+            topic.publish("coordel/ideaAction", "proxyDeallocate", self.pledge.project);
           } else {
             console.log("failed", resp.errors);
           }
-           
-          //the login won't work for sure because we don't have a password
-          //but we can go through the error to see if the email already exists
         });
      
     }
   };
 
-  return proxyAllocateFormControl;
+  return proxyDeallocateFormControl;
 
 });

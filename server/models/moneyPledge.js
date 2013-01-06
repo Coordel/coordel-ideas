@@ -35,6 +35,32 @@ module.exports = function(store) {
       });
     },
 
+    findProxyAllocationsByIdea: function(ideaId, fn){
+      store.couch.db.view('coordel/ideaProxyAllocations', {startkey: [ideaId], endkey:[ideaId, {}], include_docs: true}, function(e,o){
+        if (e){
+          fn(e);
+        } else {
+          o = _.map(o, function(item){
+            return item.doc;
+          });
+          fn(null,o);
+        }
+      });
+    },
+
+    findUserProxyAllocationByIdea: function(appId, ideaId, fn){
+      store.couch.db.view('coordel/userProxyAllocations', {startkey: [appId, ideaId], endkey:[appId, ideaId, {}], include_docs: true}, function(e,o){
+        if (e){
+          fn(e);
+        } else {
+          o = _.map(o, function(item){
+            return item.doc;
+          });
+          fn(null,o);
+        }
+      });
+    },
+
     findByUser: function(user, fn){
       //couchdb view userPledges startkey[user.user] endkey[user.user, {}]
     },
@@ -62,6 +88,16 @@ module.exports = function(store) {
 
     save: function(doc, fn){
       store.couch.db.save(doc, function(e, o){
+        if (e){
+          fn(e);
+        } else {
+          fn(null, o);
+        }
+      });
+    },
+
+    update: function(doc, fn){
+      store.couch.db.save(doc._id, doc._rev, doc, function(e, o){
         if (e){
           fn(e);
         } else {

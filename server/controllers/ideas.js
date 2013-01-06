@@ -573,6 +573,22 @@ IdeasController = function(store, socket) {
 
     },
 
+    findProxyAllocations: function(req, res){
+      var idea = req.params.id;
+      MoneyPledge.findProxyAllocationsByIdea(idea, function(e, o){
+        res.json(o);
+      });
+    },
+
+    findUserProxyAllocationByIdea: function(req, res){
+      var idea = req.params.id
+        , appId = req.params.appId;
+
+      MoneyPledge.findUserProxyAllocationByIdea(appId, idea, function(e, o){
+        res.json(o);
+      });
+    },
+
     findProxyPledges: function(req, res){
       //get all the money pledges for this idea
       var idea = req.params.id;

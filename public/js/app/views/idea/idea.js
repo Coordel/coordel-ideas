@@ -24,9 +24,10 @@ define([
     "app/views/cancelTimeForm/cancelTimeForm",
     "app/views/removeProxyForm/removeProxyForm",
     "app/views/feedbackForm/feedbackForm",
-    "app/views/proxyAllocateForm/proxyAllocateForm"
+    "app/views/proxyAllocateForm/proxyAllocateForm",
+    "app/views/proxyDeallocateForm/proxyDeallocateForm"
 
-], function(declare, _WidgetBase, _TemplatedMixin, template, replyHtml,inviteHtml, shareHtml, on, domClass, lang, dom, xhr, topic, easing, fx, ideaDetails, ideaStream, registry, array, allocateForm, addProxyForm, contactPicker, cancelMoneyForm, reportTimeForm, cancelTimeForm, removeProxyForm, feedbackForm, proxyAllocateForm) {
+], function(declare, _WidgetBase, _TemplatedMixin, template, replyHtml,inviteHtml, shareHtml, on, domClass, lang, dom, xhr, topic, easing, fx, ideaDetails, ideaStream, registry, array, allocateForm, addProxyForm, contactPicker, cancelMoneyForm, reportTimeForm, cancelTimeForm, removeProxyForm, feedbackForm, proxyAllocateForm,proxyDeallocateForm) {
 
     return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -173,7 +174,8 @@ define([
               , recurTimeAlloc = array.indexOf(user.account.recurringAllocatedTimePledges, idea._id) > -1
               , proxy = array.indexOf(user.account.proxiedIdeas, idea._id)>-1
               , proxyToMe = array.indexOf(user.account.proxiedToMeIdeas, idea._id)> -1
-              , allocatedProxyToMe = array.indexOf(user.account.allocatedProxiedToMeIdeas, idea._id) > -1;
+              , allocatedProxyToMe = array.indexOf(user.account.allocatedProxiedToMeIdeas, idea._id) > -1
+              , deallocatedProxyToMe = array.indexOf(user.account.deallocatedProxiedToMeIdeas, idea._id) > -1;
 
             var showTip = false
               , tipText = "";
@@ -207,6 +209,10 @@ define([
               if (allocatedProxyToMe){
                 domClass.replace(self.dogear, "icon-dogear-proxy-started");
                 tipText = "Proxy allocated";
+                showTip = true;
+              } else if (deallocatedProxyToMe){
+                domClass.replace(self.dogear, "icon-dogear-proxy-stopped");
+                tipText = "Proxy deallocated";
                 showTip = true;
               } else {
                 domClass.replace(self.dogear, "icon-dogear-proxy-stopped");
@@ -305,6 +311,9 @@ define([
                   }
                   break;
                 case "proxyAllocate":
+                  $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  break;
+                case "proxyDeallocate":
                   $(self.domNode).delay(200).fadeOut().fadeIn('fast');
                   break;
                 case "reportTime":
@@ -582,46 +591,53 @@ define([
           });
 
           on(self.proxyAllocate, 'click', function(e){
-            dom.byId("proxyAllocateIdea").value = self.idea._id;
-            //get the proxied pledges for this idea and find mine
-            xhr('/ideas/' + self.idea._id + '/pledges/money', {handleAs: 'json'}).then(function(list){
-            
-              list = array.filter(list, function(item){
-                return item.proxy === self.currentUser.appId;
-              });
 
-              //
-              var pledge = list.length;
-              
-              
-              if (pledge){
-                proxyAllocateForm.showPledges(list);
-              } else {
-                proxyAllocateForm.showError();
+            dom.byId("proxyAllocateIdea").value = self.idea._id;
+
+            //load any existing proxy-allocations
+            xhr('/ideas/' + self.idea._id + '/users/' + self.currentUser.appId + '/proxies/allocations', {handleAs: 'json'}).then(function(proxy){
+              console.log("existing proxy", proxy);
+              var existing = false;
+              if (proxy.length){
+                existing = proxy[0];
               }
 
-            });
+              //get the proxied pledges for this idea and find those proxied to me
+              xhr('/ideas/' + self.idea._id + '/pledges/money', {handleAs: 'json'}).then(function(list){
+              
+                list = array.filter(list, function(item){
+                  return item.proxy === self.currentUser.appId;
+                });
+
+                //
+                var pledge = list.length;
+                
+                
+                if (pledge){
+                  proxyAllocateForm.showPledges(list, existing);
+                } else {
+                  proxyAllocateForm.showNoPledges(existing);
+                }
+
+              });
+
+              });
+            
           });
 
           on(self.proxyDeallocate, 'click', function(e){
-            dom.byId("proxyAllocateIdea").value = self.idea._id;
-            //get the proxied pledges for this idea and find mine
-            xhr('/ideas/' + self.idea._id + '/pledges/money', {handleAs: 'json'}).then(function(list){
+            dom.byId("proxyDeallocateIdea").value = self.idea._id;
+            //get proxied allocations for this idea
+            xhr('/ideas/' + self.idea._id + '/users/' + self.currentUser.appId + '/proxies/allocations', {handleAs: 'json'}).then(function(proxy){
             
-              list = array.filter(list, function(item){
-                return item.proxy === self.currentUser.appId;
-              });
-
-              //
-              var pledge = list.length;
-              
-              
-              if (pledge){
-                proxyAllocateForm.showPledges(list);
+              console.log("proxy", proxy);
+              if (proxy.length){
+                proxyDeallocateForm.show(proxy[0]);
               } else {
-                proxyAllocateForm.showError();
+                proxyDeallocateForm.showError();
               }
-
+              
+             
             });
           });
 

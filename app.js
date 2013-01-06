@@ -287,11 +287,14 @@ app.post('/ideas/:id/time', Ideas.supportTime); //set up as Support Time in anal
 app.put('/ideas/:id/time');
 app.del('/ideas/:id/time/');
 app.get('/ideas/:id/users', Ideas.findUsers);
+app.get('/ideas/:id/users/:appId/proxies/allocations', Ideas.findUserProxyAllocationByIdea);
 app.get('/ideas/:id/users/:appId/feedback', Ideas.getUserFeedback);
 app.post('/ideas/:id/users/:appId/feedback', Ideas.addFeedback);
 app.get('/ideas/:id/pledges/money', Ideas.findMoneyPledges);
 app.get('/ideas/:id/pledges/time', Ideas.findTimePledges);
 app.get('/ideas/:id/pledges/proxy', Ideas.findProxyPledges);
+app.get('/ideas/:id/proxies/allocations', Ideas.findProxyAllocations);
+
 app.post('/ideas/:id/money', Ideas.supportMoney); //set up as Support Money in analytics
 app.put('/ideas/:id/money');
 app.del('/ideas/:id/money');
@@ -401,12 +404,14 @@ app.get(v1 + '/ideas/:id/stream', Ideas.findStream);
 app.post(v1 + '/pledges/money', Pledges.create);
 app.put(v1 + '/pledges/money/:pledgeId', Pledges.save);
 app.post(v1 + '/pledges/allocations', Pledges.allocate);
+
 app.post(v1 + '/pledges/timeReports', Pledges.reportTime);
 app.post(v1 + '/pledges/time', Pledges.create);
 app.put(v1 + '/pledges/time/:pledgeId', Pledges.save);
 
 
 app.post(v1 + '/proxies/allocations', Pledges.proxyAllocate);
+app.post(v1 + '/proxies/deallocations', Pledges.proxyDeallocate);
 
 
 
