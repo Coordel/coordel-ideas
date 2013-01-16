@@ -7,6 +7,7 @@ var v1       = '/api/v1'
   , moment   = require('moment')
   , md5      = require('MD5')
   , async    = require('async')
+  , twitter  = require('ntwitter')
   , IdeasController;
 
 IdeasController = function(store, socket) {
@@ -26,7 +27,7 @@ IdeasController = function(store, socket) {
     var hashtagMatches = purpose.match(hashtagPattern);
     var pointerMatches = purpose.match(pointerPattern);
 
-    console.log("hashtags", hashtagMatches, "pointers", pointerMatches);
+ 
 
 
   }
@@ -80,7 +81,7 @@ IdeasController = function(store, socket) {
       , timestamp = moment().format(store.timeFormat);
 
     //add the user's imageUrl
-    user.imageUrl = 'http://www.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png');
+    user.imageUrl = 'https://secure.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png');
 
     //create the object to be stored in the timeline
     idea.creatorDetails = user;
@@ -120,6 +121,8 @@ IdeasController = function(store, socket) {
 
   var Ideas = {
 
+    
+
     addFeedback: function(req, res){
 
       var args = {
@@ -137,20 +140,20 @@ IdeasController = function(store, socket) {
       UserApp.findById(args.appId, function(e, app){
         args.name = app.fullName;
         Idea.addFeedback(args, function(e, o){
-          console.log("addFeedback", e, o);
+    
           if (e){
             res.json({
               success: false,
               errors: [e]
             });
           } else {
-            console.log("addFeedback response", o);
+  
             Profile.findMiniProfile(user, function(e, mini){
-              console.log("after findMiniProfile", e, mini);
+            
               if (e){
                 //TODO log error
               } else {
-                console.log("new mini profile in ideas.js", user.appId, mini);
+          
                 socket.emit('miniProfile:'+user.appId, mini);
               }
             });
@@ -358,7 +361,7 @@ IdeasController = function(store, socket) {
               });
               act.tasks = tasks;
               act.other = other;
-              console.log("activity rows", act);
+    
               cb(null, act);
             }
           });
@@ -430,7 +433,7 @@ IdeasController = function(store, socket) {
                     result.allocated = parseFloat(result.allocated) + parseFloat(item.amount);
 
                   } else if (item.docType === "time-report"){
-                    console.log("time report in ideas.js", parseFloat(result.reportedTime), parseFloat(item.amount));
+                   
                     result.reportedTime = parseFloat(result.reportedTime) + parseFloat(item.amount);
                   } else if (item.docType === "time-pledge") {
                     if (item.status === "PLEDGED"){
@@ -685,12 +688,13 @@ IdeasController = function(store, socket) {
 
     reply: function(req, res){
       var message = req.body.message
+        , isTweet = req.body.isTweet
         , user = req.session.currentUser
         , idea = JSON.parse(req.body.idea);
 
       //console.log("reply", idea, user, message);
 
-      Idea.addMessage(idea, user, message, function(e, o){
+      Idea.addMessage(idea, user, message, isTweet, function(e, o){
         if (e){
           res.json({error: e});
         } else {
@@ -698,6 +702,24 @@ IdeasController = function(store, socket) {
           socket.emit('stream', o);
         }
       });
+
+      if (isTweet){
+        console.log("tweet this message", message);
+        var options = {
+          consumer_key: store.twitter.consumerKey,
+          consumer_secret: store.twitter.consumerSecret,
+          access_token_key: user.app.twitterToken,
+          access_token_secret: user.app.twitterTokenSecret
+        };
+        console.log("options", options);
+        var twit = new twitter(options);
+
+
+        
+        twit.updateStatus(message, function (err, data) {
+          console.log(err, data);
+        });
+      }
     },
 
     invite: function(req, res){

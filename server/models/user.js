@@ -208,8 +208,8 @@ module.exports = function(store){
       //use this function to import users from the original site. it hashes the passwords and it creates the required lookups
       //it also updates the user's app with the
 
-      //imported users won't have a username, but need one, so make it their first name + last name + milliseconds for safety
-      user.username = user.firstName.trim().toLowerCase() + user.lastName.trim().toLowerCase() + moment().format('SSS');
+      //imported users won't have a username, but need one, so make it their first name + last name
+      user.username = user.firstName.trim().toLowerCase() + user.lastName.trim().toLowerCase();
       store.redis.incr('userKeys', function(e, userId){
         //hash the password for storage
         saltAndHash(user.password, function(e, hashPassword){

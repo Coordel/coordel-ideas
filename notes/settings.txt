@@ -1,0 +1,10 @@
+The following settings flags are set in the application:
+
+showQuickStart - default false. when a user first logs on to the workspace, they are shown the quick start module. it's updated to true once they have seen it.
+
+hasPaymentMethod - default false. when first supports money, we detect if they have a coinbase account and if they do give them the opportunity to use it. if they do, we set this setting to true.
+
+hasViewedAboutMoney - default false.  when a user first clicks support give money, they see a dialog about giving. once "understand is clicked" this setting is set to true and they don't see the setting again.
+
+hasCoinbaseAccount - default false. when a user first clicks support money, they need to use an existin coinbase account or create a new one. this setting indicates they have done either one or the other.
+

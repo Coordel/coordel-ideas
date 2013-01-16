@@ -1,6 +1,6 @@
 {
   "version": "",
-  "coordelUrl": "dev.coordel.com:8080",
+  "coordelUrl": "work.coordel.com:8443",
   "config": {
     "redisOptions": {
       "host": "dev.coordel.com",
@@ -23,6 +23,15 @@
       "password": "dev1129",
       "url": "dev.coordel.com:8085"
     },
+
+    "bitlyOptions": {
+      "login": "coordel",
+      "apiKey": "R_a91e7a62e711c839e5ea3731da1df6a7"
+    },
+    "twitter": {
+      "consumerKey": "ofbkKDfUpLqBQHakhdBytw", 
+      "consumerSecret": "GM3lLmIaKVGUddiU65G4MMrG9pMfNGN8pVuVcNSiCoU"
+    }, 
     "couchName": "coordel-dev"
   }
 }

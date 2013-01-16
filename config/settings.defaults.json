@@ -33,6 +33,8 @@
       "auth": "4dbd78fa8e5679b37d9df21324c0c85e"
     },
 
+
+
     "couchOptions":{
       "host": "coordel.iriscouch.com",
       "port": 5984,
@@ -61,6 +63,10 @@
       "json": true
     },
     
+    "bitlyOptions": {
+      "login": "coordel",
+      "apiKey": "R_a91e7a62e711c839e5ea3731da1df6a7"
+    },
     
     "corpLogId": "a9ca9bbc-d314-4a31-9223-d0a59e37a52e",
     

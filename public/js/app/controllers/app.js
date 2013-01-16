@@ -26,13 +26,14 @@ define(["dojo/dom",
   "app/views/feedback/feedback",
   "app/views/proxyAllocateForm/proxyAllocateForm",
   "app/views/proxyDeallocateForm/proxyDeallocateForm",
+  "app/views/donationsForm/donationsForm",
   "app/controllers/features",
   "app/views/addForm/addForm",
   "dojo/domReady!" ], function(dom
                     , topic, cookie, array, on, domClass, build, request, hash, registry
                     , model, miniProfile, userProfile, idea, blueprint, moneyForm
                     , timeForm, contact, allocate, reportTimeForm, addProxy
-                    , cancelMoneyForm, cancelTimeForm, removeProxyForm, feedbackForm, feedback, proxyAllocateForm, proxyDeallocateForm, features){
+                    , cancelMoneyForm, cancelTimeForm, removeProxyForm, feedbackForm, feedback, proxyAllocateForm, proxyDeallocateForm, donationsForm, features){
 
   var app = {
     max: {
@@ -54,15 +55,20 @@ define(["dojo/dom",
     init: function(args){
       var self = this;
       self.user = args.user;
+      self.otherUser = args.otherUser;
       console.log("init app", args );
       this.currentMenu = args.menu;
       this.subNav = args.subNav;
       this.model= model.init(args);
       this.contacts = args.contacts;
       this.show();
+
+      self.setSearch();
      
       timeForm.init(args.user);
-    
+
+      donationsForm.init();
+      
       request("/bitcoin/prices", {
         handleAs: "json"
         }).then(function(prices){
@@ -82,9 +88,20 @@ define(["dojo/dom",
 
     },
 
+    setSearch: function(){
+      $(".search-query").keyup(function(e){
+        if (e.keyCode === 13){
+          console.log("submit the search", $(e.target).val());
+          window.location = "/search?q=" + $(e.target).val();
+        }
+      });
+    },
+
     showBlueprints: function(args){
 
       var self = this;
+
+      self.setSearch();
 
       self._csrf = args._csrf;
 
@@ -119,6 +136,46 @@ define(["dojo/dom",
         }
       });
       
+    },
+
+    
+
+    showIdeaSearchResults: function(){
+  
+      var self = this
+        , cont = dom.byId("stream-items-container")
+        , head = dom.byId("mainColumnHeader");
+
+
+
+      if (self.ideaResults.length){
+        array.forEach(registry.findWidgets(cont), function(item){
+          item.destroy();
+        });
+        build.empty(cont);
+        self.showTimeline({ideaResults: true});
+      } else {
+        self.showEmpty(cont, "No ideas found");
+      }
+    },
+
+    showPeopleSearchResults: function(){
+ 
+      var self = this
+        , cont = dom.byId("stream-items-container")
+        , head = dom.byId("mainColumnHeader");
+
+
+
+      if (self.peopleResults.length){
+        array.forEach(registry.findWidgets(cont), function(item){
+          item.destroy();
+        });
+        build.empty(cont);
+        self.showTimeline({peopleResults: true});
+      } else {
+        self.showEmpty(cont, "No people found");
+      }
     },
 
     showEmpty: function(node, message){
@@ -174,8 +231,20 @@ define(["dojo/dom",
     },
 
 
-    setSubNav: function(subnav){
+    setSubNav: function(subnav, isOther){
       var self = this;
+
+      if (isOther){
+        var username = self.otherUser.user.username;
+        //update the links in the menu
+         $("#subNavIdeas > a").attr("href", "/"+username);
+        $("#subNavSupporting > a").attr("href", "/"+username+"/supporting" );
+        $("#subNavTime > a").attr("href", "/"+username+"/time" );
+        $("#subNavMoney > a").attr("href", "/"+username+"/money" );
+        $("#subNavProxy > a").attr("href", "/"+username+"/proxy" );
+        $("#subNavContacts > a").attr("href", "/"+username+"/contacts" );
+        $("#subNavFeedback > a").attr("href", "/"+username+"/feedback" );
+      }
 
       var options = {
         header: 'Ideas',
@@ -255,12 +324,13 @@ define(["dojo/dom",
         $("#menuStream").removeClass("active");
         $("#menuCoordel").removeClass("active");
         $("#menuBlueprints").removeClass("active");
+        $("#menuMe").removeClass("active");
         $(selector).addClass("active");
       }
 
       setMenu(this.currentMenu);
 
-      var socket = io.connect(window.location.host);
+      var socket = io.connect(window.location.host, {secure: true});
 
       //register for socketio events
       socket.on("idea", function (idea) {
@@ -309,6 +379,34 @@ define(["dojo/dom",
         } else {
           self.showTimeline();
         }
+      }
+
+      if (this.currentMenu === "#menuOtherIdea"){
+        self.showIdea();
+      }
+
+
+      if (this.currentMenu === "#menuOther"){
+        self.showOtherProfile();
+        self.setSubNav(self.subNav, true);
+    
+        if (self.otherUser.user.account.proxiedToMe > 0){
+          domClass.remove(dom.byId("subNavProxy"), "hide");
+          dom.byId("navProxy").innerHTML = self.otherUser.user.account.proxiedToMe;
+        }
+        if (self.subNav && self.subNav === "contacts"){
+          self.showOtherContacts();
+        } else if (self.subNav && self.subNav === "supporting"){
+          self.showTimeline({showFeedback: true});
+        } else if (self.subNav && self.subNav === "feedback"){
+          self.showOtherFeedback();
+        } else {
+          self.showTimeline({showDogears: true});
+        }
+      }
+
+      if (this.currentMenu === "#menuSearchResults"){
+        self.showTimeline();
       }
 
       if (self.model.currentUser && this.currentMenu === "#menuMe"){
@@ -410,10 +508,60 @@ define(["dojo/dom",
       });
     },
 
+    showIdea: function(){
+      var self = this;
+      var item = self.model.timeline.query()[0];
+      var isMe = true;
+
+      $(".wrapper").width("580px");
+
+      if (self.otherUser && self.otherUser.user){
+        isMe = false;
+      }
+
+      var options = {
+        idea: item,
+        currentUser: self.model.currentUser,
+        contacts: self.model.contacts
+      };
+
+      if (isMe && options.currentUser ){
+        options.user = options.currentUser;
+      }
+
+      if (!isMe){
+        options.user = self.otherUser.user;
+      }
+
+      if (self.subNavId){
+        options.subNavId = self.subNavId;
+      }
+
+      console.log("options", options);
+
+      var i = new idea(options).placeAt("stream-items-container");
+
+      i.expand();
+
+
+    },
+
     showContacts: function(){
 
       var self = this
         , contacts = this.contacts;
+
+      array.forEach(contacts, function(item){
+        
+
+        var i = new contact({contact: item}).placeAt("stream-items-container");
+      });
+    },
+
+    showOtherContacts: function(){
+
+      var self = this
+        , contacts = self.otherUser.contacts;
 
       array.forEach(contacts, function(item){
         
@@ -431,8 +579,19 @@ define(["dojo/dom",
       });
     },
 
+    showOtherFeedback: function(){
+      var self = this
+        , contacts = this.otherUser.contacts;
+
+      array.forEach(self.otherUser.user.feedback, function(item){
+        var i = new feedback({contacts: contacts, feedback: item}).placeAt("stream-items-container", "first");
+      });
+    },
+
     showTimeline: function(args){
       var self = this;
+
+
 
       /*
       $('#stream-items-container').infinitescroll({
@@ -455,6 +614,14 @@ define(["dojo/dom",
         ideas = this.model.timeline.query(null, {sort: [{attribute:"created", descending: true}]});
       }
 
+      var isMe = true;
+
+      if (self.otherUser && self.otherUser.user){
+        isMe = false;
+      }
+
+   
+
       array.forEach(ideas, function(item){
         var options = {
           idea: item,
@@ -462,8 +629,14 @@ define(["dojo/dom",
           contacts: self.model.contacts
         };
 
-        if (options.currentUser && options.currentUser.appId === item.creator){
+
+
+        if (isMe && options.currentUser ){
           options.user = options.currentUser;
+        }
+
+        if (!isMe){
+          options.user = self.otherUser.user;
         }
 
         if (args && args.showDogears){
@@ -478,7 +651,7 @@ define(["dojo/dom",
           options.subNavId = self.subNavId;
         }
 
-
+      
 
         var i =new idea(options).placeAt("stream-items-container");
         /*
@@ -516,9 +689,23 @@ define(["dojo/dom",
       var p = new userProfile({user: user, miniProfile: mini}).placeAt("userProfileContainer");
     },
 
+    showOtherProfile: function(){
+      var self = this;
+      var user = self.otherUser.user
+        , mini = self.otherUser.profile;
+    
+      self.setUserNav();
+      var p = new userProfile({user: user, miniProfile: mini}).placeAt("userProfileContainer");
+    },
+
     setUserNav: function(){
       var mini = this.model.miniProfile
         , user = this.model.currentUser;
+
+      if (this.otherUser && this.otherUser.user){
+        user = this.otherUser.user;
+        mini = this.otherUser.profile;
+      }
 
       var ideas = dom.byId("navIdeas");
       var supporting = dom.byId("navSupporting");

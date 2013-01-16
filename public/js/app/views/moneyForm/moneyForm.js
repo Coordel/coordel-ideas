@@ -6,15 +6,22 @@ define(["dojo/dom",
   "dojo/dom-construct",
   "dojo/topic",
   "app/models/pledges",
-  "dojo/domReady!"],function(dom, on, domClass, request, array, build, topic, stores){
+  "dojo/text!./templates/bitcoin.html",
+  "dojo/text!./templates/proxy.html",
+  "app/models/settings",
+  "dojo/domReady!"],function(dom, on, domClass, request, array, build, topic, stores, bitcoinHtml, proxyHtml, settings){
 
   var paymentFormControl = {
 
-    hasPaymentMethod: true,
+    hasPaymentMethod: false,
+
+    hasViewedAboutMoney: false,
 
     bitcoinPrices: false,
 
     localCurrency: "USD",
+
+    settings: null,
 
     init: function(user, prices){
       var self = this;
@@ -25,15 +32,21 @@ define(["dojo/dom",
 
       self.bitcoinPrices = prices;
 
-      if (user.app.localCurrency){
+      if (self.user.app.localCurrency){
         self.localCurrency = user.app.localCurrency;
       }
 
-      if (user.app.coinbaseAccessToken){
+      if (self.user.app.hasPaymentMethod){
         self.hasPaymentMethod = true;
       }
 
+      if (self.user.app.hasViewedAboutMoney){
+        self.hasViewedAboutMoney = true;
+      }
+
       self.showLocalCurrency();
+
+      self.settings = settings;
   
       //supportMoneyInfo is the layer that holds the info to show the first time
       //supportMoneyAction is the layer that has the amount and options fields
@@ -63,14 +76,24 @@ define(["dojo/dom",
       });
 
       on(dom.byId("supportMoneyUnderstand"), "click", function(e){
-        self.detectAccount(user);
+        //save the setting that the user saw the about giving money page
+        self.settings.update([{hasViewedAboutMoney: true}]).then(function(res){
+          console.log("understand updated", user, res.userApp);
+          self.user.app = res.userApp;
+        });
+        self.detectAccount(self.user);
       });
 
       on(dom.byId("supportMoneyUseAccountCreateNew"), "click", function(){
-        self.showCreateAccount(user);
+        self.showCreateAccount(self.user);
       });
 
       on(dom.byId("supportMoneyUseAccountUseExisting"), "click", function(){
+        //save the setting that this user has a coinbase account
+        self.settings.update([{hasPaymentMethod: true}]).then(function(res){
+          console.log("hasPaymentMethod updated", user, res.userApp);
+          self.user.app = res.userApp;
+        });
         self.showSupport();
       });
 
@@ -88,14 +111,18 @@ define(["dojo/dom",
       });
 
       $('#supportMoneyModal').on('show', function () {
+        console.log("settings", self.hasViewedAboutMoney, self.hasPaymentMethod);
         //clear all the fields
-        if (self.hasPaymentMethod){
-          self.showSupport();
-        } else {
-          self.showInfo();
+        self.showInfo();
+        if (self.user.app.hasViewedAboutMoney){
+          domClass.add("supportMoneyInfo", "hide");
+          if (self.user.app.hasPaymentMethod){
+            self.showSupport();
+          } else {
+            self.detectAccount(user);
+          }
         }
       });
-
     },
 
     resetAll: function(){
@@ -117,7 +144,7 @@ define(["dojo/dom",
       var self = this;
       var localValue = self.bitcoinPrices[self.localCurrency]["24h"];
       var newValue = localAmount * (1/localValue);
-      newValue = accounting.formatNumber(newValue, [precision = 4], [thousand = ","], [decimal = "."]);
+      newValue = accounting.formatNumber(newValue, [precision = 6], [thousand = ","], [decimal = "."]);
       dom.byId("supportMoneyBtcAmount").value = newValue;
     },
 
@@ -187,17 +214,40 @@ define(["dojo/dom",
     },
 
     showInfo: function(){
-      //call this function if the user doesn't have a stripe customerid yet. this is shown to each user once
       domClass.remove("supportMoneyInfo", "hide");
       domClass.add("supportMoneyAction", "hide");
       //domClass.add("supportMoneyPaymentInfo", "hide");
       domClass.add("supportMoneyCreateAccount", "hide");
       domClass.add("supportMoneyUseAccount", "hide");
       domClass.add("supportMoneySubmit", "hide");
+      $("#supportMoneyProxyPopover").popover({
+        trigger: "hover",
+        placement: "left",
+        html: true,
+        template: '<div class="popover  proxy-info"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>',
+        title: "<i class='icon-info-sign'></i> Info",
+        content: proxyHtml
+      });
+
+      $("#supportMoneyBitcoinPopover").popover({
+        trigger: "hover",
+        placement: "right",
+        html: "true",
+        title: "<i class='icon-info-sign'></i> Info",
+        content: bitcoinHtml
+      });
+
+      $("#supportMoneyBitcoinMovie").tooltip({
+        placement: "bottom",
+        title: "Click for a video about Bitcoin"
+      });
+
+      on(dom.byId("supportMoneyBitcoinMovie"), "click", function(){
+        window.open('/bitcoin/video', 'mywin','left=100,top=100,width=560,height=315,location=1,resizable=0');
+      });
     },
 
     showNewCustomerSupport: function(){
-      //this has the amount and stripe payment form
       domClass.add("supportMoneyInfo", "hide");
       domClass.remove("supportMoneyAction", "hide");
       domClass.add("supportMoneyUseAccount", "hide");

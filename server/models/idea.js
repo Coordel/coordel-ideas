@@ -5,7 +5,8 @@ Manages the ideas for the ideas app
 */
 var moment = require('moment')
   , _ = require('underscore')
-  , md5 = require('MD5');
+  , md5 = require('MD5')
+  , request = require('request');
 
 
 
@@ -130,7 +131,7 @@ module.exports = function(store) {
             fullName: item.fullName,
             email:item.email,
             userId: item.userId,
-            imageUrl: 'http://www.gravatar.com/avatar/' + md5(item.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+            imageUrl: 'https://secure.gravatar.com/avatar/' + md5(item.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
           };
         });
 
@@ -149,6 +150,34 @@ module.exports = function(store) {
       //returns the idea from couchdb.get(id)
       //returns couchdb view projectStream startkey = [id] endkey = [id, {}]
       //returns supporting time investors (idea.users) + LLEN ideas:[id]:supporting + money investors (get pledges startkey[id], endkey[id,{}])
+      store.couch.db.get(id, function(e, idea){
+        if(e){
+          fn({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          console.log("idea", idea);
+          fn(null, idea);
+        }
+      });
+    },
+
+    findByHash: function(hash, fn) {
+      //returns the idea from couchdb.get(id)
+      //returns couchdb view projectStream startkey = [id] endkey = [id, {}]
+      //returns supporting time investors (idea.users) + LLEN ideas:[id]:supporting + money investors (get pledges startkey[id], endkey[id,{}])
+      store.couch.db.view('coordel/ideasByHash', {startkey:[hash], endkey:[hash,{}]}, function(e, idea){
+        if(e){
+          fn({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          console.log("idea from hash", idea);
+          fn(null, idea[0].value);
+        }
+      });
     },
 
     addFeedback: function(args, fn){
@@ -223,7 +252,7 @@ module.exports = function(store) {
               user: a.user,
               userId: a.userId,
               username: a.username,
-              imageUrl: 'http://www.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+              imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
             };
           }
         });
@@ -268,7 +297,7 @@ module.exports = function(store) {
                     user: a.user,
                     userId: a.userId,
                     username: a.username,
-                    imageUrl: 'http://www.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+                    imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
                   };
                 }
               });
@@ -320,19 +349,20 @@ module.exports = function(store) {
       };
 
       var total = 0;
-
+      /*
       //first we need to get the count of all ideas to be able to enable pagination
       store.couch.db.view("coordel/opportunities", {reduce: true}, function(e, o){
        
         if (e){
           //some kind of error with couch
         } else {
+      
           total = o[0].value;
         }
 
          //console.log("results from reduce call", total);
       });
-
+      */
       
       /*
 
@@ -358,15 +388,11 @@ module.exports = function(store) {
 
       */
 
-
-     
-
       //the timeline gets ideas from the redis global:timeline set
       store.redis.lrange('global:timeline', 0, -1, function(e, o){
         if (e){
           fn(e);
         } else {
-          //console.log("timeline", o);
           fn(null, o);
         }
       });
@@ -393,6 +419,7 @@ module.exports = function(store) {
     },
 
     create: function(idea, user, fn){
+      var self = this;
       //idea will have a name and a purpose, use will be the current user
       store.couch.cn.uuids(1, function(e, uuid){
         //create an idea
@@ -436,20 +463,52 @@ module.exports = function(store) {
         var v = validator.validate(idea, Schema);
         //console.log("validator", v, idea);
         if (v.valid){
-          //add the idea to the couchdb as an opportunity
-          store.couch.db.save(idea, function(e, o){
-            //console.log("saved to couch", e,o);
-            if (e) {
-              fn(e);
-            } else {
-              idea._rev = o.rev;
-              fn(null, idea);
+          self.getShortUrl(idea._id, function(e, surl){
+            surl = JSON.parse(surl);
+            console.log("short url", surl, surl['status_code']);
+            if(surl.status_code === 200){
+              idea.shortUrl = surl.data.url;
+              idea.hash = surl.data.hash;
             }
+            //add the idea to the couchdb as an opportunity
+            store.couch.db.save(idea, function(e, o){
+              //console.log("saved to couch", e,o);
+              if (e) {
+                fn(e);
+              } else {
+                idea._rev = o.rev;
+                fn(null, idea);
+              }
+            });
           });
+          
         } else {
           fn(v.errors);
         }
       });
+    },
+
+    getShortUrl: function(ideaId, fn){
+
+      var longUrl = encodeURIComponent('http://coordel.com/ideas/'+ideaId);
+
+      var b = store.bitly;
+
+      var bitlyUrl = 'http://api.bit.ly/v3/shorten?format=json&login=' + b.login + '&apiKey=' + b.apiKey + '&longUrl=' + longUrl;
+
+      console.log("bitly credentials", bitlyUrl);
+
+
+      request.get(bitlyUrl, function(e,r,o){
+        console.log("response from bitly",  o);
+        if (e){
+          fn(e);
+        } else {
+          fn(null, o);
+        }
+      });
+      
+
     },
 
     support: function(ideaId, userId, fn){
@@ -586,7 +645,7 @@ module.exports = function(store) {
       });
     },
 
-    addMessage: function(idea, user, message, fn){
+    addMessage: function(idea, user, message, isTweet, fn){
       //messages are fundamentally targeted at the project level
       //they can be overridden to target different levels (task, group, objective, etc)
       var a = {
@@ -617,8 +676,9 @@ module.exports = function(store) {
       a.creator = user.appId;
       a.updated = timestamp;
       a.updater = user.appId;
+      a.isTweet = isTweet;
 
-      //console.log("saving reply", a);
+      console.log("saving reply", a);
       
       store.couch.db.save(a, function(e, o){
         if (e){

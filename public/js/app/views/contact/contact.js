@@ -44,8 +44,13 @@ define([
       });
 
       request("/contacts/" + self.contact.appId + "/profile", {handleAs:"json"}).then(function(profile){
-        self.coord.innerHTML = Math.round(profile.feedback.coordination.avg);
-        self.perf.innerHTML = Math.round(profile.feedback.performance.avg);
+        if (profile.feedback.coordination.avg !== 0 && profile.feedback.performance.avg !== 0){
+          self.coord.innerHTML = Math.round(profile.feedback.coordination.avg);
+          self.perf.innerHTML = Math.round(profile.feedback.performance.avg);
+        } else {
+          domClass.add(self.profileAverages, "hide");
+        }
+        
         
         var row;
         var mini = [

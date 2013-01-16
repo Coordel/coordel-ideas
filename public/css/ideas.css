@@ -1,9 +1,39 @@
 @import url("support.css");
 
+.dollar {
+    margin-left: 4px;
+    height: 16px;
+    width: 16px;
+    line-height:16px;
+    background: #09A23A;
+    color: white;
+    font-size: 12px;
+    font-weight: normal;
+    border: 1px solid darkGreen;
+    border-radius: 23px;
+    float: right;
+}
+
+.donations-form {
+  margin-left: 33px;
+  margin-top: 10px;
+}
+
+.donations-form .stripe-button {
+  margin-bottom: 20px;
+}
+
+
 .wrapper { background: rgb(67,169,228); /* Old browsers */ background: -moz-linear-gradient(top,  rgba(67,169,228,1) 0%, rgba(57,154,209,1) 100%); /* FF3.6+ */ background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(67,169,228,1)), color-stop(100%,rgba(57,154,209,1))); /* Chrome,Safari4+ */ background: -webkit-linear-gradient(top,  rgba(67,169,228,1) 0%,rgba(57,154,209,1) 100%); /* Chrome10+,Safari5.1+ */ background: -o-linear-gradient(top,  rgba(67,169,228,1) 0%,rgba(57,154,209,1) 100%); /* Opera 11.10+ */ background: -ms-linear-gradient(top,  rgba(67,169,228,1) 0%,rgba(57,154,209,1) 100%); /* IE10+ */ background: linear-gradient(to bottom,  rgba(67,169,228,1) 0%,rgba(57,154,209,1) 100%); /* W3C */ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#43a9e4', endColorstr='#399ad1',GradientType=0 ); /* IE6-9 */  }  
 
 .other-content {
   padding: 0 20px;
+}
+
+.beta {
+  position:absolute;
+  top: 15px;
+  left: -138px;
 }
 
 .small-avatar {
@@ -331,6 +361,20 @@
 }
 
 /* icons */
+
+.icon-cart {
+  height: 23px;
+  width: 26px;
+  display:inline-block;
+  background: url('../img/cart.png');
+}
+
+.icon-twitter-small {
+  height: 14px;
+  width: 14px;
+  display: inline-block;
+  background: url('../img/twitter_small.png');
+}
 
 .icon-feedback {
   height: 14px;

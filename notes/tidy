@@ -1,0 +1,58 @@
+//tidy
+//store.redis.del('user:devcoordel', 'user:dev@coordel.com');
+/*
+var multi = store.redis.multi();
+
+multi.hset('coordelapp:1', 'username', 'jeffgorder182');
+multi.hset('coordelapp:1', 'userId', 4);
+multi.hset('coordelapp:1', 'fullName', 'Jeff Gorder');
+
+multi.hset('coordelapp:2', 'username', 'devcoordel182');
+multi.hset('coordelapp:2', 'userId', 3);
+multi.hset('coordelapp:2', 'fullName', 'Dev Coordel');
+multi.exec(function(e, o){
+  console.log("ok",e, o);
+});
+*/
+/*
+multi.get('user:jeffgorder');
+multi.get('user:jeff.gorder@coordel.com');
+multi.hgetall('user:176');
+multi.exec(function(e, o){
+  console.log('got multi',e, o);
+});
+*/
+
+/*
+//store.redis.rpop('global:timeline');
+store.redis.lrange('global:timeline', 0, 1, function(e, o){
+  console.log("timeline", o);
+});
+*/
+/*
+var USER = require('./server/models/user')(store);
+
+store.redis.smembers('coordel-users', function(e, members){
+  console.log(e, members);
+  members.forEach(function(key){
+    store.redis.hgetall(key, function(err, user){
+      //console.log("USER", user);
+      if (err){
+        console.log("couldn't load existing user from store",err);
+        //fn(err, false);
+      } else {
+        console.log("found the user", user);
+        //fn(false, user);
+
+
+        //make the full name
+        user.fullName = user.firstName + " " + user.lastName;
+
+        USER.importUser(user, function(e, o){
+          console.log("imported user", e, o);
+        });
+      }
+    });
+  });
+});
+*/

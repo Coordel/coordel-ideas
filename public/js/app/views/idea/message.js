@@ -7,7 +7,7 @@ define([
     "dojo/dom-class",
     "dojo/topic",
     "dojo/_base/array"
-], function(declare, _WidgetBase, _TemplatedMixin, template, on, build, topic, array) {
+], function(declare, _WidgetBase, _TemplatedMixin, template, on, domClass, topic, array) {
  
   return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -19,6 +19,7 @@ define([
     postCreate: function(){
       this.inherited(arguments);
       var self = this;
+      console.log('message', this.message, this.message.isTweet);
 
       var user = self.getUser(self.message.actor.id);
       this.ideaLink.href = "/ideas/"+this.idea._id;
@@ -31,7 +32,11 @@ define([
       //this.usernameLink.innerHTML = user.username;
 
       this.messageBody.innerHTML = this.message.body;
-
+      
+      if (this.message.isTweet){
+        domClass.remove(this.tweetIcon, "hide");
+      }
+      
     },
 
     getUser: function(appId){

@@ -170,8 +170,8 @@ module.exports = function(store) {
 
               var f = {
                 score: {sum:0, count:0},
-                coordination: {sum:0, count:0},
-                performance: {sum:0, count:0},
+                coordination: {sum:0, count:0, avg: 0},
+                performance: {sum:0, count:0, avg: 0},
                 avg: 0
               };
 
@@ -343,7 +343,7 @@ module.exports = function(store) {
                    
 
                   } else if (item.docType === "time-report") {
-                    console.log("got a time report in profile.js", item.amount, result.reportedTime);
+              
                     result.reportedTime  = parseFloat(result.reportedTime) + parseFloat(item.amount);
 
                   } else if (item.docType === "time-pledge") {

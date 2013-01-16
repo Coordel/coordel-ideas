@@ -179,9 +179,6 @@ function getUserApps(appId, field, fn){
   console.log("get people key", key);
   getPeople(key, function(err, appIds){
     if (!appIds) appIds = [];
-    
-    console.log('appIds', appIds);
-
     appIds.forEach(function(id){
       var akey = 'coordelapp:' + id;
       console.log("GET USER APP FOR KEY", akey);

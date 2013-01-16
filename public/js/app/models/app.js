@@ -1,5 +1,5 @@
 //contains all the models for the app
-define(["app/models/ideas", "app/models/timeline"], function(ideasModel, timelineModel){
+define(["app/models/ideas", "app/models/timeline", "app/models/settings"], function(ideasModel, timelineModel, settingsModel){
 
   var appModel= {
 
@@ -15,6 +15,8 @@ define(["app/models/ideas", "app/models/timeline"], function(ideasModel, timelin
 
     bitcoinPrices: null,
 
+    settings: null,
+
     init: function(args){
       var self = this;
 
@@ -23,6 +25,9 @@ define(["app/models/ideas", "app/models/timeline"], function(ideasModel, timelin
 
       //the ideas store controls the store itself
       this.ideas = ideasModel.init();
+
+      //the settings store controls the users settings
+      this.settings = settingsModel.init();
      
       //if we're authenticated, a user object and miniProfile will be bootstrapped in
       if (args.user){

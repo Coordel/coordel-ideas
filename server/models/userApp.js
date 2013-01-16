@@ -206,7 +206,7 @@ module.exports = function(store) {
       var key = 'coordelapp:' + id;
       //console.log("USER GET KEY", key);
       redis.hgetall(key, function(e, app){
-        //console.log("USER", user);
+        //console.log("USER", app);
         if (e){
           //console.log("couldn't load existing user from store",err);
           fn('app-not-found');
@@ -214,6 +214,38 @@ module.exports = function(store) {
           //console.log("found the user", user);
           fn(false, app);
         }
+      });
+    },
+
+    findByUsername: function(username, fn){
+      var key = 'users:' + username;
+      store.redis.get(key, function(e, userid){
+        console.log("looked in redis for key", key, e, userid);
+        key = 'users:' + userid;
+        //console.log("USER GET KEY", key);
+        store.redis.hgetall(key, function(e, u){
+          //console.log("USER", user);
+          if (e){
+            //console.log("couldn't load existing user from store",err);
+            fn('user-not-found');
+          } else {
+            //console.log("found the user", user);
+            console.log("got the user", e, u);
+            var appId = u.appId;
+            key = 'coordelapp:' + appId;
+            //console.log("USER GET KEY", key);
+            store.redis.hgetall(key, function(e, app){
+              //console.log("USER", user);
+              if (e){
+                //console.log("couldn't load existing user from store",err);
+                fn('app-not-found');
+              } else {
+                //console.log("found the user", user);
+                fn(false, app);
+              }
+            });
+          }
+        });
       });
     },
 
@@ -277,7 +309,7 @@ module.exports = function(store) {
                   user: a.user,
                   userId: a.userId,
                   username: a.username,
-                  imageUrl: 'http://www.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+                  imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
                 };
               }
             });
@@ -299,6 +331,7 @@ module.exports = function(store) {
         var multi = store.redis.multi()
           , doUpdate = false;
         var key = 'coordelapp:' + appId;
+        
         _.each(vals, function(item){
           if (!_.contains(forbidden, item.name)){
             doUpdate = true;
@@ -310,11 +343,39 @@ module.exports = function(store) {
           multi.hgetall(key);
           multi.exec(function(err, replies){
             console.log('set replies', replies);
-            if (err) fn(err);
+            if (err) return fn(err);
             fn(null, _.last(replies));
           });
         }
       }
+    },
+
+    reset: function(appId, fn){
+      var key = 'coordelapp:' + appId;
+      //this function resets all settings to the default value
+      var settings = [
+        {name: "showQuickStart", value: true},
+        {name: "hasViewedAboutMoney", value: false},
+        {name: "hasPaymentMethod", value: false}
+      ];
+
+      var multi = store.redis.multi();
+      multi.hdel(key, 'undefined');
+      _.each(settings, function(item){
+        if (item.value){
+          multi.hset(key, item.name, item.value);
+        } else {
+          multi.hdel(key, item.name);
+        }
+      });
+
+      multi.hgetall(key);
+      multi.exec(function(err, replies){
+        console.log('set replies', replies);
+        if (err) return fn(err);
+        fn(null, _.last(replies));
+      });
+
     },
 
 

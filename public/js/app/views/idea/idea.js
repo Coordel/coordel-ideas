@@ -79,6 +79,8 @@ define([
             domClass.add(self.pledgeSupportContainer, "hide");
           }
 
+
+
           //if I'm already supporting this idea, hide the support option
           if (array.indexOf(user.account.supportedIdeas, idea._id )>-1){
             domClass.add(self.pledgeSupportContainer, "hide");
@@ -89,9 +91,19 @@ define([
           if (array.indexOf(user.account.pledgedIdeas, idea._id)>-1){
             domClass.add(self.pledgeMoneyContainer, "hide");
             domClass.remove(self.releaseMoneyContainer, "hide");
-            domClass.remove(self.addProxyContainer, "hide");
             //domClass.remove(self.editContainer, "hide"); not dealing with edit for first pass
             domClass.remove(self.cancelMoneyContainer, "hide");
+
+            //if this idea doesn't have more than one person that isn't me, then it's not possible to allocate by proxy
+            var list = array.filter(self.contacts, function(item){
+              return item.appId !== self.currentUser.appId;
+            });
+            if (!list.length){
+              console.log("hide allocate by proxy");
+              domClass.add(self.addProxyContainer, "hide");
+            } else {
+              domClass.remove(self.addProxyContainer, "hide");
+            }
           }
 
           //if i've already proxied money, remove pledge money, addProxy, show removeProxy;
@@ -240,6 +252,15 @@ define([
           }
         },
 
+        expand: function(){
+          var self = this;
+          domClass.add(this.toggler, "hide");
+          self.collapsed = false;
+          //domClass.remove(self.activityContainer, "hide");
+          ideaDetails({idea: self.idea}).placeAt(self.detailsContainer);
+          ideaStream({idea:self.idea}).placeAt(self.streamContainer);
+        },
+
         //  your custom code goes here
         postCreate: function(){
           this.inherited(arguments);
@@ -329,16 +350,25 @@ define([
             
           });
 
+         
+
           if (this.idea.creatorDetails){
             this.user = this.idea.creatorDetails;
           }
           
           this.name.innerHTML = this.idea.name;
-          this.ideaLink.href = "/ideas/"+this.idea._id;
+          if (this.idea.hash){
+            this.ideaLink.href = "/i/"+this.idea.hash;
+          } else {
+            this.ideaLink.href = "/ideas/"+this.idea._id;
+          }
+          
 
           //get the dates
           this.ideaLink.title = moment(this.idea.created).format('h:mm A - D MMM YY');
           this.ideaLink.innerHTML = moment(this.idea.created).fromNow();
+
+  
 
           //user details
           this.userDetails.href = '/'+this.user.username;
@@ -415,6 +445,13 @@ define([
               })
             });
 
+          var shareUrl;
+          if (self.idea.hash){
+            shareUrl = self.idea.shortUrl;
+          } else {
+            shareUrl = 'http://coordel.com/ideas/'+self.idea._id;
+          }
+
           $(self.doShare).popover({
             placement: 'bottom',
             html: true,
@@ -422,7 +459,7 @@ define([
               shareHtml,
               {
                 tweet: 'Check out this great idea--'+self.idea.name,
-                url: 'http://coordel.com/ideas/'+self.idea._id
+                url: shareUrl
               })
             });
 
@@ -436,14 +473,38 @@ define([
               self.doingShare = false;
             }
             self.doingReply = !self.doingReply;
-            dom.byId("replyMessage-"+self.idea._id).focus();
+
+            var messageNode = dom.byId("replyMessage-"+self.idea._id);
+            var count = dom.byId("charCount-"+self.idea._id);
+            messageNode.focus();
+
+            on(messageNode, "keyup", function(e){
+              if (messageNode.value.length >140){
+                messageNode.value = messageNode.value.substr(0, messageNode.value.length - 1);
+              }
+              count.innerHTML = 140 - messageNode.value.length;
+            });
+
+            if (!self.currentUser.app.twitterToken){
+              var tweetHandle = on(dom.byId("tweetReply-"+self.idea._id), "click", function(e){
+                e.preventDefault();
+                window.open('/connect/twitter', 'mywin','left=20,top=20,width=500,height=500,location=1,resizable=1');
+              });
+            }
+
+
             //reply
             var handle = on(dom.byId("submitReply-"+self.idea._id), "click", function(e){
               e.preventDefault();
+              var isTweet = false;
+              if (dom.byId("tweetReply-"+self.idea._id).checked){
+                isTweet = true;
+              }
               xhr.post('/ideas/'+self.idea._id + "/replies", {
                 data: {
                   idea: JSON.stringify(self.idea),
                   message: dom.byId("replyMessage-"+self.idea._id).value,
+                  isTweet: isTweet,
                   _csrf: _csrf
                 },
                 handleAs: "json",

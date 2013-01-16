@@ -1,41 +1,47 @@
-
-/**
- * Module dependencies.
- */
+//server support
 var express = require('express')
-  , app = require('express')()
-  , server = require('http').createServer(app)
-  , io = require('socket.io').listen(server)
-  , routes = require('./routes')
-  , intro = require('./routes/intro')
-  , accounts = require('./routes/accounts')
-  , users = require('./routes/users')
-  , supporting = require('./routes/supporting')
-  , ideas = require('./routes/ideas')
-  , http = require('http')
-  , path = require('path')
+  , https = require('https')
+  , fs = require('fs');
+
+//certificates
+var privateKey = fs.readFileSync('./ssl/private-key.pem').toString();
+var certificate = fs.readFileSync('./ssl/public-cert.pem').toString();
+
+var appOptions = {
+  key : privateKey
+, cert : certificate
+};
+
+var express = require('express')
+//  , app = require('express')()
+//  , server = require('http').createServer(app)
+//  , io = require('socket.io').listen(server)
   , settings = require('./config/settings').settings("settings", "./config")
   , redisOpts = settings.config.redisOptions
   , couchOpts = settings.config.couchOptions
-  , Account = require('./models/account')
+  , bitlyOpts = settings.config.bitlyOptions
+  , twitterOpts = settings.config.twitter
+ 
   , moment = require('moment')
   , passport = require('passport')
   , TwitterStrategy = require('passport-twitter').Strategy
   , OAuth2Strategy = require('passport-oauth').OAuth2Strategy
   , v1 = '/api/v1';
 
-io.set('log level', 1);
 
 //setup the stores
 var store = {
   couch: require('./stores/couchdb').Store,
   redis: require('./stores/redis').Store,
   bitcoin: require('./stores/bitcoin').Store,
-  timeFormat: "YYYY-MM-DDTHH:mm:ss.SSSZ"
+  timeFormat: "YYYY-MM-DDTHH:mm:ss.SSSZ",
+  bitly: bitlyOpts,
+  twitter: twitterOpts
 };
 
 //configure passport
-var UserApp = require('./server/models/userApp')(store);
+var UserApp = require('./server/models/userApp')(store)
+  , Account = require('./models/account');
 
 //use the OAuth2Strategy within Passport
 passport.use('coinbase', new OAuth2Strategy({
@@ -80,25 +86,21 @@ passport.use(new TwitterStrategy({
   function(token, tokenSecret, profile, done) {
     //console.log("callback from twitter", token, tokenSecret, profile, done);
     //get this user with at twitter_auth entry
-    var t = { kind: 'oauth', token: token, attributes: { tokenSecret: tokenSecret } };
     //update the user with this value
 
     var act = {
-      auth: t,
-      profile: profile
+      token: token,
+      tokenSecret: tokenSecret
     };
-
     //console.log("token to save", act);
-
     return done(null, act);
   }
 ));
 
 
 //configure express
+var app = express();
 require('./configure')(app, express, passport);
-
-
 
 
 //authentication middleware
@@ -174,11 +176,17 @@ function loadUser(req, res, next) {
   }
 }
 
+
+/*///////////////////////////*/
+var server = https.createServer(appOptions, app);
+var io = require('socket.io', {secure: true}).listen(server);
+
 //create the socket
+io.set('log level', 1);
 var socket = io.sockets.on('connection', function (client) {
 });
 
-//route controllers
+//controllers
 var App = require('./server/controllers/app')(store);
 var Users = require('./server/controllers/users')(store);
 var Ideas = require('./server/controllers/ideas')(store, socket);
@@ -186,70 +194,6 @@ var Intro = require('./server/controllers/intro')(store);
 var Coinbase = require('./server/controllers/coinbase')();
 var Bitcoin = require('./server/controllers/bitcoin')(store);
 var Pledges = require('./server/controllers/pledges')(store, socket);
-
-//tidy
-//store.redis.del('user:devcoordel', 'user:dev@coordel.com');
-/*
-var multi = store.redis.multi();
-
-multi.hset('coordelapp:1', 'username', 'jeffgorder182');
-multi.hset('coordelapp:1', 'userId', 4);
-multi.hset('coordelapp:1', 'fullName', 'Jeff Gorder');
-
-multi.hset('coordelapp:2', 'username', 'devcoordel182');
-multi.hset('coordelapp:2', 'userId', 3);
-multi.hset('coordelapp:2', 'fullName', 'Dev Coordel');
-multi.exec(function(e, o){
-  console.log("ok",e, o);
-});
-*/
-/*
-multi.get('user:jeffgorder');
-multi.get('user:jeff.gorder@coordel.com');
-multi.hgetall('user:176');
-multi.exec(function(e, o){
-  console.log('got multi',e, o);
-});
-*/
-
-/*
-//store.redis.rpop('global:timeline');
-store.redis.lrange('global:timeline', 0, 1, function(e, o){
-  console.log("timeline", o);
-});
-*/
-/*
-var USER = require('./server/models/user')(store);
-
-store.redis.smembers('coordel-users', function(e, members){
-  console.log(e, members);
-  members.forEach(function(key){
-    store.redis.hgetall(key, function(err, user){
-      //console.log("USER", user);
-      if (err){
-        console.log("couldn't load existing user from store",err);
-        //fn(err, false);
-      } else {
-        console.log("found the user", user);
-        //fn(false, user);
-
-
-        //make the full name
-        user.fullName = user.firstName + " " + user.lastName;
-
-        USER.importUser(user, function(e, o){
-          console.log("imported user", e, o);
-        });
-      }
-    });
-  });
-});
-*/
-
-
-
-
-
 
 //client app routes
 app.get('/intro', Intro.index);
@@ -268,6 +212,10 @@ app.post('/signup', Users.startRegistration); //set up as Begin Registration goa
 app.post('/register', Users.completeRegistration); //set up as Complete Registration goal in analytics
 app.post('/invite'); //set up as Invite goal in analytics
 app.post('/redeem'); //set up as Redeem Invite goal in alytics
+
+//single idea
+app.get('/ideas/:id', App.showIdea);
+app.get('/i/:hash', App.showIdea);
 
 //user's apps
 app.put('/users/apps/:appId', Users.setAppValues);
@@ -309,11 +257,64 @@ app.get('/money', App.moneyPledged);
 app.get('/time', App.timePledged);
 app.get('/proxy', App.proxiedToMe);
 app.get('/feedback', App.feedback);
+app.get('/search', App.search);
 app.get('/:username', App.ideas);
+
+app.get('/:username/supporting', App.supporting);
+app.get('/:username/contacts', App.contacts);
+app.get('/:username/money', App.moneyPledged);
+app.get('/:username/time', App.timePledged);
+app.get('/:username/proxy', App.proxiedToMe);
+app.get('/:username/feedback', App.feedback);
 
 
 //settings
-app.get('/settings/profile');
+app.get('/settings/profile', function(req, res){});
+
+
+app.post('/settings', function(req, res){
+
+  
+  var appId = req.session.currentUser.appId
+    , keys = req.body.keys;
+
+  console.log("keys for settings", keys);
+  
+  UserApp.set(appId, keys, function(e, app) {
+    console.log("updated app with the keys", app);
+    if(e){
+      res.json({
+        success: false,
+        errors: [e]
+      });
+    } else {
+      console.log("currentUser", req.session.currentUser);
+      req.session.currentUser.app = app;
+      res.json({
+        success: true,
+        userApp: app
+      });
+    }
+  });
+});
+
+app.get('/settings/reset', function(req, res){
+  var appId = req.session.currentUser.appId;
+  UserApp.reset(appId, function(e, app){
+    if(e){
+      res.json({
+        success: false,
+        errors: [e]
+      });
+    } else {
+      req.session.currentUser.app = app;
+      res.json({
+        success: true,
+        userApp: app
+      });
+    }
+  });
+});
 
 
 //coinbase
@@ -322,6 +323,9 @@ app.post('/coinbase/users', Coinbase.createUser);
 
 //bitcoin
 app.get('/bitcoin/prices', Bitcoin.getPrices);
+app.get('/bitcoin/video', function(req, res){
+  res.render('bitcoinVideo.ejs');
+});
 
 
 //coinbase routes
@@ -357,24 +361,34 @@ app.get('/connect/twitter',
 app.get('/connect/twitter/callback',
   passport.authorize('twitter', { failureRedirect: '/intro' }),
   function(req, res) {
-    var user = req.curentUser;
+    var user = req.session.currentUser;
     var account = req.account;
 
     // Associate the Twitter account with the logged-in user.
     //account.userId = cur.id;
 
-    console.log("should save the account for the user", account);
+    console.log("should save the account for the user",user, account);
     res.render('close');
-    /*
-    account.save(function(err) {
-      if (err) { return self.error(err); }
-      //self.redirect('/');
+    
+    var appId = req.session.currentUser.appId;
+
+    req.session.currentUser.app.twitter = account;
+
+    var keys = [
+      {
+        name: "twitterToken", value: account.token
+      },
+      {
+        name: "twitterTokenSecret", value: account.tokenSecret
+      }
+    ];
+
+    console.log("keys for twitter", keys);
+    
+    UserApp.set(appId, keys, function(err, app) {
+      console.log("updated app with twitter keys", app);
     });
-*/
   });
-
-
-
 
 /*
 app.post('/ideas', loadUser, ideas.add);
@@ -398,9 +412,6 @@ app.get(v1 + '/ideas/:id', Ideas.findDetails);
 app.post(v1 + '/ideas');
 app.get(v1 + '/ideas/:id/stream', Ideas.findStream);
 
-
-
-
 app.post(v1 + '/pledges/money', Pledges.create);
 app.put(v1 + '/pledges/money/:pledgeId', Pledges.save);
 app.post(v1 + '/pledges/allocations', Pledges.allocate);
@@ -414,11 +425,7 @@ app.post(v1 + '/proxies/allocations', Pledges.proxyAllocate);
 app.post(v1 + '/proxies/deallocations', Pledges.proxyDeallocate);
 
 
-
-
-
-/*///////////////////////////*/
-
+///////********************************************************************//////
 server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });

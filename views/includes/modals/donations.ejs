@@ -1,0 +1,48 @@
+<div>
+  <div id="donationsModal" data-backdrop="false" class="modal hide fade">  
+    <div class="modal-header">  
+    <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
+
+    <h3 style="text-align: center"><i style="margin-top: 3px;margin-right: 5px;" class="icon-cart"></i> Donate dollars</h3>  
+  </div>  
+  
+  <div class="modal-body">  
+    <div>
+      <fieldset style="width: 371px; margin: auto;">
+        <div style="padding-bottom: 10px;">
+          <div class="pull-left" style="font-size: 10px; margin-top: 4px; margin-right: 4px">Powered by</div>
+          <img src="/img/stripe.png">
+        </div>
+        <div>
+          <div class="pull-left" style="margin-right: 20px">
+            <label>Card Number</label>
+            <input type="text"  placeholder="•••• •••• •••• ••••" size="20" autocomplete="off" id="card-number"/>
+          </div>
+          <div class="pull-left">
+            <label>Expiration</label>
+            <input placeholder="MM" type="text" style="width:45px" size="2" id="card-expiry-month"/>
+            <span> / </span>
+            <input placeholder="YYYY" type="text" style="width:45px" size="4" id="card-expiry-year"/>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+        <div>
+          <div class="pull-left" style="margin-right: 20px">
+            <label>Name on Card</label>
+            <input type="text" size="20" autocomplete="off" id="card-name"/>
+          </div>
+          <div class="pull-left">
+            <label>Card Code</label>
+            <input placeholder="CVC" type="text" size="4" style="width:90px" autocomplete="off" id="card-cvc"/>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+        <hr>
+        <button style="font-size:16px;font-weight:bold" class="btn btn-block btn-primary">Pay $<span id="donationsAmount">1</span>.00</button>
+      </fieldset>
+    </div>
+  </div>  
+  <div class="modal-footer">
+    
+  </div>            
+</div>

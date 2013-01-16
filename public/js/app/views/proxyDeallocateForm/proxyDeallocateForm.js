@@ -14,14 +14,14 @@ define(["dojo/dom"
     init: function(user){
       var self = this;
 
-      console.log("deallocate form init");
+     
 
       self._csrf = $('#addIdea_csrf').val();
 
       self.user = user;
 
       on(dom.byId("proxyDeallocateSubmit"), "click", function(){
-        console.log("clicked");
+    
         self.submit();
       });
 
@@ -31,7 +31,7 @@ define(["dojo/dom"
     show: function(proxyAllocation){
       var self = this;
       self.proxyAllocation = proxyAllocation;
-      console.log("proxyAllocation", self.proxyAllocation);
+
     },
 
     showError: function(){
@@ -49,7 +49,7 @@ define(["dojo/dom"
       var alloc = self.proxyAllocation;
       
       alloc.status = "DEALLOCATED";
-      console.log("proxy allocation", alloc);
+    
       var url = '/api/v1/proxies/deallocations';
       request.post(url, {
           data: {
@@ -60,12 +60,12 @@ define(["dojo/dom"
           },
           handleAs: "json"
         }).then(function(resp){
-          console.log("deallocate response", resp);
+      
           if (resp.success){
             $('#proxyDeallocateModal').modal('hide');
             topic.publish("coordel/ideaAction", "proxyDeallocate", self.pledge.project);
           } else {
-            console.log("failed", resp.errors);
+          
           }
         });
      

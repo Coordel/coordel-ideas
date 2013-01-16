@@ -1,5 +1,5 @@
 <div class="coordel-links bg-white rounded-column">
-  <ul class="clearfix unstyled">
+  <ul class="clearfix unstyled" style="margin-left:0">
     <li class="copyright">© <%= new Date().getFullYear()%> Coordel</li>
     <li><a href="/about">About</a></li>
     <li><a href="http://coordel.desk.com">Help</a></li>
@@ -7,4 +7,12 @@
     <li><a href="/privacy">Privacy</a></li>
     <li><a href="http://blog.coordel.com">Blog</a></li>
   </ul>
+  <style>
+    .donations > span {
+      margin-right: 2px;
+    }
+  </style>
+  <div class="donations">
+    <span class="muted" style="margin-left: 8px; margin-right: 6px;font-size:12px">Donations are welcome</span> <span id="donate1" class="btn btn-mini donate">$1</span> <span id="donate5" class="btn btn-mini donate">$5</span> <span id="donate10" class="btn btn-mini donate">$10</span> <span id="donate20" class="btn btn-mini donate">$20</span> <span id="donate50" class="btn btn-mini donate">$50</span>
+  </div>
 </div>
