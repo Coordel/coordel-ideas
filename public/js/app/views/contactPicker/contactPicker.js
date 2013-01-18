@@ -16,6 +16,8 @@ define([
 
     value: null,
 
+    currentContact: null,
+
     contacts: [],
 
     //  your custom code goes here
@@ -41,7 +43,9 @@ define([
         }
       , updater: function (item) {
           var newitem = JSON.parse(item);
+          console.log("contact picker selected item", item);
           self.value = newitem.appId;
+          self.currentContact = item;
           return newitem.fullName;
         }
       , highlighter: function(item){

@@ -33,8 +33,7 @@ define(["dojo/dom"
         //get authorized
         self.showAuthorize();
       }
-
-      
+    
       function coinbaseAuthorize(){
         window.open('/connect/coinbase', 'mywin','left=20,top=20,width=500,height=500,location=1,resizable=1');
         return false;
@@ -46,6 +45,11 @@ define(["dojo/dom"
 
       on(dom.byId("allocateSubmit"), "click", function(){
         self.submit();
+      });
+
+      topic.subscribe("coordel/coinbaseAuthorize", function(account){
+        //the users authenticated, so show the allocate form;
+        self.showAllocate();
       });
 
      
@@ -67,6 +71,12 @@ define(["dojo/dom"
       var self = this;
 
       self.pledge = pledge;
+
+      //it's possible that the user authenticated after this init was called on load...make sure
+      if (self.user.app.coinbaseAccessToken){
+        //this user has authorized their account with coinbase
+        self.showAllocate();
+      }
 
       //set the amounts
       dom.byId("allocatePledgeType").innerHTML = pledge.type.toLowerCase();

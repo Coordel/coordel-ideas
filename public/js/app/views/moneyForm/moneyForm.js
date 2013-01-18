@@ -8,8 +8,9 @@ define(["dojo/dom",
   "app/models/pledges",
   "dojo/text!./templates/bitcoin.html",
   "dojo/text!./templates/proxy.html",
+  "dojo/text!./templates/following.html",
   "app/models/settings",
-  "dojo/domReady!"],function(dom, on, domClass, request, array, build, topic, stores, bitcoinHtml, proxyHtml, settings){
+  "dojo/domReady!"],function(dom, on, domClass, request, array, build, topic, stores, bitcoinHtml, proxyHtml, followingHtml, settings){
 
   var paymentFormControl = {
 
@@ -235,6 +236,14 @@ define(["dojo/dom",
         html: "true",
         title: "<i class='icon-info-sign'></i> Info",
         content: bitcoinHtml
+      });
+
+      $("#supportMoneyFollowingPopover").popover({
+        trigger: "hover",
+        placement: "bottom",
+        html: "true",
+        title: "<i class='icon-info-sign'></i> Info",
+        content: followingHtml
       });
 
       $("#supportMoneyBitcoinMovie").tooltip({

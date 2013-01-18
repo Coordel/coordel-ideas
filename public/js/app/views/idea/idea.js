@@ -282,6 +282,17 @@ define([
             self.setState(self.currentUser);
           });
 
+          topic.subscribe("coordel/twitterAuthorize", function(account){
+            console.log("twitterAuthorize", self.currentUser, account);
+            //the user clicked authorize and it happend, set the checkbox to true
+            dom.byId("tweetReply-"+self.idea._id).checked = true;
+          });
+
+          topic.subscribe("coordel/coinbaseAuthorize", function(account){
+            console.log("coinbaseAuthorize", self.currentUser, account);
+            
+          });
+
 
 
           topic.subscribe("coordel/ideaAction", function(action, ideaId, type){
@@ -486,9 +497,11 @@ define([
             });
 
             if (!self.currentUser.app.twitterToken){
+              console.log("we weren't authenticated", self.currentUser.app);
               var tweetHandle = on(dom.byId("tweetReply-"+self.idea._id), "click", function(e){
                 e.preventDefault();
                 window.open('/connect/twitter', 'mywin','left=20,top=20,width=500,height=500,location=1,resizable=1');
+                tweetHandle.remove();
               });
             }
 
@@ -550,17 +563,27 @@ define([
 
             //only show contacts that aren't already in the project
             var contactList = array.filter(self.contacts, function(item){
+              console.log("testing existing users", self.idea.users, item.appId,  array.indexOf(self.idea.users, item.appId));
               return array.indexOf(self.idea.users, item.appId) === -1;
             });
 
-            new contactPicker({contacts:contactList, placeholder: "Select contact"}).placeAt("inviteContactPickerContainer-"+self.idea._id);
+            var cp = new contactPicker({contacts:contactList, placeholder: "Select contact"}).placeAt("inviteContactPickerContainer-"+self.idea._id, "first");
             
             self.doingInvite = !self.doingInvite;
             var emailHandle = on(dom.byId("submitEmailInvite-"+self.idea._id), "click", function(e){
               e.preventDefault();
+              var isFollow = false;
+              if (domClass.contains(contactTabContain, "active")){
+                isFollow = true;
+              }
+              console.log("isFollow", isFollow, self.idea);
+              
               xhr.post('/ideas/'+self.idea._id + "/invites", {
+                handleAs: "json",
                 data: {
-                  idea: self.idea,
+                  idea: self.idea._id,
+                  isFollow: isFollow,
+                  contact: cp.currentContact,
                   toName: dom.byId("inviteName-"+self.idea._id).value,
                   toEmail: dom.byId("inviteEmail-"+self.idea._id).value,
                   message: dom.byId("inviteMessage-"+self.idea._id).value,
@@ -570,6 +593,7 @@ define([
                   "X-CSRF-Token": _csrf
                 }
               }).then(function(res){
+                console.log("response from invite", res);
                 emailHandle.remove();
                 dom.byId("inviteName-"+self.idea._id).value = "";
                 dom.byId("inviteEmail-"+self.idea._id).value = "";
@@ -705,7 +729,7 @@ define([
           //add proxy
           on(self.addProxy, 'click', function(e){
             //need to set the value of the idea for submission
-            dom.byId("proxyIdea").value = self.idea._id;
+            dom.byId("addProxyIdea").value = self.idea._id;
 
             //get the pledges for this idea and find mine
             xhr('/ideas/' + self.idea._id + '/pledges/money', {handleAs: 'json'}).then(function(list){

@@ -17,16 +17,17 @@
         </li>
         <li id="inviteEmailTabContainer-{id}"><a id="inviteEmailTab-{id}">Send e-mail</a></li>
       </ul>
-      <div id="inviteContactPickerContainer-{id}"></div>
+      <div id="inviteContactPickerContainer-{id}">
+        <p style="font-size:12px; margin: 0 0 8px 0">Recipients will be invited to Follow this Idea in their Workspace.</p>
+      </div>
       <div id="inviteEmailContainer-{id}" class="hide">
-     
         <input style="width: 303px" placeholder="Full name of person to invite" type="text" id="inviteName-{id}">
         <input style="width: 303px" placeholder="E-mail address" type="text" id="inviteEmail-{id}">
         <textarea id="inviteMessage-{id}" rows="4" maxchars="560" style="width: 303px" placeholder="Personal message..."></textarea>
-      
+        <p style="font-size:12px; margin: 0 0 8px 0">Recipients will receive an e-mail link to this Idea. Non-members will be invited to join Coordel.</p>
       </div>
       <div>
-        <p style="font-size:12px; margin: 0 0 8px 0">Recipients will be invited to Follow this Idea</p>
+        
         <input id="submitEmailInvite-{id}" style="margin-bottom: 0" type="submit" value="Send Invitation" class="btn btn-primary pull-right">
         <input type="hidden" name="origin" value="index-invite">
         <input type="hidden" name="_csrf" value="<%=token%>">

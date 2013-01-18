@@ -6,7 +6,8 @@ Manages the ideas for the ideas app
 var moment = require('moment')
   , _ = require('underscore')
   , md5 = require('MD5')
-  , request = require('request');
+  , request = require('request')
+  , async = require('async');
 
 
 
@@ -513,7 +514,7 @@ module.exports = function(store) {
 
     support: function(ideaId, userId, fn){
 
-      console.log("ideaId", ideaId, "userId", userId);
+      //console.log("ideaId", ideaId, "userId", userId);
 
       var multi = store.redis.multi();
       //creates a supporting entry for this user and adds the supporting user to the idea
@@ -539,36 +540,54 @@ module.exports = function(store) {
       });
     },
 
-    invite: function(appId, ideaId, sender){
+    invite: function(contact, ideaId, sender, fn){
+      var self = Idea;
 
       store.couch.db.get(ideaId, function(e, idea){
 
         if (!idea.users){
           idea.users = [];
         }
-
-        var has = (dojo.indexOf(idea.users, appId) > -1);
+        //console.log("contact", contact);
+        var has = (_.indexOf(idea.users, contact.appId) > -1);
 
         if (!has){
           //console.log("didn't have user in project");
-          idea.users.push(appId);
+          idea.users.push(contact.appId);
 
           if (!idea.assignments){
             idea.assignments = [];
           }
 
           idea.assignments.push({
-            username: appId,
+            username: contact.appId,
             role: "FOLLOWER",
             status: "INVITE"
           });
 
           self.addActivity({
-            object: {id: username, name: name, type: "PERSON"},
+            object: {id: contact.appId, name: contact.fullName, type: "PERSON"},
             target: {id: idea._id, name: idea.name, type: "PROJECT"},
             verb: "INVITE",
             sender: sender
           }, idea);
+
+          idea = self.setVersion(idea);
+          idea.updater = sender.appId;
+          idea.updated = moment().format(store.timeFormat);
+
+          store.couch.db.save(idea, function(e, o){
+            if (e){
+              fn(e);
+            } else {
+              idea._rev  = o.rev;
+              fn(null, idea);
+            }
+          });
+
+        } else {
+          //console.log("user already existed in project, no need to invite");
+          fn(null, idea);
         }
       });
     },
@@ -578,6 +597,8 @@ module.exports = function(store) {
       //get the idea
       store.couch.db.get(id, function(e, idea){
         //console.log("got the idea", idea, self);
+
+        var startUsers = idea.users;
 
         var username = sender.appId
           , hasUser = false;
@@ -600,7 +621,7 @@ module.exports = function(store) {
         _.each(idea.assignments, function(assign){
           if (assign.username === username) {
             
-            if (assign.role === "FOLLOWER"){
+            if (assign.role === "FOLLOWER" && assign.status !== "ACCEPTED"){
               
               assign.status = "ACCEPTED";
               
@@ -635,12 +656,16 @@ module.exports = function(store) {
 
         //console.log("before update in projectModel.follow");
         store.couch.db.save(idea, function(e, o){
-          //console.log('followed idea', o);
+          
+      
           if (e){
             fn(e);
           } else {
-            fn(null, o);
+            idea._id = o.id;
+            idea._rev = o.rev;
+            fn(null, idea);
           }
+        
         });
       });
     },

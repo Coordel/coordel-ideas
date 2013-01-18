@@ -17,6 +17,7 @@ define(["dojo/dom"
 
     init: function(user, prices, contacts){
       var self = this;
+      console.log("init removeProxyForm");
 
       self.user = user;
       self.bitcoinPrices = prices;
@@ -36,13 +37,17 @@ define(["dojo/dom"
 
     showProxy: function(){
       var self = this;
-      domClass.add(dom.byId("proxyAuthorize"), "hide");
-      domClass.remove(dom.byId("proxyAction"), "hide");
-      domClass.remove(dom.byId("proxySubmit"), "hide");
+      console.log("showing proxy in removeProxyForm", self.contacts);
+      domClass.remove(dom.byId("removeProxyAction"), "hide");
+      domClass.remove(dom.byId("removeProxySubmit"), "hide");
+
 
       var list = array.filter(self.contacts, function(item){
+        console.log("ids in filter", item.appId, self.user.appId);
         return item.appId !== self.user.appId;
       });
+
+      console.log("list in removing proxy", list);
       
       self.picker = new contactPicker({contacts: list, placeholder: "Select proxy"}).placeAt("removeProxySelectContainer");
       self.picker.inputControl.value = "This is the proxy";
@@ -66,6 +71,7 @@ define(["dojo/dom"
       console.log("contacts" , self.contacts);
       var proxy = false;
       array.forEach(self.contacts, function(item){
+        console.log("testing for proxy", item.appId, pledge.proxy);
         if (item.appId === pledge.proxy){
           self.picker.value = item.appId;
           self.picker.inputControl.value = item.fullName;

@@ -13,6 +13,8 @@ define(["app/models/ideas", "app/models/timeline", "app/models/settings"], funct
 
     miniProfile: null,
 
+    contacts: null,
+
     bitcoinPrices: null,
 
     settings: null,

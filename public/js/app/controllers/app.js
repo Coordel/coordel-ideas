@@ -363,6 +363,28 @@ define(["dojo/dom",
         socket.on("supporting:"+self.user.appId, function(item){
           topic.publish("coordel/supportIdea", item);
         });
+
+        socket.on("contact:"+self.user.appId, function(item){
+          console.log("got a new contact", item);
+          ideaId = item.ideaId;
+          contact = item.contact;
+          self.model.contacts.push(contact);
+          topic.publish("coordel/addIdeaContact", item);
+        });
+
+        socket.on("twitter:"+self.user.appId, function(account){
+          console.log("got twitter auth", account);
+          self.model.currentUser.app.twitterToken = account.token;
+          self.model.currentUser.app.twitterTokenSecret = account.tokenSecret;
+          topic.publish("coordel/twitterAuthorize", account);
+        });
+
+        socket.on("coinbase:"+self.user.appId, function(account){
+          console.log("got coinbase auth", account);
+          self.model.currentUser.app.coinbaseAccessToken = account.coinbaseAccessToken,
+          self.model.currentUser.app.coinbaseRefreshToken = account.coinbaseRefreshToken;
+          topic.publish("coordel/coinbaseAuthorize", account);
+        });
       }
       
 

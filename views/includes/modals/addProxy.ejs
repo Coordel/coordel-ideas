@@ -2,59 +2,58 @@
   <div id="addProxyModal" data-backdrop="false" class="modal hide in">  
     <div class="modal-header">  
     <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
-    <h4 style="text-align: center">Allocate your <span id="proxyPledgeType">one-time</span> pledge by proxy</h4>  
+    <h4 style="text-align: center">Allocate your <span id="addProxyPledgeType">one-time</span> pledge by proxy</h4>  
   </div>  
   
   <div class="modal-body"> 
-    <div id="proxyAuthorize">
-      <h4>Authorize proxy payments from your Coinbase account</h4>
+    <div id="addProxyAuthorize">
+      <h4>Authorize payments from your Coinbase account</h4>
       <ul>
-        <li><p>The ability to allocate by proxy is designed to allow you to support many ideas, but to let someone else participating in the Idea who is better qualified to decide when to allocate the amount.</p></li>
-        <li><p>In order to allocate your pledge by proxy, please click "Authorize" to connect Coordel with your Coinbase account.</p></li>
-        <li><p>When you allocate money by proxy, the contact you specify decides when the money is allocated to the Idea's Bank. You will not be charged until your proxy makes the allocation. The Idea Responsible can then distribute the amount to the appropriate participant or participants in the Idea.</p></li>
+        <li><p>Allocation by proxy lets you to support Ideas you think are good, but want to let someone else participating in the Idea who might be better qualified to decide when to allocate the pledge.</p></li>
         
+        <li><p>When you allocate money by proxy, the contact you specify decides when the money is allocated to the Idea's Bank. You will not be charged until your proxy makes the allocation. The Idea Responsible can then distribute the amount to the appropriate participant or participants in the Idea.</p></li>
+        <li><p>To allocate your pledge by proxy, please click "Authorize" to connect Coordel with your Coinbase account.</p></li>
       </ul>
       <p>
-        <a id="coinbaseAuthorize" class="btn btn-mini btn-primary pull-right">Authorize</a>
+        <a id="addProxyCoinbaseAuthorize" class="btn btn-mini btn-primary pull-right">Authorize</a>
         <div class="clearfix"></div>
       </p>
-
     </div>
 
-    <div id="proxyError" class="alert alert-error hide">
+    <div id="addProxyError" class="alert alert-error hide">
       Woops, either we didn't find your pledge or something went wrong. Please close this dialog and try again. If the problem continues, please contact <strong><a style="color: #B94A48;" href="http://coordel.desk.com">Support</a></strong>.
     </div>
 
-    <div id="proxyAction" class="hide pledge-allocation">
+    <div id="addProxyAction" class="hide pledge-allocation">
       <fieldset style="width: 400px; margin: auto;">
         
        
         <table class="table table-bordered">
           <tr>
             <td >
-              <strong><span id="proxyBtcAmount">0.00</strong>
+              <strong><span id="addProxyBtcAmount">0.00</strong>
               <div>BTC</div>
             </td>
             <td>
-              <strong><span id="proxyLocalSymbol"></span><span id="proxyLocalAmount">0.00</span></strong>
-              <div id="proxyLocalCurrency">USD</div>
+              <strong><span id="addProxyLocalSymbol"></span><span id="addProxyLocalAmount">0.00</span></strong>
+              <div id="addProxyLocalCurrency">USD</div>
             </td>
           </tr>
         </table>
 
-        <div style="margin-bottom: 20px" id="proxySelectContainer"></div>
+        <div style="margin-bottom: 20px" id="addProxySelectContainer"></div>
         
         <div>
-          <p id="proxyOnceInstructions">Click "Confirm" to choose the selected contact as your proxy to allocate the pledged amount. You will not be charged until your proxy allocates the amount.</p>
+          <p id="addProxyOnceInstructions">Click "Confirm" to choose the selected contact as your proxy to allocate the pledged amount. You will not be charged until your proxy allocates the amount.</p>
           
-          <p id="proxyRecurringInstructions" class="hide">Click "Confirm" to choose the selected contact as your proxy to allocate your recurring pledge, to indicate you want your Coinbase account to be charged when your proxy allocates the amount, and to order the process to repeat each month until you cancel the recurrance.</p>
+          <p id="addProxyRecurringInstructions" class="hide">Click "Confirm" to choose the selected contact as your proxy to allocate your recurring pledge, to indicate you want your Coinbase account to be charged when your proxy allocates the amount, and to order the process to repeat each month until you cancel the recurrance.</p>
 
         </div>
       </fieldset>
     </div>
   </div>
   <div class="modal-footer" style="text-align: left">
-    <input id="proxySubmit" type="submit" value="Confirm" class="btn btn-primary pull-right">
-    <input id="proxyIdea" type="hidden">
+    <input id="addProxySubmit" type="submit" value="Confirm" class="btn btn-primary pull-right">
+    <input id="addProxyIdea" type="hidden">
   </div>            
 </div>

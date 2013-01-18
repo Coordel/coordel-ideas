@@ -356,7 +356,11 @@ module.exports = function(store) {
       var settings = [
         {name: "showQuickStart", value: true},
         {name: "hasViewedAboutMoney", value: false},
-        {name: "hasPaymentMethod", value: false}
+        {name: "hasPaymentMethod", value: false},
+        {name: "twitterToken", value: false},
+        {name: "twitterTokenSecret", value: false},
+        {name: "coinbaseAccessToken", value: false},
+        {name: "coinbaseRefreshToken", value: false}
       ];
 
       var multi = store.redis.multi();

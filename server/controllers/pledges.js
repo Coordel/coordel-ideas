@@ -13,15 +13,44 @@ MoneyPledgesController = function(store, socket) {
   var MoneyPledge = require('../models/moneyPledge')(store)
     , TimePledge = require('../models/timePledge')(store)
     , Profile = require('../models/profile')(store)
-    , Idea = require('../models/idea')(store);
+    , Idea = require('../models/idea')(store)
+    , UserApp = require('../models/userApp')(store);
 
-  function support(ideaId, appId){
+  function support(ideaId, user){
+    var appId = user.appId;
     //when we create a pledge, need to add support to the idea as well if we haven't already
     Idea.support(ideaId, appId, function(e,o){
       console.log("supported an idea when pledging", e, o);
       if (o[0] && o[1]){
         socket.emit('supporting:'+appId,  "1");
       }
+    });
+
+    //ideas supported with time or money get followed
+    Idea.follow(ideaId, user, function(e, idea){
+
+      _.each(idea.users, function(forId){
+        var key = 'coordelapp:'+ forId+':people';
+        //get all users in the idea that aren't me
+        var contacts = _.filter(idea.users, function(id){
+          return id !== forId;
+        });
+        //now for all the users that weren't me, add them as a contact
+        if (contacts.length){
+          var redis = store.redis;
+          _.each(contacts, function(contactId){
+            redis.sadd(key, contactId, function(res){
+              //if this was a new contact, then alert the user with the contact
+              if (res){
+                //load the contact and return it to the user
+                UserApp.findById(contactId, function(e, newContact){
+                  socket.emit('contact:'+forId,  {ideaId: ideaId, contact: newContact});
+                });
+              }
+            });
+          });
+        }
+      });
     });
   }
 
@@ -40,8 +69,8 @@ MoneyPledgesController = function(store, socket) {
           if (e){
             res.json(e);
           } else {
-            //when we create a pledge, need to add support to the idea as well if we haven't already
-            support(pledge.project, pledge.creator);
+            //when we create a money pledge, need to add support to and follow the idea as well if we haven't already
+            support(pledge.project, req.session.currentUser);
             Profile.findMiniProfile(user, function(e, mini){
               socket.emit('miniProfile:'+user.appId, mini);
             });
@@ -56,7 +85,8 @@ MoneyPledgesController = function(store, socket) {
           if (e){
             res.json(e);
           } else {
-            support(pledge.project, pledge.creator);
+            //same as with money, when we pledge time, need to add support and follow the idea if we haven't already
+            support(pledge.project, req.session.currentUser);
             Profile.findMiniProfile(user, function(e, mini){
               socket.emit('miniProfile:'+user.appId, mini);
             });

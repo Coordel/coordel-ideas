@@ -3,9 +3,10 @@ define(["dojo/dom"
     , "dojo/dom-class"
     , "dojo/_base/array"
     , "dojo/topic"
+    , "dijit/registry"
     , "app/models/pledges"
     , "app/views/contactPicker/contactPicker"
-    , "dojo/domReady!"],function(dom, on, domClass, array, topic, stores, contactPicker){
+    , "dojo/domReady!"],function(dom, on, domClass, array, topic, registry, stores, contactPicker){
 
   var addProxyFormControl = {
 
@@ -18,6 +19,8 @@ define(["dojo/dom"
     init: function(user, prices, contacts){
       var self = this;
 
+      console.log("initing addProxyForm");
+
       self.user = user;
       self.bitcoinPrices = prices;
       self.contacts = contacts;
@@ -25,7 +28,7 @@ define(["dojo/dom"
       if (user.app.localCurrency){
         self.localCurrency = user.app.localCurrency;
       }
-
+   
       if (user.app.coinbaseAccessToken){
         //this user has authorized their account with coinbase
         self.showProxy();
@@ -33,17 +36,18 @@ define(["dojo/dom"
         //get authorized
         self.showAuthorize();
       }
+   
 
       function coinbaseAuthorize(){
         window.open('/connect/coinbase', 'mywin','left=20,top=20,width=500,height=500,location=1,resizable=1');
         return false;
       }
 
-      on(dom.byId("coinbaseAuthorize"), "click", function(){
+      on(dom.byId("addProxyCoinbaseAuthorize"), "click", function(){
         coinbaseAuthorize();
       });
 
-      on(dom.byId("proxySubmit"), "click", function(){
+      on(dom.byId("addProxySubmit"), "click", function(){
         self.submit();
       });
 
@@ -61,22 +65,33 @@ define(["dojo/dom"
 
 
     showAuthorize: function(){
-      domClass.remove(dom.byId("proxyAuthorize"), "hide");
-      domClass.add(dom.byId("proxyAction"), "hide");
-      domClass.add(dom.byId("proxySubmit"), "hide");
+      console.log("show authorize");
+      domClass.remove(dom.byId("addProxyAuthorize"), "hide");
+      domClass.add(dom.byId("addProxyAction"), "hide");
+      domClass.add(dom.byId("addProxySubmit"), "hide");
     },
 
     showProxy: function(){
+      console.log("show proxy");
       var self = this;
-      domClass.add(dom.byId("proxyAuthorize"), "hide");
-      domClass.remove(dom.byId("proxyAction"), "hide");
-      domClass.remove(dom.byId("proxySubmit"), "hide");
+      domClass.add(dom.byId("addProxyAuthorize"), "hide");
+      domClass.remove(dom.byId("addProxyAction"), "hide");
+      domClass.remove(dom.byId("addProxySubmit"), "hide");
+
+      console.log("contacts", self.contacts);
+
+      array.forEach(registry.findWidgets(dom.byId("addProxySelectContainer")), function(item){
+        item.destroy();
+        console.log("destroyed");
+      });
 
       var list = array.filter(self.contacts, function(item){
         return item.appId !== self.user.appId;
       });
+
+
       
-      self.picker = new contactPicker({contacts: list, placeholder: "Select proxy"}).placeAt("proxySelectContainer");
+      self.picker = new contactPicker({contacts: list, placeholder: "Select proxy"}).placeAt("addProxySelectContainer");
     },
 
     showPledge: function(pledge){
@@ -84,23 +99,29 @@ define(["dojo/dom"
 
       self.pledge = pledge;
 
+      //it's possible that the user authenticated after this init was called on load...make sure
+      if (self.user.app.coinbaseAccessToken){
+        //this user has authorized their account with coinbase
+        self.showProxy();
+      }
+
       //set the amounts
-      dom.byId("proxyPledgeType").innerHTML = pledge.type.toLowerCase();
+      dom.byId("addProxyPledgeType").innerHTML = pledge.type.toLowerCase();
       self.setLocalAmount(pledge.amount);
       self.setBtcAmount(pledge.amount);
       self.setOwnershipPoints(pledge.amount);
 
       if (pledge.type === "RECURRING"){
-        domClass.add(dom.byId("proxyOnceInstructions"), "hide");
-        domClass.remove(dom.byId("proxyRecurringInstructions"), "hide");
+        domClass.add(dom.byId("addProxyOnceInstructions"), "hide");
+        domClass.remove(dom.byId("addProxyRecurringInstructions"), "hide");
       }
     },
 
     showError: function(){
-      domClass.add(dom.byId("proxyAuthorize"), "hide");
-      domClass.add(dom.byId("proxyAction"), "hide");
-      domClass.add(dom.byId("proxySubmit"), "hide");
-      domClass.remove(dom.byId("proxyError"), "hide");
+      domClass.add(dom.byId("addProxyAuthorize"), "hide");
+      domClass.add(dom.byId("addProxyAction"), "hide");
+      domClass.add(dom.byId("addProxySubmit"), "hide");
+      domClass.remove(dom.byId("addProxyError"), "hide");
     },
 
     setOwnershipPoints: function(btcAmount){
@@ -108,7 +129,7 @@ define(["dojo/dom"
       var newValue = btcAmount / 0.075;
 
       newValue = accounting.formatNumber(newValue, [precision = 4], [thousand = ","], [decimal = "."]);
-      dom.byId("proxyOwnershipPoints").innerHTML = newValue;
+      dom.byId("addProxyOwnershipPoints").innerHTML = newValue;
     },
 
     setLocalAmount: function(btcAmount){
@@ -116,15 +137,15 @@ define(["dojo/dom"
       var localValue = self.bitcoinPrices[self.localCurrency]["24h"];
       var newValue = btcAmount * localValue;
       newValue = accounting.formatNumber(newValue, [precision = 2], [thousand = ","], [decimal = "."]);
-      dom.byId("proxyLocalAmount").innerHTML = newValue;
+      dom.byId("addProxyLocalAmount").innerHTML = newValue;
       if (self.bitcoinPrices[self.localCurrency].symbol){
-        dom.byId("proxyLocalSymbol").innerHTML = self.bitcoinPrices[self.localCurrency].symbol;
+        dom.byId("addProxyLocalSymbol").innerHTML = self.bitcoinPrices[self.localCurrency].symbol;
       }
     },
 
     setBtcAmount: function(btcAmount){
       var newValue = accounting.formatNumber(btcAmount, [precision = 4], [thousand = ","], [decimal = "."]);
-      dom.byId("proxyBtcAmount").innerHTML = newValue;
+      dom.byId("addProxyBtcAmount").innerHTML = newValue;
     },
 
     submit: function(){

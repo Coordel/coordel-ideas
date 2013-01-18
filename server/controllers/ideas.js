@@ -8,7 +8,12 @@ var v1       = '/api/v1'
   , md5      = require('MD5')
   , async    = require('async')
   , twitter  = require('ntwitter')
+  , nodemailer    = require('nodemailer')
+  , fs = require('fs')
   , IdeasController;
+
+var inviteHeaderHtml = fs.readFileSync(__dirname + '/templates/invite/header.html','utf8');
+var inviteFooterHtml = fs.readFileSync(__dirname + '/templates/invite/footer.html', 'utf8');
 
 IdeasController = function(store, socket) {
 
@@ -131,9 +136,6 @@ IdeasController = function(store, socket) {
         user: req.session.currentUser,
         feedback: req.body
       };
-
-
- 
 
       var user = {appId: args.appId};
 
@@ -688,50 +690,175 @@ IdeasController = function(store, socket) {
 
     reply: function(req, res){
       var message = req.body.message
-        , isTweet = req.body.isTweet
+        , isTweet = JSON.parse(req.body.isTweet)
         , user = req.session.currentUser
         , idea = JSON.parse(req.body.idea);
 
       //console.log("reply", idea, user, message);
 
-      Idea.addMessage(idea, user, message, isTweet, function(e, o){
-        if (e){
-          res.json({error: e});
-        } else {
-          res.json({success: o});
-          socket.emit('stream', o);
-        }
-      });
-
+      //if this is a tweet, then we need to get the latest user info to make sure we have their auth
       if (isTweet){
-        console.log("tweet this message", message);
-        var options = {
-          consumer_key: store.twitter.consumerKey,
-          consumer_secret: store.twitter.consumerSecret,
-          access_token_key: user.app.twitterToken,
-          access_token_secret: user.app.twitterTokenSecret
-        };
-        console.log("options", options);
-        var twit = new twitter(options);
+        UserApp.findById(user.appId, function(e, userApp){
 
+          console.log("tweet this message", message);
+          var options = {
+            consumer_key: store.twitter.consumerKey,
+            consumer_secret: store.twitter.consumerSecret,
+            access_token_key: userApp.twitterToken,
+            access_token_secret: userApp.twitterTokenSecret
+          };
+          console.log("options", options);
+          var twit = new twitter(options);
 
-        
-        twit.updateStatus(message, function (err, data) {
-          console.log(err, data);
+          
+          twit.updateStatus(message, function (e, data) {
+            console.log('tried to send tweet', e, data);
+            if (e){
+              console.log("error sending tweet", e);
+              isTweet = false;
+            }
+
+            Idea.addMessage(idea, user, message, isTweet, function(e, o){
+              if (e){
+                res.json({error: e});
+              } else {
+                res.json({success: o});
+                socket.emit('stream', o);
+              }
+            });
+          });
+        });
+      } else {
+        Idea.addMessage(idea, user, message, isTweet, function(e, o){
+          if (e){
+            res.json({error: e});
+          } else {
+            res.json({success: o});
+            socket.emit('stream', o);
+          }
         });
       }
     },
 
     invite: function(req, res){
       var message = req.body.message
-        , user = req.session.currentUser
-        , idea = req.body.idea
+        , user = req.session.currentUser.app
+        , ideaId = req.body.idea
         , toName = req.body.toName
-        , toEmail = req.body.toEmail;
+        , toEmail = req.body.toEmail.toLowerCase()
+        , isFollow = JSON.parse(req.body.isFollow)
+        , contact = req.body.contact;
 
-      //console.log("send invite", message, toName, toEmail, user, idea);
+      if (contact){
+        contact = JSON.parse(contact);
+      }
 
-      res.json({success: "okay"});
+      //if this isfollow, then we just invite the contact from the logged on user
+      
+      
+      if (isFollow){
+        Idea.invite(contact, ideaId, req.session.currentUser.app, function (e, o){
+          if (e){
+            res.json({
+              success: false,
+              errors: [e]
+            });
+          } else {
+            res.json({
+              success: true,
+              idea: o
+            });
+          }
+        });
+      } else {
+        //otherwise, this is an email invite if the user isn't already part of the idea
+        //first check if this user is already a member
+        var redis = store.redis
+          , couch = store.couch;
+
+
+
+        async.parallel({
+          joinHtml: function(cb){
+            var j = '';
+            //console.log("toEmail", toEmail);
+            /*
+            redis.get('users:'+ toEmail, function(e, o){
+              console.log("checked email", e, o);
+              var doJoin = false;
+              if (e) {
+                
+              } else if (o !== null){
+                
+              } else {
+                doJoin = true;
+              }
+
+              if (doJoin){
+                //create the message and links to join coordel
+                j = '<p>Share and support greate ideas. Coordel coordinates micro-funding of great ideas. Two clicks, and your idea is ready to be micro-funded. Support ideas with time or money!<p>';
+                j += '<p>Make great ideas happen. Coordel coordinates working together on Ideas. As fast and simple as email, but better coordinated. Just like a to-do list, but turbo charged.</p>';
+                j += '<p><a href="https://coordel.com">Join us</a>, today</p>';
+              }
+
+              cb(null, j);
+            });
+            */
+            cb(null, j);
+
+          },
+          ideaHtml: function(cb){
+            var i = '';
+            couch.db.get(ideaId, function(e, idea){
+
+
+              i += '<p>Hello ' + toName +',</p>';
+
+              i += '<p><a href="https://' + store.coordelUrl + '/' + user.username + '"><strong>' + user.fullName + '</strong></a> invited you to see an <a href="' + idea.shortUrl + '">Idea</a> ';
+              i += 'on <a href="https://' + store.coordelUrl + '">Coordel</a> and sent you the following message--</p>';
+              
+              i += '<blockquote>&#147;' + message + '&#148;</blockquote>';
+
+              i += '<p>Here is a quick recap of the Idea--</p><blockquote>';
+              
+              i += '<p><strong>Name: </strong> ' + idea.name + '</p>';
+              i += '<p><strong>Purpose: </strong> ' + idea.purpose + '</p>';
+              i += '<p><strong>Link: </strong> ' + idea.shortUrl + '</p></blockquote>';
+              
+              cb(null, i);
+            });
+          }
+        },
+        function(e, results) {
+
+          var body = inviteHeaderHtml + results.ideaHtml + inviteFooterHtml
+            , subject = 'Check out this idea at Coordel';
+
+          var transport = nodemailer.createTransport("SMTP",{
+            service: "Sendgrid", // sets automatically host, port and connection security settings
+            auth: {
+                user: store.sendgrid.username,
+                pass: store.sendgrid.password
+            }
+          });
+
+          var mailOptions = {
+            from: req.session.currentUser.fullName + '<' + req.session.currentUser.email + '>',
+            to: toName + '<' + toEmail + '>',
+            subject: subject,
+            html: body,
+            generateTextFromHtml: true
+          };
+
+          transport.sendMail(mailOptions);
+
+          res.json({
+            success: true
+          });
+          
+        });
+
+      }
     },
 
     supportMoney: function(req, res){
