@@ -24,7 +24,7 @@ module.exports = function(app, express, passport){
     // Add other domains you want the server to give access to
     // WARNING - Be careful with what origins you give access to
     var allowedHost = [
-      'app.coordel.com',
+      'app.coordel.com:8090',
       'dev.coordel.com',
       'dev.coordel.com:8080',
       'work.coordel.com:8443'
@@ -41,6 +41,17 @@ module.exports = function(app, express, passport){
     }
   };
 
+
+  function logErrors(err, req, res, next) {
+    console.error(err.stack);
+    next(err);
+  }
+
+  function errorHandler(err, req, res, next) {
+    res.status(500);
+    res.render('error', { error: err });
+  }
+
   
 
   //configure express
@@ -49,15 +60,15 @@ module.exports = function(app, express, passport){
     app.set('views', __dirname + '/views');
     app.set('view engine', 'ejs');
     app.use(express.logger('dev'));
-    app.use(express.cookieParser());
+    app.use(express.cookieParser('c00rd3lsecretpa$$word'));
     app.use(express.session({
       secret: 'c00rd3lsecretpa$$word',
       store: new RedisStore(options)
     }));
     app.use(express.bodyParser());
     app.use(express.methodOverride());
-    app.use(allowCrossDomain);
-    app.use(express.csrf());
+    app.use(allowCrossDomain); 
+    //app.use(express.csrf());
 
     app.use(function(req, res, next){
       res.locals.token = req.session._csrf;
@@ -72,10 +83,33 @@ module.exports = function(app, express, passport){
 
     app.use(app.router);
     app.use(express.static(path.join(__dirname, 'public')));
+    app.use(function(req, res, next){
+      //res.send(404, 'Sorry cant find that!');
+
+      // respond with html page
+      if (req.accepts('html')) {
+        res.render( 'error/404', { error: 'Not found', url: req.url });
+        return;
+      }
+
+      // respond with json
+      if (req.accepts('json')) {
+        res.send({ success: false, error: 'Not found' });
+        return;
+      }
+
+      // default to plain-text. send()
+      res.type('txt').send('Not found');
+
+
+    });
   });
 
   app.configure('development', function(){
     app.use(express.errorHandler());
   });
+
+  
+
 
 };

@@ -33,8 +33,8 @@ define(["dojo/dom",
 
       self.bitcoinPrices = prices;
 
-      if (self.user.app.localCurrency){
-        self.localCurrency = user.app.localCurrency;
+      if (self.user.localCurrency){
+        self.localCurrency = user.localCurrency;
       }
 
       if (self.user.app.hasPaymentMethod){

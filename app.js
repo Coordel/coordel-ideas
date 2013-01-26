@@ -1,7 +1,9 @@
 //server support
 var express = require('express')
   , https = require('https')
-  , fs = require('fs');
+  , fs = require('fs')
+  , stripe = require('stripe')('E165dyefezzTaQwOZs0146cQRYCfNA1G')
+  , serverConfig = false;
 
 //certificates
 var privateKey = fs.readFileSync('./ssl/private-key.pem').toString();
@@ -34,6 +36,7 @@ var store = {
   couch: require('./stores/couchdb').Store,
   redis: require('./stores/redis').Store,
   bitcoin: require('./stores/bitcoin').Store,
+  email: require('./stores/email').Store,
   timeFormat: "YYYY-MM-DDTHH:mm:ss.SSSZ",
   bitly: bitlyOpts,
   twitter: twitterOpts,
@@ -41,17 +44,53 @@ var store = {
   coordelUrl: settings.coordelUrl
 };
 
+
+
 //configure express
 var app = express();
 require('./configure')(app, express, passport);
 
 
+function configureServer(req, res, next){
+
+    //make sure the server config is in place
+    store.couch.db.get(settings.serverConfigKey, function(e, config){
+      if (e){
+        //create the doc with the key
+        var doc = settings.serverDefaultConfig;
+        doc._id = settings.serverConfigKey;
+        store.couch.db.save(doc, function(e, o){
+          if (e){
+            console.log("ERROR: server doesn't have a default config");
+          } else {
+            doc._rev = o.rev;
+            console.log("SERVER CONFIGURED");
+            serverConfig = doc;
+            req.session.serverConfig = doc;
+            next();
+          }
+        });
+      } else {
+        console.log("SERVER CONFIGURED");
+        serverConfig = config;
+        req.session.serverConfig = config;
+        next();
+      }
+    });
+
+  
+}
+
+
 //authentication middleware
 function authenticateFromLoginToken(req, res, next) {
+
   var cookie = JSON.parse(req.cookies.logintoken)
-    , Token = require('./server/models/token')(store);
+    , Token = require('./server/models/token')(store)
+    , User = require('./server/models/user')(store);
 
   Token.find(cookie.username, function(e, token){
+   
     if (e){
       res.redirect('/intro');
     } else if (!token){
@@ -59,14 +98,17 @@ function authenticateFromLoginToken(req, res, next) {
     } else if (!token.username) {
       res.redirect('/intro');
     } else {
+      
       if (cookie.token === token.token && cookie.series === token.series){
-        Account.get(token.username, function(e, o) {
+        
+        User.findByUsername(token.username, function(e, o) {
+          console.log("tried to do the account", e, o);
           if (o) {
             req.session.username = token.username;
             req.session.currentUser = o;
             token = Token.refresh(cookie);
             Token.save(token, function(){});
-            res.cookie('logintoken', JSON.stringify(token), {expires: new Date(Date.now() + 2 * 604800000), path: '/'});
+            res.cookie('logintoken', JSON.stringify(token), {expires: new Date(Date.now() + 2 * 604800000), path: '/', domain: '.coordel.com'});
             next();
           } else {
             res.redirect('/intro');
@@ -80,6 +122,7 @@ function authenticateFromLoginToken(req, res, next) {
 }
 
 function loadUser(req, res, next) {
+ 
   var oldLink = false;
   if (req.query.p){
     console.log("it's an old link");
@@ -131,8 +174,7 @@ var socket = io.sockets.on('connection', function (client) {
 
 
 //configure passport
-var UserApp = require('./server/models/userApp')(store)
-  , Account = require('./models/account');
+var UserApp = require('./server/models/userApp')(store);
 
 //use the OAuth2Strategy within Passport
 passport.use('coinbase', new OAuth2Strategy({
@@ -140,7 +182,7 @@ passport.use('coinbase', new OAuth2Strategy({
     tokenURL: 'https://www.coinbase.com/oauth/token',
     clientID: settings.auth.coinbase.clientId,
     clientSecret: settings.auth.coinbase.clientSecret,
-    callbackURL: 'https://' + settings.coordelUrl + '/connect/coinbase/callback',
+    callbackURL: settings.coordelUrl + '/connect/coinbase/callback',
     passReqToCallback: true
   },
   function(req, accessToken, refreshToken, profile, done) {
@@ -177,7 +219,7 @@ passport.use('coinbase', new OAuth2Strategy({
 passport.use(new TwitterStrategy({
     consumerKey: settings.auth.twitter.consumerKey,
     consumerSecret: settings.auth.twitter.consumerSecret,
-    callbackURL: "https://" + settings.coordelUrl + "/connect/twitter/callback"
+    callbackURL: settings.coordelUrl + "/connect/twitter/callback"
   },
   function(token, tokenSecret, profile, done) {
     //console.log("callback from twitter", token, tokenSecret, profile, done);
@@ -203,10 +245,11 @@ var Bitcoin = require('./server/controllers/bitcoin')(store);
 var Pledges = require('./server/controllers/pledges')(store, socket);
 
 //client app routes
-app.get('/intro', Intro.index);
-app.get('/preview', Intro.preview);
+app.get('/intro', configureServer,  Intro.index);
+app.get('/preview',  configureServer,  Intro.preview);
 app.get('/login', Users.login);
 app.get('/password', Users.resetPassword);
+app.post('/password', Users.updatePassword);
 app.get('/success', Intro.blueprints);
 app.get('/tos', Intro.tos);
 app.get('/privacy', Intro.privacy);
@@ -214,11 +257,14 @@ app.get('/about', Intro.about);
 
 
 app.post('/sessions', Users.manualLogin); //set up as Login in analytics
-app.post('/sessions/delete', loadUser, Users.logout); //set up as Logout in analytics
-app.post('/signup', Users.startRegistration); //set up as Begin Registration goal in analytics
-app.post('/register', Users.completeRegistration); //set up as Complete Registration goal in analytics
-app.post('/invite'); //set up as Invite goal in analytics
-app.post('/redeem'); //set up as Redeem Invite goal in alytics
+app.post('/sessions/delete', loadUser, Users.logout);
+app.get('/logout', loadUser, Users.logout);
+app.post('/signup', configureServer, Users.startRegistration); //set up as Begin Registration goal in analytics
+app.post('/register', configureServer, Users.completeRegistration); //set up as Complete Registration goal in analytics
+app.post('/invite', Users.invite); //set up as Invite to Join goal in analytics
+app.get('/redeem', Users.startRedeem); //set up as Start Redeem Join Invite goal in alytics
+app.post('/completeRedeem', Users.completeRedeem); //set up as Comlete Redeem Join Invite goal in alytics
+app.post('/requestInvite', Users.requestInvite);
 
 //single idea
 app.get('/ideas/:id', App.showIdea);
@@ -231,16 +277,19 @@ app.get('/contacts/:contactId/profile', Users.getContactMiniProfile);
 //user's blueprints
 app.post('/users/:appId/blueprints', Users.copyBlueprint);
 
+//paging timeline and trending
+app.get('/ideas/timeline/:page', Ideas.findTimeline);
+app.get('/ideas/trending/:page', Ideas.findTrending);
 
 //ideas client pages
 app.post('/ideas', Ideas.create); //set up as Add Idea in analytics
 app.post('/ideas/:id/replies', Ideas.reply);
 app.post('/ideas/:id/invites', Ideas.invite);
 app.post('/ideas/:id/supported', Ideas.support); //set up as Support Idea in analytics
-app.del('/ideas/:id/supported');
-app.post('/ideas/:id/time', Ideas.supportTime); //set up as Support Time in analytics
-app.put('/ideas/:id/time');
-app.del('/ideas/:id/time/');
+app.del('/ideas/:id/supported', Ideas.removeSupport);
+//app.post('/ideas/:id/time', Ideas.supportTime);
+//app.put('/ideas/:id/time');
+//app.del('/ideas/:id/time/');
 app.get('/ideas/:id/users', Ideas.findUsers);
 app.get('/ideas/:id/users/:appId/proxies/allocations', Ideas.findUserProxyAllocationByIdea);
 app.get('/ideas/:id/users/:appId/feedback', Ideas.getUserFeedback);
@@ -250,10 +299,10 @@ app.get('/ideas/:id/pledges/time', Ideas.findTimePledges);
 app.get('/ideas/:id/pledges/proxy', Ideas.findProxyPledges);
 app.get('/ideas/:id/proxies/allocations', Ideas.findProxyAllocations);
 
-app.post('/ideas/:id/money', Ideas.supportMoney); //set up as Support Money in analytics
-app.put('/ideas/:id/money');
-app.del('/ideas/:id/money');
-app.post('/ideas/:id/shared/:service'); //set up as Share Idea in analytics (with third party services--twitter, app.net, etc)
+//app.post('/ideas/:id/money', Ideas.supportMoney);
+//app.put('/ideas/:id/money');
+//app.del('/ideas/:id/money');
+//app.post('/ideas/:id/shared/:service'); //set up as Share Idea in analytics (with third party services--twitter, app.net, etc)
 
 app.get('/', loadUser, App.index);
 app.get('/trending', App.trending);
@@ -265,7 +314,7 @@ app.get('/time', App.timePledged);
 app.get('/proxy', App.proxiedToMe);
 app.get('/feedback', App.feedback);
 app.get('/search', App.search);
-app.get('/:username', App.ideas);
+app.get('/:username', loadUser, App.ideas);
 
 app.get('/:username/supporting', App.supporting);
 app.get('/:username/contacts', App.contacts);
@@ -276,12 +325,15 @@ app.get('/:username/feedback', App.feedback);
 
 
 //settings
-app.get('/settings/profile', function(req, res){});
+app.get('/settings/profile', App.settings);
+
+app.post('/settings/profile', Users.saveProfile);
+app.post('/settings/account', Users.saveAccount);
+
 
 
 app.post('/settings', function(req, res){
 
-  
   var appId = req.session.currentUser.appId
     , keys = req.body.keys;
 
@@ -323,6 +375,28 @@ app.get('/settings/reset', function(req, res){
   });
 });
 
+//stripe
+app.post('/connect/stripe/payments', function(req, res){
+  var token = req.body.stripeToken
+    , amount = req.body.submitAmount
+    , description = req.body.description;
+
+  console.log("amount", amount);
+
+  var charge = {
+    amount: parseInt(amount, 10) * 100,
+    currency: 'usd',
+    card: token,
+    description: description
+  };
+
+  console.log("charge", charge);
+
+  stripe.charges.create(charge, function(e, o){
+    console.log("from testing of charge", e, o);
+  });
+
+});
 
 //coinbase
 app.post('/coinbase/users', Coinbase.createUser);
@@ -349,10 +423,12 @@ app.get('/connect/coinbase/error', function(req, res){
 // Finish the authentication process by attempting to obtain an access
 // token.  If authorization was granted, the user will be logged in.
 // Otherwise, authentication has failed.
-app.get('/connect/coinbase/callback',
+app.get('/connect/coinbase/callback', //set up in analytics as Coinbase Connection
   passport.authorize('coinbase', {failureRedirect: '/login' }), function(req, res){
     res.render('close');
   });
+
+app.get('/disconnect/coinbase', Users.disconnectCoinbase);
 
 
 //twitter routes
@@ -363,9 +439,10 @@ app.get('/connect/twitter',
     // The request will be redirected to Twitter for authentication, so this
     // function will not be called.
   });
+app.get('/disconnect/twitter', Users.disconnectTwitter);
 
 // GET /connect/twitter/callback
-app.get('/connect/twitter/callback',
+app.get('/connect/twitter/callback', //set up in analytics as Twitter Connection
   passport.authorize('twitter', { failureRedirect: '/intro' }),
   function(req, res) {
     var user = req.session.currentUser;
@@ -422,18 +499,17 @@ app.get(v1 + '/ideas/:id', Ideas.findDetails);
 app.post(v1 + '/ideas');
 app.get(v1 + '/ideas/:id/stream', Ideas.findStream);
 
-app.post(v1 + '/pledges/money', Pledges.create);
+app.post(v1 + '/pledges/money', Pledges.create); //set up as Pledge Money in analytics
 app.put(v1 + '/pledges/money/:pledgeId', Pledges.save);
-app.post(v1 + '/pledges/allocations', Pledges.allocate);
+app.post(v1 + '/pledges/allocations', Pledges.allocate); //set up as Allocate Money in analytics
 
 app.post(v1 + '/pledges/timeReports', Pledges.reportTime);
-app.post(v1 + '/pledges/time', Pledges.create);
+app.post(v1 + '/pledges/time', Pledges.create); //set up as Pledge Time in analytics
 app.put(v1 + '/pledges/time/:pledgeId', Pledges.save);
 
 
-app.post(v1 + '/proxies/allocations', Pledges.proxyAllocate);
+app.post(v1 + '/proxies/allocations', Pledges.proxyAllocate); //set up as Allocate Proxies in analytics
 app.post(v1 + '/proxies/deallocations', Pledges.proxyDeallocate);
-
 
 ///////********************************************************************//////
 server.listen(app.get('port'), function(){

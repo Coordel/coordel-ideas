@@ -55,6 +55,7 @@ define([
           var self = this;
 
           domClass.remove(self.pledgeSupportContainer, "hide");
+          domClass.add(self.removeSupportContainer, "hide");
           domClass.remove(self.pledgeMoneyContainer, "hide");
           domClass.add(self.releaseMoneyContainer, "hide");
           domClass.add(self.addProxyContainer, "hide");
@@ -74,16 +75,20 @@ define([
 
           self.resetState();
         
-          //if I'm the creator of this idea, then hide the support button
+          //if I'm the creator of this idea, then hide the support/removeSupport buttons
           if (user.app.id === idea.creator){
             domClass.add(self.pledgeSupportContainer, "hide");
+            domClass.add(self.removeSupportContainer, "hide");
           }
-
-
 
           //if I'm already supporting this idea, hide the support option
           if (array.indexOf(user.account.supportedIdeas, idea._id )>-1){
             domClass.add(self.pledgeSupportContainer, "hide");
+            //if I'm not the creator, then show the option to remove support
+            console.log("updating because this is an idea I'm supporting");
+            if(idea.creator !== self.currentUser.appId){
+              domClass.remove(self.removeSupportContainer, "hide");
+            }
           }
 
           //if i've already pledged money, remove pledge money;
@@ -157,7 +162,6 @@ define([
 
           //if proxy, then show or hide allocation
           if (self.subNavId === "subNavProxy"){
-         
             if (array.indexOf(user.account.allocatedProxiedToMeIdeas, self.idea._id) === -1){
                domClass.remove(self.proxyAllocateContainer, "hide");
             } else {
@@ -273,7 +277,7 @@ define([
           }
 
           var sptHandle = topic.subscribe("coordel/supportAccount", function(acct){
-  
+            console.log("supportAccount", acct);
             //self.currentUser.account = acct;
             if (self.currentUser.appId === self.idea.creator){
               self.user.account = acct;
@@ -290,16 +294,27 @@ define([
 
           topic.subscribe("coordel/coinbaseAuthorize", function(account){
             console.log("coinbaseAuthorize", self.currentUser, account);
-            
           });
 
 
 
           topic.subscribe("coordel/ideaAction", function(action, ideaId, type){
+            console.log("ideaAction", action, ideaId, type);
       
             if (self.idea._id === ideaId){
+
             
               switch (action) {
+                case "support":
+                  $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  domClass.add(self.pledgeSupportContainer, "hide");
+                  domClass.remove(self.removeSupportContainer, "hide");
+                  break;
+                case "removeSupport":
+                  $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  domClass.remove(self.pledgeSupportContainer, "hide");
+                  domClass.add(self.removeSupportContainer, "hide");
+                  break;
                 case "pledgeMoney":
                   //do a highlight to indicate something happened
                   $(self.domNode).delay(200).fadeOut().fadeIn('fast');
@@ -389,7 +404,7 @@ define([
           this.userNameLink.href = '/'+this.user.username;
           this.userNameLink.innerHTML = this.user.fullName;
 
-          this.usernameLink.innerHTML = this.user.username;
+          //this.usernameLink.innerHTML = this.user.username;
 
           if (this.currentUser){
             this.setState(this.currentUser);
@@ -628,9 +643,35 @@ define([
                 }
             }).then(function(res){
               //update supporting
+              console.log("supported response", res);
               res = JSON.parse(res);
               if (res.success){
-                topic.publish("coordel/supportIdea", res.success);
+                topic.publish("coordel/supportIdea", res.incrementBy);
+                console.log("self", self.idea);
+                topic.publish("coordel/ideaAction", "support", self.idea._id);
+              }
+                
+            });
+          });
+
+          //remove support
+          on(self.removeSupport, 'click', function(e){
+            xhr.del("/ideas/" + self.idea._id + "/supported", {
+                data: {
+                  userid: self.currentUser.id,
+                  id: self.idea._id
+                },
+                headers: {
+                  "X-CSRF-Token": _csrf
+                }
+            }).then(function(res){
+              //update supporting
+              console.log("removed response", res);
+              res = JSON.parse(res);
+              if (res.success){
+                topic.publish("coordel/supportIdea", res.incrementBy);
+                console.log("self", self.idea);
+                topic.publish("coordel/ideaAction", "removeSupport", self.idea._id);
               }
                 
             });

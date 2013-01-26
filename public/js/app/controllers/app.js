@@ -63,6 +63,11 @@ define(["dojo/dom",
       this.contacts = args.contacts;
       this.show();
 
+
+      if (!args.subNav && !args.registrationOpen){
+        self.closeRegistration();
+      }
+
       self.setSearch();
      
       timeForm.init(args.user);
@@ -86,6 +91,45 @@ define(["dojo/dom",
         });
 
 
+    },
+
+    closeRegistration: function(){
+      var self = this;
+      console.log("registration closed");
+      domClass.add(dom.byId("registrationForm"), "hide");
+      domClass.remove(dom.byId("registrationClosedMessage"), "hide");
+
+
+      $(function() {
+        $('#requestSignupButton').click(function(e) {
+          var _csrf = $('#addIdea_csrf').val();
+          console.log("clicked", _csrf);
+          var email = $("#request-signup-email").val()
+            , fullname = $("#request-signup-fullname").val();
+          // Prevent the form from submitting with the default action
+
+          $.ajax( {
+          url: '/requestInvite',
+          type: 'post',
+          data: {email: email, fullname: fullname},
+          headers: {
+              "X-CSRF-Token":  _csrf//for object property name, use quoted notation shown in second
+          },
+          dataType: 'json',
+          success: function( res )
+          {
+            //self.model.timeline.notify(idea);
+            //topic.publish("coordel/addIdea", idea);
+            console.log("res", res);
+            domClass.add(dom.byId("requestInviteForm"), "hide");
+            domClass.remove(dom.byId("requestInviteSuccessMessage"), "hide");
+            
+            domClass.add(dom.byId("closedRegistrationAlert"), "hide");
+          }
+        });
+          return false;
+        });
+      });
     },
 
     setSearch: function(){
@@ -613,6 +657,8 @@ define(["dojo/dom",
     showTimeline: function(args){
       var self = this;
 
+      
+
 
 
       /*
@@ -642,9 +688,7 @@ define(["dojo/dom",
         isMe = false;
       }
 
-   
-
-      array.forEach(ideas, function(item){
+      function showIdea(item){
         var options = {
           idea: item,
           currentUser: self.model.currentUser,
@@ -683,7 +727,107 @@ define(["dojo/dom",
         } else {
           i =
         }*/
+      }
+
+   
+
+      array.forEach(ideas, function(item){
+        showIdea(item);
+        /*
+        var options = {
+          idea: item,
+          currentUser: self.model.currentUser,
+          contacts: self.model.contacts
+        };
+
+
+
+        if (isMe && options.currentUser ){
+          options.user = options.currentUser;
+        }
+
+        if (!isMe){
+          options.user = self.otherUser.user;
+        }
+
+        if (args && args.showDogears){
+          options.showDogears = true;
+        }
+
+        if (args && args.showFeedback){
+          options.showFeedback = true;
+        }
+
+        if (self.subNavId){
+          options.subNavId = self.subNavId;
+        }
+
+      
+
+        var i =new idea(options).placeAt("stream-items-container");
+        */
+        /*
+        if (args && args.unsorted){
+          console.log("idea name", idea.name);
+          i = new idea(options).placeAt("stream-items-container", "last");
+        } else {
+          i =
+        }*/
       });
+
+
+      var _renderItem = function(item) {
+        showIdea(item);
+      };
+
+      console.log("doing the infinite scroll");
+
+      $('#stream-items-container').infinitescroll({
+
+        // callback   : function () { console.log('using opts.callback'); },
+        navSelector   : "#scrollNext",
+        nextSelector  : "#scrollNext",
+        itemSelector  : "#stream-items-container .idea",
+        loading: {
+          finished: undefined,
+          finishedMsg: "",
+          img: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
+          msg: null,
+          msgText: "",
+          selector: null,
+          speed: 'fast',
+          start: undefined
+        },
+        state: {
+          currPage: 0
+        },
+        debug     : false,
+        dataType    : 'json',
+        extraScrollPx: 200,
+        path: function(pageNumber) {
+          console.log("pagenumber", pageNumber);
+          return "/ideas/timeline/" + pageNumber;
+        } ,
+        //behavior    : 'twitter',
+        appendCallback  : false // USE FOR PREPENDING
+        //pathParse      : function( pathStr, nextPage ){ return pathStr.replace('2', nextPage ); }
+      }, function( response, opts ) {
+        console.log("response, opts", response, opts);
+        var jsonData = response.results;
+
+        console.log("isDone", opts.state.isDone);
+           
+            var newElements = "";
+                //var newItems = new Array();
+            for(var i=0;i<jsonData.length;i++) {
+                  var item = $(_renderItem(jsonData[i]));
+                  //item.css({ opacity: 0 });
+                  //$theCntr.append(item);
+                  //newItems.push(item.attr('id'));
+            }
+                //_addMasonryItem(newItems);
+              });
+  
 
       self.ideasHandler = ideas.observe(function(item, removedFrom, insertedInto){
         

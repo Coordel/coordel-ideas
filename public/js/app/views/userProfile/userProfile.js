@@ -24,8 +24,8 @@ define([
       this.inherited(arguments);
       var self = this;
 
-      if (self.user.app.localCurrency){
-        self.localCurrency = self.user.app.localCurrency;
+      if (self.user.localCurrency){
+        self.localCurrency = self.user.localCurrency;
       }
 
       self.profileImage.src = self.user.imageUrl;

@@ -75,6 +75,9 @@ var bitcoin = {
       log("from cache");
       fn(prices);
     }
+  },
+  currencies: function(){
+    return currencyNames;
   }
 };
 

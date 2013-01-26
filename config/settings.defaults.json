@@ -1,7 +1,12 @@
 {
   "version": "0.0.1",
-  "coordelUrl": "work.coordel.com:8443",
-  "url" : "work.coordel.com",
+  "coordelUrl": "https://coordel.com",
+  "url" : "coordel.com",
+  "featuresId": "8a4b8149be3998252f9253273245bf62",
+  "serverConfigKey": "06723cc8f208f89db2958828c052e336",
+  "serverDefaultConfig": {
+    "registrationOpen": true
+  },
   "auth" : {
     "fb": {
       "appId": "145674338818252", 

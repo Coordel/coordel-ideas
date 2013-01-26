@@ -22,8 +22,8 @@ define(["dojo/dom"
       self.user = user;
       self.bitcoinPrices = prices;
 
-      if (user.app.localCurrency){
-        self.localCurrency = user.app.localCurrency;
+      if (user.localCurrency){
+        self.localCurrency = user.localCurrency;
       }
 
       if (user.app.coinbaseAccessToken){

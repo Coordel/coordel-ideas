@@ -19,6 +19,7 @@ define([
     postCreate: function(){
       this.inherited(arguments);
       var self = this;
+       console.log("feedback", self.feedback);
 
       self.contacts = array.filter(self.contacts, function(item){
         return item;
@@ -36,6 +37,7 @@ define([
       self.userNameLink.innerHTML = self.from.fullName;
       self.usernameLink.innerHTML = self.from.username;
       self.ideaName.innerHTML = self.feedback.name;
+      self.ideaUrl.href = '/i/'+self.feedback.hash;
       self.feedbackDate.innerHTML = moment(self.feedback.created).format("h:mm A D MMM YY");
 
       if (self.feedback.comment){

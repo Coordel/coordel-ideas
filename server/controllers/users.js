@@ -48,7 +48,7 @@ UsersController = function(store) {
       userData.userId = ids[0];
       userData.appId = ids[1];
       
-      //console.log("register userData", userData);
+      console.log("register userData", userData);
 
       //in the original app, firstName and lastName were used. in the latest version, that was replaced with fullname
       //to maintain compatibility, need to try and create the first and last names from the fullname given
@@ -56,37 +56,42 @@ UsersController = function(store) {
       var names = userData.fullName.split(' ');
       if (names.length >= 2){
         //this makes the assumption that the first name and the last name of 3 or more name parts is first and last
-        firstName = names[0];
-        lastName = names[names.length - 1];
+        userData.firstName = names[0];
+        userData.lastName = names[names.length - 1];
       } else if (names.length > 1 && names.length < 2){
         //assumes that first given is first and last is last (might not fit with all cultures)
         userData.firstName = names[0];
         userData.lastName = names[1];
       } else if (names.length === 1){
         //makes the first name the only given name if one only
-        firstName = names[0];
+        userData.firstName = names[0];
+        userData.lastName = "";
       }
 
-      var funcs = [];
+      console.log("userdata after name check", userData);
 
-      //create the user
-      funcs.push(User.create(userData, function(e, o){
-        console.log("user created", e, o);
-      }));
-
-      /*
-      //create the user's App
-      funcs.push(App.create(userData, function(e, o){
-        console.log("app created", e, o);
-      }));
-*/
-
-      async.parallel(funcs, function(e, o){
-        //return all the created objects from the registration process
-        console.log("async done", e, o);
-        fn(false, o);
+      async.parallel({
+        user: function(cb){
+          User.create(userData, function(e, o){
+            console.log("user created", e, o);
+             
+            cb(null, o);
+          });
+        },
+        userApp: function(cb){
+          App.create(userData, function(e, o){
+            console.log("app created", e, o);
+            cb(null, o);
+          });
+        }
+      },
+      function(e, results) {
+        if (e){
+          fn(e);
+        } else {
+          fn(null, results);
+        }
       });
-
     });
   }
 
@@ -119,31 +124,94 @@ UsersController = function(store) {
     var userData = {};
     
     switch (origin){
-        case 'index-signup':
-          //this came from the intro homepage
-          userData.fullName = req.body['signup-fullname'].trim();
-          userData.email = req.body['signup-email'];
-          userData.password = req.body['signup-password'];
-          break;
-        case 'signup':
-          //this came from the intro homepage
-          userData.fullName = req.body['fullname'].trim();
-          userData.email = req.body['email'];
-          userData.password = req.body['password'];
-          break;
-        case 'invite':
-          //comes from when an invite is posted to an idea by a user
-          break;
-        default:
-          //this is here in case there isn't a source or there is a problem
-          userData.fullName = '';
-          userData.email = '';
-          userData.password = '';
-      }
+      case 'index-signup':
+        //this came from the intro homepage
+        userData.fullName = req.body['signup-fullname'].trim();
+        userData.email = req.body['signup-email'].toLowerCase();
+        userData.password = req.body['signup-password'];
+        userData.username = '';
+        break;
+      case 'signup':
+        //this came from the intro homepage
+        userData.fullName = req.body['fullname'].trim();
+        userData.email = req.body['email'].toLowerCase();
+        userData.password = req.body['password'];
+        userData.username = req.body['username'].toLowerCase();
+        break;
+      case 'redeem':
+        //comes from when an invite is send from the app to a user
+        userData.fullName = req.body['fullname'].trim();
+        userData.email = req.body['email'].toLowerCase();
+        userData.password = '';
+        userData.username = '';
+        break;
+      default:
+        //this is here in case there isn't a source or there is a problem
+        userData.fullName = '';
+        userData.email = '';
+        userData.password = '';
+        userData.username = '';
+    }
 
-      return userData;
+    return userData;
   }
 
+  function login (req, res, username, password){
+    User.login(username, password, function(e, o){
+      console.log("back from login", e, o);
+
+      if (e){
+        console.log("redirecting to login");
+        //fail, redirect to signin
+        res.redirect('/login');
+
+      } else if (o === null ){
+        //fail, redirect to signin
+        res.redirect('/login');
+
+      } else {
+        //console.log("login okay, user is good", o);
+        req.session.username = o.username;
+        req.session.currentUser = o;
+        console.log("body", req.body);
+        // Remember me
+        if (req.body.remember_me) {
+          //console.log("remember this user");
+          var token = Token.generate(o.username);
+          //console.log("token", Token);
+          res.cookie('logintoken', JSON.stringify(token), { expires: new Date(Date.now() + 2 * 604800000), path: '/' , domain: '.coordel.com'});
+        }
+        res.redirect('/');
+      }
+      
+    });
+  }
+
+  function startRegistration(req, res, userData){
+    console.log("userdata", userData);
+
+    if (userData.email && userData.email.length){
+      var key = 'registration-starts';
+
+      //only save the email and fullname if submitted
+      var val = {
+        email: userData.email.toLowerCase(),
+        created: moment().format(store.timeFormat)
+      };
+
+      if (userData.fullName && userData.fullName.length){
+        val.fullName = userData.fullName;
+      }
+
+      console.log('started registrations', val);
+
+      store.redis.sadd(key, JSON.stringify(val));
+    }
+
+    res.render('user/signup', userData);
+  }
+
+    
   var Users = {
 
     copyBlueprint: function(req, res){
@@ -181,6 +249,34 @@ UsersController = function(store) {
       res.render('user/resendPassword');
     },
 
+    updatePassword: function(req, res){
+      var current = req.body.current
+        , newPass = req.body.newPass;
+
+      var args = {
+        id: req.session.currentUser.id,
+        current: req.body.current,
+        newPass: req.body.newPass
+      };
+
+      console.log("args to send to updatePassword", args);
+
+      User.updatePassword(args, function(e, text){
+        if (e){
+          res.json({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          res.json({
+            success: true,
+            message: text
+          });
+        }
+      });
+
+    },
+
     getContactMiniProfile: function(req, res){
       var appId = req.params.appId
         , contactId = req.params.contactId;
@@ -199,6 +295,64 @@ UsersController = function(store) {
       });
     },
 
+    saveProfile: function(req, res){
+      var id = req.session.currentUser.id
+        , data = req.body;
+
+      console.log('saving profile', id, data);
+
+      User.save(id, data, function(e, user){
+        if (e){
+          res.json({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          req.session.currentUser = user;
+          res.json({
+            success: true,
+            user: user
+          });
+        }
+      });
+    },
+
+    saveAccount: function(req, res){
+      var id = req.session.currentUser.id
+        , data = req.body;
+
+      console.log('saving account', id, data);
+
+      User.save(id, data, function(e, user){
+        if (e){
+          res.json({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          req.session.currentUser = user;
+          res.json({
+            success: true,
+            user: user
+          });
+        }
+      });
+    },
+
+    disconnectTwitter: function(req, res){
+      App.disconnectTwitter(req.session.currentUser.appId, function(e, app){
+        console.log(app, req.session.currentUser.app);
+        //req.session.currentUser.app = app;
+      });
+    },
+
+    disconnectCoinbase: function(req, res){
+      App.disconnectCoinbase(req.session.currentUser.appId, function(e, app){
+        console.log(app, req.session.currentUser.app);
+        //req.session.currentUser.app = app;
+      });
+    },
+
     manualLogin: function(req, res){
       console.log("doing manual login");
       var username = req.body['login-username'];
@@ -207,57 +361,52 @@ UsersController = function(store) {
       var funcs = [];
       var user;
       //login the user
-      User.login(username, password, function(e, o){
-        console.log("back from login", e, o);
-
-        if (e){
-          //fail, redirect to signin
-          res.redirect('/signin');
-        } else if (o === null ){
-          //fail, redirect to signin
-          res.redirect('/signin');
-
-        } else {
-          console.log("login okay, user is good", o);
-          req.session.username = o.username;
-          req.session.currentUser = o;
-          // Remember me
-          if (req.body.remember_me) {
-            console.log("remember this user");
-            var token = Token.generate(o.username);
-            console.log("token", Token);
-            res.cookie('logintoken', JSON.stringify(token), { expires: new Date(Date.now() + 2 * 604800000), path: '/' });
-          }
-        }
-        
-        res.redirect('/');
-      });
-      /*
-      funcs.push();
-
-      async.parallel(funcs, function(e, o){
-        console.log("parallel done", e, o);
-        res.render('index', user);
-      });
-      */
-      //get the ideas profile
-
-      //get the settings profile
+      login(req, res, username, password);
 
     },
 
     logout: function(req, res){
       if (req.session) {
         var username = req.session.username;
+       
+        
         res.clearCookie('logintoken');
+
+        
         req.session.destroy(function() {});
+        
         if (username){
-          Token.remove(username, function(){});
+          Token.remove(username, function(e, o){
+           
+          });
+          
         }
       }
-      res.redirect('/intro');
+
+      res.redirect('/');
     },
 
+    requestInvite: function(req, res){
+      var user = {
+        fullname: req.body.fullname,
+        email: req.body.email
+      };
+      console.log("user", user);
+      User.requestInvite(user, function(e, o){
+        console.log("inviterequest", e, o);
+        if (e){
+          res.json({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          res.json({
+            success: true
+          });
+        }
+      });
+    },
+    
     checkEmail: function(req, res){
       var redis = store.redis
         , email = req.query.email.toLowerCase();
@@ -268,7 +417,7 @@ UsersController = function(store) {
         res.json({error: 'invalid-email', report: v.errors});
       } else {
         //this checks if this email is available in user:[email];
-        redis.get('user:'+ email, function(e, o){
+        redis.get('users:'+ email, function(e, o){
           var message = 'This email is already registered!';
           console.log("get email", e,o);
           if (e) {
@@ -282,8 +431,6 @@ UsersController = function(store) {
       }
     },
 
-   
-
     checkUsername: function(req, res){
       //checks that this username is available
       var redis = store.redis
@@ -295,9 +442,9 @@ UsersController = function(store) {
         res.json({error: 'invalid-username', report: v.errors});
       } else {
         //this checks if this username is available in user:[username];
-        redis.get('user:' + username, function(e, o){
+        redis.get('users:' + username, function(e, o){
           var message = 'This username is already taken!';
-          console.log("sismember username", e, o);
+          console.log("get username", e, o);
           if (e) {
             res.json(message);
           } else if (o !== null){
@@ -319,39 +466,7 @@ UsersController = function(store) {
 
       userData = getData(req, origin);
 
-      //create a default username if there is a fullname
-      if (userData.fullName.length){
-        var username = '';
-        var names = userData.fullName.split(' ');
-        _.forEach(names, function(name){
-          username += name.toLowerCase();
-        });
-        userData.username = username;
-      } else {
-        userData.username = '';
-      }
-
-      //if there is an email in the submission save it
-      if (userData.email && userData.email.length){
-        var redis = store.redis
-          , key = 'registration-starts';
-
-        //only save the email and fullname if submitted
-        var val = {
-          email: userData.email,
-          created: moment().format(store.timeFormat)
-        };
-
-        if (userData.fullName && userData.fullName.length){
-          val.fullName = userData.fullName;
-        }
-
-        console.log('started registrations', val);
-
-        redis.sadd(key, JSON.stringify(val));
-      }
-
-      res.render('user/signup', userData);
+      startRegistration(req,res,userData);
     },
 
     completeRegistration: function(req, res){
@@ -360,72 +475,212 @@ UsersController = function(store) {
         , origin= req.body.origin;
 
       userData = getData(req, origin);
+      if (origin === 'redeem'){
 
-      /*
-      switch (origin){
-        case 'index-signup':
-          //this came from the intro homepage
-          userData.fullName = req.body['signup-fullname'].trim();
-          userData.email = req.body['signup-email'];
-          userData.password = req.body['signup-password'];
-          break;
-        case 'signup':
-          //this came from the intro homepage
-          userData.fullName = req.body['fullname'].trim();
-          userData.email = req.body['email'];
-          userData.password = req.body['password'];
-          break;
-        case 'invite':
-          //comes from when an invite is posted to an idea by a user
-          break;
-        default:
-          //this is here in case there isn't a source or there is a problem
-          userData.fullName = '';
-          userData.email = '';
-          userData.password = '';
-      }
-      */
-
-      //create a default username if there is a fullname
-      if (userData.fullName.length){
-        var username = '';
-        var names = userData.fullName.split(' ');
-        _.forEach(names, function(name){
-          username += name.toLowerCase();
-        });
-        userData.username = username;
       } else {
-        userData.username = '';
+        register(userData, function(e, o){
+          console.log("registered", e, o);
+          if (e) {
+            console.log("registration errors", e, o);
+            //handle registration errors
+          } else {
+            login(req, res, o.userApp.username, o.userApp.password);
+          }
+        });
       }
-
-      register(userData, function(e, o){
-        console.log("registered", e, o);
-        if (e) {
-          //handle registration errors
-        } else {
-          res.redirect('/');
-        }
-      });
-
-      
-    },
-
-
-
-    validateRegistration: function(req, res){
-
     },
 
     invite: function(req, res){
+      var invite = req.body;
+      console.log("invite body", invite);
 
-      var userData = req.body;
-      userData.currUser = req.session.appId;
-      userData.password = tempPassword();
-     
-      //the fromUser is the current user
-      //the email and fullName from the form are the toUser
+      //first we need to make a lookup for the invite so when the user comes back
+      //create a hash of the invite id that can be used for lookup in the redeem call
+      //use the inviteid to create the hash and then store the id as the value
+      //then use the id to find the started app in redeem
 
-      //register the toUser
+      //this user has been created in the invite process in the app, need to make the new
+      //lookup entry for it
+
+      store.redis.set('users:'+invite.to.email.trim().toLowerCase(), invite.userId);
+
+      //inviteId will be in the invite
+      var b = new Buffer(invite.userId.toString())
+        , hash = b.toString('base64')
+        , key = 'invite-hashes:' + hash;
+
+      console.log("hash", hash);
+
+      invite.hash = encodeURIComponent(hash);
+   
+      //need to make it possible to find the user by the hash
+      store.redis.set(key, invite.to.email, function(e, o){
+        if (e){
+          res.json(500, {
+            success: false,
+            errors: [e]
+          });
+        } else {
+
+          var template = 'invite';
+          if (invite.data.docType){
+            template = 'taskInvite';
+          }
+
+          var mailOptions = invite;
+
+          mailOptions.to.fullName = mailOptions.to.firstName + ' ' + mailOptions.to.lastName;
+          mailOptions.from.fullName = mailOptions.from.firstName + ' ' + mailOptions.from.lastName;
+          mailOptions.subject = invite.subject;
+
+          //send email invite
+          store.email.send(template, mailOptions);
+          
+          res.json(200, {
+            success: true
+          });
+        }
+      });
+    },
+
+    startRedeem: function(req, res){
+      var hash = decodeURIComponent(req.query.i)
+        , redis = store.redis;
+
+      
+      //if there are any errors, just render the default signup page
+      var defaultData = {
+            fullName : '',
+            email : '',
+            password : '',
+            username : ''
+          };
+      if (hash){
+
+        redis.get('invite-hashes:'+hash, function(e, id){
+
+          console.log("hash", hash, id);
+    
+          //load the user with the userid
+          var key = 'user:' + id;
+          console.log("USER GET KEY", key);
+          redis.hgetall(key, function(e, user){
+            console.log("USER", e, user);
+            if (e){
+              //console.log("couldn't load existing user from store",err);
+              fn('user-not-found');
+            } else {
+              user.hash = hash;
+
+              //console.log("found the user", user);
+              if (!user.fullName){
+                if (user.firstName && user.lastName){
+                  user.fullName = user.firstName + ' ' + user.lastName;
+                } else {
+                  user.fullName = '';
+                }
+              }
+
+              if (!user.username){
+                user.username = '';
+              }
+
+              //blank the temp password so the user can enter a new one
+              user.password = '';
+
+              res.render('user/redeem', user);
+            }
+          });
+
+          //now we have the id of the user load the user
+
+          /*
+          redis.sismember(['coordel-invites', 'invite:' + id], function(err, reply) {
+            console.log("after testing  sismember", err, reply);
+            if (err){
+              //problem with getting invite
+              //console.log("error getting invite from store", err);
+              startRegistration(req, res, defaultData);
+            } else if (!reply){
+              //console.log("invite didn't exist");
+              startRegistration(req, res, defaultData);
+            } else if (reply) {
+              //console.log("invite existed, loading");
+              var key = 'invite:' + id;
+              console.log("key for get", key);
+              redis.hgetall(key, function(err, invite){
+                if (err){
+                  //console.log("couldn't load existing invite from store",err);
+                  startRegistration(req, res, defaultData);
+                } else {
+                  console.log("found the invite", invite);
+                  var data = {};
+                  if (invite.firstName && invite.lastName){
+                    data.fullName = invite.firstName + ' ' + invite.lastName; // create the full name okay because user can change it
+                  } else {
+                    data.fullName = '';
+                  }
+                  data.email = invite.to;
+                  data.password = '';
+                  data.username = '';
+                  data.origin = 'redeem';
+                  //post the data '/signup' to complete registration
+                  startRegistration(req, res, data);
+                }
+              });
+            }
+          });
+          */
+        });
+      } else {
+        startRegistration(req, res, defaultData);
+      }
+    },
+
+    completeRedeem: function(req, res){
+      //this updates the in app invite process...when the user invite is created, a hash is created that provides
+      //the key (invite-hashes:hash) to get the user's email. from the email, it's possible to get both the user and userApp
+      //records that were created. Each needs to be updated with the user's username and password
+      var hash = req.body.hash
+        , fullName = req.body.fullname
+        , username = req.body.username
+        , password = req.body.password
+        , remember = req.body.remember_me;
+
+      if (hash){
+        var redis = store.redis
+          , hashkey = 'invite-hashes:' + hash;
+
+        //from the has we can get to the email of the user that is used to access the user:email record created by the app
+        redis.get(hashkey, function(e, email){
+          if (e){
+            //error
+          } else {
+            //get the user created by the app
+            var userkey = 'user:' + email;
+
+            redis.hgetall(userkey, function(e, user){
+              if (e){
+                //error
+              } else {
+                //now update the user set created by the app and call redeem to come online with new registration
+                user.fullName = fullName;
+                user.username = username;
+                user.password = password;
+                User.redeem(user, function(e, redeemed){
+                  if (e){
+                    //error
+                  } else {
+                    //the redeemed user can that be used to login to the app
+                    login(req, res, redeemed.username, redeemed.password);
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+
     },
 
     setAppValues: function(req, res){

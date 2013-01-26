@@ -2,7 +2,8 @@
   A pledge tracks what someone who pleges money gives
 */
 var _ = require('underscore')
-  , md5 = require('MD5');
+  , md5 = require('MD5')
+  , templates = require('../../templates');
 
 
 module.exports = function(store) {
@@ -66,41 +67,6 @@ module.exports = function(store) {
         description: 'full name of user',
         type: 'string',
         required: true
-      },
-      user: {
-        description: '_id of doc with users profile',
-        type: 'string', //redis wants 0 not false
-        required: true
-      },
-      defaultTemplatesLoaded: {
-        description: '1 if loaded 0 if not loaded yet',
-        type:'integer',
-        'default': 0
-      },
-      myDelegatedProject: {
-        description: '_id of doc with users delegated project',
-        type: 'string', //redis wants 0 not false
-        required: true
-      },
-      myPrivateProject: {
-        description: '_id of doc with users private project',
-        type: 'string', //redis wants 0 not false
-        required: true
-      },
-      myPrivateRole: {
-        description: '_id of doc with users private role',
-        type: 'string', //redis wants 0 not false
-        required: true
-      },
-      showQuickStart: {
-        description: '1 if quick start shown 0 if not shown yet',
-        type:'integer',
-        'default': 0
-      },
-      suppressEmail: {
-        description: '1 if quick start shown 0 if not shown yet',
-        type:'integer',
-        'default': 0
       }
     }
   };
@@ -114,7 +80,7 @@ module.exports = function(store) {
       if (err){
         fn(err, false);
       } else {
-        //console.log("uuids", uuids);
+        console.log("uuids", uuids, templates);
         var privProj = templates.privateProject,
             privRole = templates.privateRole,
             delegate = templates.delegatedProject,
@@ -124,7 +90,7 @@ module.exports = function(store) {
             toReturn = {};
         
         privProj._id = uuids[0];
-        toReturn.privateProject = uuids[0];
+        userData.privateProject = uuids[0];
         privProj.responsible = userData.appId.toString();
         privProj.users = [userData.appId.toString()];
         privProj.assignments = [{
@@ -140,7 +106,7 @@ module.exports = function(store) {
         objs.push(privProj);
         
         privRole._id = uuids[1];
-        toReturn.privateRole = uuids[1];
+        userData.privateRole = uuids[1];
         privRole.project = uuids[0];
         privRole.username = userData.appId.toString();
         privRole.isNew = false;
@@ -152,7 +118,7 @@ module.exports = function(store) {
         objs.push(privRole);
         
         delegate._id = uuids[2];
-        toReturn.delegatedProject = uuids[2];
+        userData.delegatedProject = uuids[2];
         delegate.responsible = userData.appId.toString();
         delegate.users = [userData.appId.toString()];
         delegate.assignments = [{
@@ -168,7 +134,7 @@ module.exports = function(store) {
         objs.push(delegate);
         
         user._id = uuids[3];
-        toReturn.user = uuids[3];
+        userData.user = uuids[3];
         user.first = userData.firstName;
         user.last = userData.lastName;
         user.fullName = userData.fullName;
@@ -190,10 +156,29 @@ module.exports = function(store) {
           if (err){
             fn(err, false);
           } else {
-            fn(null, toReturn);
+            fn(null, userData);
           }
         });
       }
+    });
+  }
+
+  function updateSettings(key, settings, fn){
+    var multi = store.redis.multi();
+    multi.hdel(key, 'undefined');
+    _.each(settings, function(item){
+      if (item.value){
+        multi.hset(key, item.name, item.value);
+      } else {
+        multi.hdel(key, item.name);
+      }
+    });
+
+    multi.hgetall(key);
+    multi.exec(function(err, replies){
+      console.log('set replies', replies);
+      if (err) return fn(err);
+      fn(null, _.last(replies));
     });
   }
 
@@ -221,31 +206,40 @@ module.exports = function(store) {
       var key = 'users:' + username;
       store.redis.get(key, function(e, userid){
         console.log("looked in redis for key", key, e, userid);
-        key = 'users:' + userid;
-        //console.log("USER GET KEY", key);
-        store.redis.hgetall(key, function(e, u){
-          //console.log("USER", user);
-          if (e){
-            //console.log("couldn't load existing user from store",err);
-            fn('user-not-found');
-          } else {
-            //console.log("found the user", user);
-            console.log("got the user", e, u);
-            var appId = u.appId;
-            key = 'coordelapp:' + appId;
-            //console.log("USER GET KEY", key);
-            store.redis.hgetall(key, function(e, app){
-              //console.log("USER", user);
-              if (e){
-                //console.log("couldn't load existing user from store",err);
-                fn('app-not-found');
-              } else {
-                //console.log("found the user", user);
-                fn(false, app);
-              }
-            });
-          }
-        });
+        if (e){
+          console.log("there was an error",key, e);
+          return fn('user-not-found');
+        } else if (!userid){
+          console.log("this userid doesn't exist", key, userid);
+          return fn('user-not-found');
+        } else {
+          console.log("we're good to go", userid);
+          key = 'users:' + userid;
+          console.log("USER GET KEY", key);
+          store.redis.hgetall(key, function(e, u){
+            console.log("USER", e, u);
+            if (e){
+              //console.log("couldn't load existing user from store",err);
+              fn('user-not-found');
+            } else {
+              //console.log("found the user", user);
+              console.log("got the user", e, u);
+              var appId = u.appId;
+              key = 'coordelapp:' + appId;
+              //console.log("USER GET KEY", key);
+              store.redis.hgetall(key, function(e, app){
+                //console.log("USER", user);
+                if (e){
+                  //console.log("couldn't load existing user from store",err);
+                  fn('app-not-found');
+                } else {
+                  //console.log("found the user", user);
+                  fn(false, app);
+                }
+              });
+            }
+          });
+        }
       });
     },
 
@@ -350,6 +344,39 @@ module.exports = function(store) {
       }
     },
 
+    disconnectTwitter: function(appId, fn){
+      var key = 'coordelapp:' + appId;
+      var settings = [
+        {name: "twitterToken", value: false},
+        {name: "twitterTokenSecret", value: false}
+      ];
+
+      updateSettings(key, settings, function(e, o){
+        if (e){
+          fn(e);
+        } else {
+          fn(null, o);
+        }
+      });
+    },
+
+    disconnectCoinbase: function(appId, fn){
+      var key = 'coordelapp:' + appId;
+      var settings = [
+        {name: "hasPaymentMethod", value: false},
+        {name: "coinbaseAccessToken", value: false},
+        {name: "coinbaseRefreshToken", value: false}
+      ];
+
+      updateSettings(key, settings, function(e, o){
+        if (e){
+          fn(e);
+        } else {
+          fn(null, o);
+        }
+      });
+    },
+
     reset: function(appId, fn){
       var key = 'coordelapp:' + appId;
       //this function resets all settings to the default value
@@ -363,40 +390,32 @@ module.exports = function(store) {
         {name: "coinbaseRefreshToken", value: false}
       ];
 
-      var multi = store.redis.multi();
-      multi.hdel(key, 'undefined');
-      _.each(settings, function(item){
-        if (item.value){
-          multi.hset(key, item.name, item.value);
+      updateSettings(key, settings, function(e, o){
+        if (e){
+          fn(e);
         } else {
-          multi.hdel(key, item.name);
+          fn(null, o);
         }
       });
-
-      multi.hgetall(key);
-      multi.exec(function(err, replies){
-        console.log('set replies', replies);
-        if (err) return fn(err);
-        fn(null, _.last(replies));
-      });
-
     },
 
 
     create: function(userData, fn){
       //create the app in redis
       var v = validator.validate(userData, Schema);
-
+      console.log("v", v);
+      var data = userData;
       if (!v.valid){
         fn(v.errors);
       } else {
         //add the default objects (private project, private role, delegated project, user profile)
-        addAppObjects(userData, function(e, objIds){
+        addAppObjects(userData, function(e, data){
           if (e){
             fn('add-app-objects ' + e);
           } else {
+            console.log('back from adding objects getting ready to save', data);
             //create the app
-            var multi = redis.multi(),
+            var multi = store.redis.multi(),
 
             key = 'coordelapp:' + data.appId;
 
@@ -408,18 +427,18 @@ module.exports = function(store) {
             multi.hset(key, 'lastName', data.lastName);
             multi.hset(key, 'fullName', data.fullName);
             multi.hset(key, 'user', data.user);
-            multi.hset(key, 'defaultTemplatesLoaded', data.defaultTemplatesLoaded);
-            multi.hset(key, 'myDelegatedProject', data.myDelegatedProject);
-            multi.hset(key, 'myPrivateProject', data.myPrivateProject);
-            multi.hset(key, 'myPrivateRole', data.myPrivateRole);
-            multi.hset(key, 'showQuickStart', data.showQuickStart);
-            multi.hset(key, 'suppressEmail', data.suppressEmail);
+            multi.hset(key, 'defaultTemplatesLoaded', false);
+            multi.hset(key, 'myDelegatedProject', data.delegatedProject);
+            multi.hset(key, 'myPrivateProject', data.privateProject);
+            multi.hset(key, 'myPrivateRole', data.privateRole);
+            multi.hset(key, 'showQuickStart', true);
+            multi.hset(key, 'suppressEmail', false);
             
             multi.sadd('coordel-apps', key);
             multi.exec(function(err, replies){
               if (err) fn(err, false);
               //console.log("_save replies", replies);
-              fn(null, replies);
+              fn(null, data);
             });
           }
         });

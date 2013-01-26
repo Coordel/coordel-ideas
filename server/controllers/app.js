@@ -5,6 +5,8 @@ var _     = require('underscore')
   , log   = console.log
   , md5   = require('MD5')
   , async = require('async')
+  , request = require('request')
+  , moment = require('moment')
   , IntroController;
 
 AppController = function(store) {
@@ -115,7 +117,7 @@ AppController = function(store) {
           });
         },
         timeline: function(cb){
-           Idea.timeline(function(e, o){
+           Idea.timeline(0, function(e, o){
             if (e){
               cb('error' +e);
             } else {
@@ -133,7 +135,7 @@ AppController = function(store) {
         var ideas = [];
         _.each(results.timeline, function(i){
           //since the project was stored as a string, we need to parse it before returning it.
-          ideas.push(JSON.parse(i));
+          ideas.push(i);
         });
 
         res.render('index', {
@@ -148,6 +150,55 @@ AppController = function(store) {
           username: req.session.username,
           imageUrl: req.session.currentUser.imageUrl,
           fullName: req.session.currentUser.fullName,
+          _csrf: req.session._csrf
+        });
+      });
+    },
+
+    settings: function(req, res){
+      var user = req.session.currentUser;
+
+      async.parallel({
+        extendedUser: function(cb){
+          extendUser(req.session.currentUser, function(e, ext){
+            cb(null,ext);
+          });
+        },
+        timeline: function(cb){
+           Idea.timeline(0, function(e, o){
+            if (e){
+              cb('error' +e);
+            } else {
+              cb(null, o);
+            }
+          });
+        }
+      },
+      function(e, results) {
+
+        //compress the user
+        var ext = compressExtendedUser(results.extendedUser);
+
+        //get the ideas
+        var ideas = [];
+        _.each(results.timeline, function(i){
+          //since the project was stored as a string, we need to parse it before returning it.
+          ideas.push(i);
+        });
+       
+        res.render('settings', {
+          token: res.locals.token,
+          title: 'Coordel',
+          menu: '#menuSettings',
+          subNav: 'subNavProfile',
+          user: ext.user,
+          ideas: compress(ideas),
+          profile: ext.profile,
+          contacts: ext.contacts,
+          username: req.session.username,
+          imageUrl: req.session.currentUser.imageUrl,
+          fullName: req.session.currentUser.fullName,
+          currencies: compress(store.bitcoin.currencies()),
           _csrf: req.session._csrf
         });
       });
@@ -218,6 +269,8 @@ AppController = function(store) {
       });
     },
 
+    
+
     showIdeaFromHash: function(req, res){
       var hash = req.params.hash;
     },
@@ -278,7 +331,7 @@ AppController = function(store) {
           });
         },
         trending: function(cb){
-           Idea.trending(function(e, o){
+           Idea.trending(0, function(e, o){
             if (e){
               cb('error' +e);
             } else {
@@ -659,25 +712,28 @@ AppController = function(store) {
           }
         },
         function(e, results) {
+          if (e){
+            console.log("there were errors");
+          } else {
+            //compress the user
+            var ext = compressExtendedUser(results.extendedUser);
 
-          //compress the user
-          var ext = compressExtendedUser(results.extendedUser);
-
-          res.render('user', {
-            token: res.locals.token,
-            title: req.session.currentUser.fullName,
-            menu: menuName,
-            subNav: 'feedback',
-            user: ext.user,
-            otherUser: compress(results.extendedOtherUser),
-            ideas: compress([]),
-            profile: ext.profile,
-            contacts: ext.contacts,
-            username: req.session.username,
-            imageUrl: req.session.currentUser.imageUrl,
-            fullName: req.session.currentUser.fullName,
-            _csrf: req.session._csrf
-          });
+            res.render('user', {
+              token: res.locals.token,
+              title: req.session.currentUser.fullName,
+              menu: menuName,
+              subNav: 'feedback',
+              user: ext.user,
+              otherUser: compress(results.extendedOtherUser),
+              ideas: compress([]),
+              profile: ext.profile,
+              contacts: ext.contacts,
+              username: req.session.username,
+              imageUrl: req.session.currentUser.imageUrl,
+              fullName: req.session.currentUser.fullName,
+              _csrf: req.session._csrf
+            });
+          }
         });
       });
     },
@@ -823,23 +879,26 @@ AppController = function(store) {
   function getUser(user, username, fn){
     console.log("in getUser", username);
     UserApp.findByUsername(username, function(e, a){
-
-      var appId = a.appId;
-      if (user.appId === appId){
-        fn(null, user);
+      if (e){
+        fn(e);
       } else {
-        var app = {
-          firstName: a.firstName,
-          fullName: a.fullName,
-          appId: a.id,
-          lastName: a.lastName,
-          user: a.user,
-          userId: a.userId,
-          username: a.username,
-          email: a.email,
-          imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
-        };
-        fn(null, app);
+        var appId = a.appId;
+        if (user.appId === appId){
+          fn(null, user);
+        } else {
+          var app = {
+            firstName: a.firstName,
+            fullName: a.fullName,
+            appId: a.id,
+            lastName: a.lastName,
+            user: a.user,
+            userId: a.userId,
+            username: a.username,
+            email: a.email,
+            imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+          };
+          fn(null, app);
+        }
       }
     });
   }
@@ -919,6 +978,8 @@ AppController = function(store) {
       user.app = results.userApp;
       user.account = results.supportAccount;
       user.feedback = results.feedback;
+
+    
 
       //put the user into the extension
       ext.user = user;

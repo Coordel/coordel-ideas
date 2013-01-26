@@ -13,8 +13,8 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/topic", "app/models/pledg
       self.user = user;
       self.bitcoinPrices = prices;
 
-      if (user.app.localCurrency){
-        self.localCurrency = user.app.localCurrency;
+      if (user.localCurrency){
+        self.localCurrency = user.localCurrency;
       }
 
       on(dom.byId("cancelMoneySubmit"), "click", function(e){

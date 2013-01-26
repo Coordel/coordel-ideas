@@ -1,30 +1,31 @@
     </div>
-    <script src="lib/jquery/jquery.js"></script>
-    <script src="lib/jquery/jquery.infinitescroll.min.js"></script>
-    <script src="lib/bootstrap/js/bootstrap.min.js"></script>
-    <script src="lib/moment/moment.min.js"></script>
+    <script src="/lib/jquery/jquery.js"></script>
+    <script src="/lib/jquery/jquery.infinitescroll.min.js"></script>
+    <script src="/lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/lib/moment/moment.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="lib/sigma/sigma.min.js"></script>
-    <script src="lib/sigma/sigma.fisheye.js"></script>
+    <script src="/lib/sigma/sigma.min.js"></script>
+    <script src="/lib/sigma/sigma.fisheye.js"></script>
 
     <% include ../includes/modals %>
     <!-- dojo           -->
     <script data-dojo-config="async: 1, dojoBlankHtmlUrl: '/blank.html',
         packages: [ {
             name: 'app',
-            location: location.pathname.replace(/\/[^/]+$/, '') + '/js/app'
+            location: '/js/app'
         } ]"
     src="//ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js"></script>
     <script>
       // load our app module and wait for the DOM to be ready
       require(['app/controllers/app', 'dojo/domReady!' ], function(app){
         //this let's us bootstrap the ideas from the server
-        app.init({ideas:JSON.parse(unescape('<%- ideas%>')), menu: "<%=menu%>"});
+        app.init({ideas:JSON.parse(unescape('<%- ideas%>')), menu: "<%=menu%>", registrationOpen: <%=registrationOpen%>});
       });
     </script>
 
     <script type="text/javascript">
       function init() {
+
         function getRandomColor(a, b) {
 
           var r = Math.random();

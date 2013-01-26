@@ -65,15 +65,17 @@ module.exports = function(store) {
     },
 
     remove: function(username, fn){
-      var key = 'logintoken:' + username.toLowerCase()
+      console.log("username", username);
+      var key = 'token:' + username.toLowerCase()
         , multi = redis.multi();
 
       multi.hdel(key, 'username');
       multi.hdel(key, 'token');
       multi.hdel(key, 'series');
+      multi.del(key);
       multi.exec(function(e, o){
-        if (e) fn(e, false);
-        fn(null, true);
+        if (e) return fn(e);
+        fn(null, o);
       });
     }
   };

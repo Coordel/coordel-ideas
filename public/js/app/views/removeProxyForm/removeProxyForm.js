@@ -25,8 +25,8 @@ define(["dojo/dom"
 
       self.showProxy();
 
-      if (user.app.localCurrency){
-        self.localCurrency = user.app.localCurrency;
+      if (user.localCurrency){
+        self.localCurrency = user.localCurrency;
       }
 
       on(dom.byId("removeProxySubmit"), "click", function(){

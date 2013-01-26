@@ -15,3 +15,40 @@
   padding-bottom: 20px;
   border-top: 1px solid #ddd;
 }
+
+#settings .score {
+  display: none;
+  margin-left: 165px;
+  margin-top: -35px;
+  position: absolute;
+}
+.score span {
+  background-color: #dddddd;
+  border-radius: 3px 3px 3px 3px;
+  display: inline-block;
+  height: 8px;
+  overflow: hidden;
+  vertical-align: middle;
+  width: 50px;
+}
+#settings .score .fill {
+  display: block;
+  height: 8px;
+  width: 25px;
+}
+#settings .score .perfect {
+  background-color: #46a546;
+  width: 50px;
+}
+#settings .score .okay {
+  background-color: #46a546;
+  width: 35px;
+}
+#settings .score .weak {
+  background-color: #ffc40d;
+  width: 15px;
+}
+#settings .score .error {
+  background-color: #9d261d;
+  width: 5px;
+}

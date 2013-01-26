@@ -1,0 +1,11 @@
+<% include ../header/html %>
+<p>Hello <%=to.fullName%>,</p>
+<p>
+  <a href="<%=coordelUrl%>/<%=from.username%>"><strong><%=from.fullName%></strong></a> invited you to see an <a href="<%=idea.shorUrl%>">Idea</a> on <a href="<%=coordelUrl%>">Coordel</a> and sent you the following message--
+</p>
+<blockquote>&#147;<%=message%>&#148;</blockquote>
+<p>Here is a quick recap of the Idea--</p><blockquote>
+<p><strong>Name: </strong> <%=idea.name%></p>
+<p><strong>Purpose: </strong><%=idea.purpose%></p>
+<p><strong>Link: </strong><%=idea.shortUrl%></p></blockquote>
+<% include ../footer/html %>

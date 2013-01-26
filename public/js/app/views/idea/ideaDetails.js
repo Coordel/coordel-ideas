@@ -44,9 +44,12 @@ define([
 
       self.store.get(self.idea._id).then(function(details){
 
+        console.log("details", details);
+
         var idea = details.idea;
 
         self.account = details.account;
+        self.supporting = details.supporting;
         self.gaveMoney = details.gaveMoney;
         self.gaveTime = details.gaveTime;
 
@@ -65,6 +68,7 @@ define([
         
         //expanded info
         self.purposeContainer.innerHTML = idea.purpose.replace(/\n/g, "<br>");
+        $(self.purposeContainer).linkify({target: '_blank'});
         self.deadlineContainer.innerHTML = moment(idea.deadline).format('h:mm A - D MMM YY');
         self.purposeFooter.innerHTML = moment(idea.updated).format('h:mm A - D MMM YY');
 
@@ -79,6 +83,10 @@ define([
       request('/bitcoin/prices', {handleAs: "json"}).then(function(prices){
         self.bitcoinPrices = prices;
         var account = self.account;
+        self.peopleSupporting.innerHTML = self.supporting;
+        if (parseInt(self.supporting,10) === 1){
+          self.peopleLabel.innerHTML = "PERSON";
+        }
         self.moneyPledged.innerHTML = self.getLocalAmount(account.pledged + account.proxied);
         self.moneyAllocated.innerHTML = self.getLocalAmount(account.allocated);
         self.timePledged.innerHTML = account.pledgedTime + " hrs";
@@ -119,6 +127,7 @@ define([
     },
 
     showActivity: function(activity){
+      console.log("showing activity", activity);
      
       var self = this
         , row;

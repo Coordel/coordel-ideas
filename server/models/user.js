@@ -2,7 +2,8 @@
   A User is the base object and is stored in redis
 */
 var bcrypt = require('bcrypt')
-  , moment = require('moment');
+  , moment = require('moment')
+  , _ = require('underscore');
 
 module.exports = function(store){
 
@@ -94,9 +95,9 @@ module.exports = function(store){
     
     //load the user with the userid
     var key = 'users:' + userid;
-    //console.log("USER GET KEY", key);
+    console.log("USER GET KEY", key);
     redis.hgetall(key, function(e, user){
-      //console.log("USER", user);
+      console.log("USER", e, user);
       if (e){
         //console.log("couldn't load existing user from store",err);
         fn('user-not-found');
@@ -158,7 +159,9 @@ module.exports = function(store){
   User = {
 
     findById: function(id, fn){
+      console.log("finding user by id", id);
       loadUser(id, function(e, user){
+        console.log("result from find", e, user);
         if (e){
           fn('user-not-found');
         } else if (user === null){
@@ -169,7 +172,30 @@ module.exports = function(store){
       });
     },
 
+    findByUsername: function(username, fn){
+      var key = 'users:' + username;
+      store.redis.get(key, function(e, userid){
+        console.log("looked for the username key", key, e, userid);
+        if (e){
+          fn('error-user-login');
+        } else if (userid === null){
+          fn('user-not-found');
+        } else {
+          //load the user with the userid
+          loadUser(userid, function(e, o){
+            console.log("loaded the user", e, o);
+            if (e){
+              fn(e);
+            } else {
+              fn(null, o);
+            }
+          });
+        }
+      });
+    },
+
     login: function(user, pass, fn){
+      user = user.toLowerCase();
       //validate the login and get a key to use to see if the user exists
       var login = validateLogin(user, pass);
 
@@ -180,10 +206,11 @@ module.exports = function(store){
         //load the user
         loginUser(login, function(e, o){
           if(e){
-            fn('user-not-found');
+            return fn('user-not-found');
           } else if (o === null){
-            fn('user-not-found');
+            return fn('user-not-found');
           } else{
+
             bcrypt.compare(pass, o.password, function(err, res) {
               if (res){
 
@@ -204,10 +231,64 @@ module.exports = function(store){
       }
     },
 
+    updatePassword: function(args, fn){
+      //args ={userId, current, newPass};
+
+      loadUser(args.id, function(e, user){
+        console.log("result from updatePassword load user", e, user);
+        if (e){
+          fn('user-not-found');
+        } else if (user === null){
+          fn('user-not-found');
+        } else {
+          bcrypt.compare(args.current, user.password, function(err, res) {
+            if (res){
+              saltAndHash(args.newPass, function(e, hashPassword){
+                store.redis.hset('users:' + args.id, 'password', hashPassword);
+                fn(null, 'password-updated');
+              });
+            } else{
+              console.log("invalid password");
+              fn('invalid-password');
+            }
+          });
+        }
+      });
+    },
+
+    requestInvite: function(user, fn){
+      var redis = store.redis;
+      var key = 'inviteRequest:' + user.email;
+      console.log("key", key, user);
+      redis.exists(key, function(e, o){
+        console.log('testing exists', e, o);
+        if (e){
+          fn(null, [0]);
+        } else if (o===0){
+          console.log("didn't exist, pushing");
+          redis.set(key, user.email, function(e, o){
+            console.log("set the key", e, o);
+          });
+          redis.lpush('inviteRequests', JSON.stringify(user), function(e, o){
+            if (e){
+              fn(e);
+            } else {
+              fn(null, o);
+            }
+          });
+        } else {
+          console.log("existed, don't insert");
+          fn(null, [0]);
+        }
+      });
+    },
+
+    //if the user doesn't have a username, they were imported from the old system. so we need to show them a page where 
+    //they can create a username and then
+
     importUser: function(user, fn){
       //use this function to import users from the original site. it hashes the passwords and it creates the required lookups
-      //it also updates the user's app with the
-
+     
       //imported users won't have a username, but need one, so make it their first name + last name
       user.username = user.firstName.trim().toLowerCase() + user.lastName.trim().toLowerCase();
       store.redis.incr('userKeys', function(e, userId){
@@ -248,6 +329,46 @@ module.exports = function(store){
         });
       });
     },
+
+    redeem: function(user, fn){
+      //this function updates the user and userApp
+      saltAndHash(user.password, function(e, hashPassword){
+
+        var redis = store.redis
+        , multi = redis.multi()
+        , key = 'users:' + user.userId; //save the user hash with key user:[userid]
+
+        //create the hash
+        multi.hset(key, 'id', user.userId);
+        multi.hset(key, 'appId', user.appId);
+        multi.hset(key, 'email', user.email.toLowerCase());
+        multi.hset(key, 'username', user.username);
+        multi.hset(key, 'password', hashPassword);
+        if (user.firstName) multi.hset(key, 'firstName', user.firstName);
+        if (user.lastName) multi.hset(key, 'lastName', user.lastName);
+        if (user.fullName) multi.hset(key, 'fullName', user.fullName);
+
+        //save the user's userid to sets user:[user.email] and user:[user.username]
+        multi.set('users:'+user.email.trim().toLowerCase(), user.userId);
+        multi.set('users:'+user.username.trim().toLowerCase(), user.userId);
+
+        //now we need to update the app with the new information username, fullName
+        var appKey = 'coordelapp:' + user.appId;
+        multi.hset(appKey, 'username', user.username);
+        multi.hset(appKey, 'userId', user.userId);
+        multi.hset(appKey, 'invited', 0);
+        if (user.fullName) multi.hset(appKey, 'fullName', user.fullName);
+        multi.hgetall(key);
+        multi.exec(function(e, replies){
+          console.log('redeemed user', replies);
+          if (e){
+            fn(e);
+          } else {
+            fn(null, user);
+          }
+        });
+      });
+    },
     
     create: function(user, fn){
       var v = validator.validate(user, Schema);
@@ -281,16 +402,70 @@ module.exports = function(store){
           
           multi.exec(function(err, replies){
             console.log('created user', replies);
-            if (err) fn(err, false);
-            fn(null, true);
+            if (err) return fn(err, false);
+            fn(null, user);
           });
         
         });
       }
     },
 
-    save: function(user, fn){
+    save: function(id, data, fn){
+      var key = "users:" + id
+        , multi = store.redis.multi();
 
+      console.log("saving user", id, data);
+
+      //updates the user object with any fields sent in as data (update app with any common fields)
+      if (data.fullName){
+        multi.hset(key, 'fullName', data.fullName);
+        //update the app with the fullname
+        multi.hset('coordelapp:'+id, 'fullName', data.fullName);
+      }
+      if (data.email){
+        data.email = data.email.toLowerCase();
+        multi.hset(key, 'email', data.email);
+        //update the app with the email
+        multi.hset('coordelapp:'+id, 'email', data.email);
+         //since this is a new email, then we need to make sure we can find the user by it
+        multi.set('users:'+data.email, id);
+      }
+      if (data.username){
+        multi.hset(key, 'username', data.username);
+        //update the app with the username
+        multi.hset('coordelapp:'+id, 'username', data.username);
+        //since this is a new username, then we need to make sure we can find the user by it
+        multi.set('users:'+data.username.toLowerCase(), id);
+      }
+      if (data.location){
+        multi.hset(key, 'location', data.location);
+      } else {
+        multi.hdel(key, 'location');
+      }
+      if (data.personalLink){
+        multi.hset(key, 'personalLink', data.personalLink);
+      } else {
+        multi.hdel(key, 'personalLink');
+      }
+      if (data.localCurrency){
+        multi.hset(key, 'localCurrency', data.localCurrency);
+      } else {
+        multi.hdel(key, 'localCurrency');
+      }
+      if (data.bio){
+        multi.hset(key, 'bio', data.bio);
+      } else {
+        multi.hdel(key, 'bio');
+      }
+      multi.hgetall(key);
+      multi.exec(function(e, replies){
+        console.log("response from multi in save", e, replies);
+        if (e){
+          fn(e);
+        } else {
+          fn(null, _.last(replies));
+        }
+      });
     },
 
     remove: function(id, fn){

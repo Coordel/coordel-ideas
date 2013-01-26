@@ -26,10 +26,24 @@ define([
       var self = this;
 
       this.userImage.src = this.contact.imageUrl;
-      this.userImage.alt = this.contact.fullName;
-      this.userNameLink.href = '/'+this.contact.username;
-      this.userNameLink.innerHTML = this.contact.fullName;
-      this.usernameLink.innerHTML = this.contact.username;
+      
+      if (this.contact.fullName){
+        this.userImage.alt = this.contact.fullName;
+        this.userNameLink.innerHTML = this.contact.fullName;
+      } else if (this.contact.firstName && this.contact.lastName){
+        this.userImage.alt = this.contact.firstName + " " + this.contact.lastName;
+        this.userNameLink.innerHTML = this.contact.firstName + " " + this.contact.lastName;
+      }
+
+      if (this.contact.username){
+        this.userNameLink.href = '/'+this.contact.username;
+      } else {
+        this.userNameLink.href = "#";
+      }
+      
+      
+      
+      //this.usernameLink.innerHTML = this.contact.username;
 
       on(self.toggler, "click", function(e){
         if (self.isOpen){

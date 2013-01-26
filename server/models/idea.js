@@ -343,27 +343,55 @@ module.exports = function(store) {
       });
     },
 
-    timeline: function(fn){
-      var defaults = {
+    timeline: function(page, fn){
+      var perPage = 50;
+      var index = {
         start: 0,
-        count: 200
+        end: perPage -1
       };
 
+      if (page > 0){
+        index.start = (page * perPage);
+        index.end = ((page * perPage)-1) + perPage;
+      }
+
+      console.log("index", index);
+
       var total = 0;
-      /*
+      
       //first we need to get the count of all ideas to be able to enable pagination
       store.couch.db.view("coordel/opportunities", {reduce: true}, function(e, o){
        
         if (e){
           //some kind of error with couch
+          console.log("error getting count");
         } else {
-      
-          total = o[0].value;
+          console.log(o);
+          if (o.length){
+            total = o[0].value;
+          }
+          
         }
 
-         //console.log("results from reduce call", total);
+         console.log("results from reduce call", index, total);
+
+        //the timeline gets idea id's from the redis global:timeline set
+        store.redis.lrange('global:timeline', index.start, index.end, function(e, o){
+          //console.log("redis timeline idea id's", index.start, index.end, e, o.length, o);
+          if (e){
+            fn(e);
+          } else {
+            store.couch.db.get(o, function(e, o){
+              //console.log("got the ideas back from couch", e, o);
+              var list = _.map(o, function(item){
+                return item.doc;
+              });
+              fn(null, list);
+            });
+          }
+        });
       });
-      */
+    
       
       /*
 
@@ -389,33 +417,66 @@ module.exports = function(store) {
 
       */
 
-      //the timeline gets ideas from the redis global:timeline set
-      store.redis.lrange('global:timeline', 0, -1, function(e, o){
-        if (e){
-          fn(e);
-        } else {
-          fn(null, o);
-        }
-      });
+      
     },
 
-    trending: function(fn){
-      //the timeline gets ideas from the redis global:timeline set
-      store.redis.zrevrange('global:trending', 0, -1, function(e, keys){
+    trending: function(page, fn){
+      var perPage = 5;
+      var index = {
+        start: 0,
+        end: perPage -1
+      };
+
+      if (page > 0){
+        index.start = (page * perPage);
+        index.end = ((page * perPage)-1) + perPage;
+      }
+
+      console.log("index", index);
+
+      var total = 0;
+      
+      //first we need to get the count of all ideas to be able to enable pagination
+      store.redis.zcard("global:trending", function(e, o){
+        console.log("results from zcard", e, o);
         if (e){
-          console.log('zrange error',e);
-          fn(e);
+          //some kind of error with couch
+          console.log("error getting count");
         } else {
-          console.log('trending keys', keys);
-          Idea.findBatch(keys, function(e, ideas){
-            if (e){
-              console.log('zrange error ideas', e);
-            } else {
-              console.log('zrange ideas', ideas);
-              fn(null, ideas);
-            }
-          });
+      
+          total = o;
+    
         }
+
+        console.log("results from zcard", index, total);
+
+        //the timeline gets ideas from the redis global:timeline set
+        store.redis.zrevrange('global:trending', index.start, index.end, function(e, keys){
+          if (e){
+            console.log('zrange error',e);
+            fn(e);
+          } else {
+            //console.log('trending keys', keys);
+            var query = keys;
+            if (keys.length === 1){
+              query = keys[0];
+            }
+            store.couch.db.get(query, function(e, o){
+              //console.log("got the ideas back from couch", e, o);
+              var list;
+              if (keys.length === 1){
+                list = [o];
+              } else {
+                list = _.map(o, function(item){
+                  return item.doc;
+                });
+              }
+
+             
+              fn(null, list);
+            });
+          }
+        });
       });
     },
 
@@ -442,7 +503,18 @@ module.exports = function(store) {
           status: "ACCEPTED"
         }];
 
+        //for ideas, we need to add the creator's details
+        var details = {
+          username: user.username,
+          fullName: user.fullName,
+          imageUrl: 'https://secure.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+        };
+
         idea.creator = user.appId;
+
+        //add the creator's details
+        idea.creatorDetails = details;
+
         idea.created = timestamp;
         idea.updater = user.appId;
         idea.updated = timestamp;
@@ -497,19 +569,14 @@ module.exports = function(store) {
 
       var bitlyUrl = 'http://api.bit.ly/v3/shorten?format=json&login=' + b.login + '&apiKey=' + b.apiKey + '&longUrl=' + longUrl;
 
-      console.log("bitly credentials", bitlyUrl);
-
-
       request.get(bitlyUrl, function(e,r,o){
-        console.log("response from bitly",  o);
+        
         if (e){
           fn(e);
         } else {
           fn(null, o);
         }
       });
-      
-
     },
 
     support: function(ideaId, userId, fn){
@@ -529,13 +596,45 @@ module.exports = function(store) {
         if (e){
           res(e);
         } else {
+          var inc = 0;//this is the number to increment support by
           //console.log("support in idea.js", e, o);
           //if this user hadn't already supported this idea then increment the trending score
           if (o[0] && o[1]){
+            inc = 1; //this is the amount by which the user's support should be incremented
             store.redis.zincrby('global:trending', 1, ideaId);
             //console.log("trending added");
           }
-          fn(null, o);
+          fn(null, [inc]);
+        }
+      });
+    },
+
+    removeSupport: function(ideaId, userId, fn){
+
+      //console.log("ideaId", ideaId, "userId", userId);
+
+      var multi = store.redis.multi();
+      //creates a supporting entry for this user and adds the supporting user to the idea
+
+      //ideas:[id]:supporting [userid] entry to keep track of all the supporters of this idea
+      multi.srem('ideas:' + ideaId + ':supporting', userId);
+      
+      //user:[userid]:supporting [id] to keep track of all of the ideas a user is supporting
+      multi.srem('user:' + userId + ':supporting', ideaId);
+
+      multi.exec(function(e,o){
+        if (e){
+          res(e);
+        } else {
+          var inc = 0;//this is the number to increment support by
+          //console.log("support in idea.js", e, o);
+          //if this user hadn't already supported this idea then increment the trending score
+          if (o[0] && o[1]){
+            inc = 1; //this is the amount by which the user's support should be incremented
+            store.redis.zincrby('global:trending', 1, ideaId);
+            //console.log("trending added");
+          }
+          fn(null, [inc]);
         }
       });
     },

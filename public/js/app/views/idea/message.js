@@ -32,6 +32,8 @@ define([
       //this.usernameLink.innerHTML = user.username;
 
       this.messageBody.innerHTML = this.message.body;
+
+      $(this.messageBody).linkify({target: '_blank'});
       
       if (this.message.isTweet){
         domClass.remove(this.tweetIcon, "hide");

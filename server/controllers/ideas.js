@@ -81,8 +81,9 @@ IdeasController = function(store, socket) {
     });
   }
 
-  function updateTimeline(idea, user, fn){
-    var multi = store.redis.multi()
+  function updateTimeline(idea, fn){
+    var multi = store.redis.multi();
+    /*
       , timestamp = moment().format(store.timeFormat);
 
     //add the user's imageUrl
@@ -92,10 +93,11 @@ IdeasController = function(store, socket) {
     idea.creatorDetails = user;
 
     idea = JSON.stringify(idea);
+    */
     //push the new idea onto the timeline
-    multi.lpush('global:timeline', idea);
+    multi.lpush('global:timeline', idea._id);
     //keep the timeline to 1000 items
-    multi.ltrim('global:timeline', 0, 1000);
+    multi.ltrim('global:timeline', 0, 5000);
     multi.exec(function(e, o){
       if (e){
         fn(e);
@@ -109,16 +111,51 @@ IdeasController = function(store, socket) {
     //console.log("support function", id, userid, res);
     Idea.support(id, userid, function(e,o){
       if (e){
-        res.json({error: e});
+        res.json({
+          success: false,
+          errors: [e]});
       } else {
-
+        console.log("response from support", o);
         //if it wasn't already supported notify
         //console.log("results", o[0], o[1]);
-        if (o[0] && o[1]){
+        if (o[0]){
           //make a global:trending entry for this idea if this user hadn't already been supporting
-          res.json({success: "1"});
+          res.json({
+            success: true,
+            incrementBy: 1
+          });
         } else {
-          res.json({success: "0"});
+          res.json({
+            success: true,
+            incrementBy: 0
+          });
+        }
+      }
+    });
+  }
+
+  function removeSupport(id, userid, res){
+    //console.log("support function", id, userid, res);
+    Idea.removeSupport(id, userid, function(e,o){
+      if (e){
+        res.json({
+          success: false,
+          errors: [e]});
+      } else {
+        console.log("response from remove support", o);
+        //if it wasn't already supported notify
+        //console.log("results", o[0], o[1]);
+        if (o[0]){
+          //make a global:trending entry for this idea if this user hadn't already been supporting
+          res.json({
+            success: true,
+            incrementBy: -1
+          });
+        } else {
+          res.json({
+            success: true,
+            incrementBy: 0
+          });
         }
       }
     });
@@ -126,7 +163,59 @@ IdeasController = function(store, socket) {
 
   var Ideas = {
 
-    
+    findTimeline: function(req, res){
+      var page = req.params.page || 0;
+      console.log("page", page);
+      Idea.timeline(page, function(e, o){
+        if (e){
+          res.json({
+            results: []
+          });
+        } else {
+          var ideas = [];
+          //console.log("ideas", o);
+        _.each(o, function(i){
+            
+            ideas.push(i);
+          });
+          if (!ideas.length){
+            res.send("end", 404);
+          } else {
+            res.json(200, {
+              results: ideas
+            });
+          }
+        }
+      });
+      //get the timeline
+    },
+
+    findTrending: function(req, res){
+      var page = req.params.page || 0;
+      console.log("page", page);
+      Idea.trending(page, function(e, o){
+        if (e){
+          res.json({
+            results: []
+          });
+        } else {
+          var ideas = [];
+          //console.log("ideas", o);
+        _.each(o, function(i){
+            
+            ideas.push(i);
+          });
+          if (!ideas.length){
+            res.send("end", 404);
+          } else {
+            res.json(200, {
+              results: ideas
+            });
+          }
+        }
+      });
+      //get the timeline
+    },
 
     addFeedback: function(req, res){
 
@@ -140,7 +229,7 @@ IdeasController = function(store, socket) {
       var user = {appId: args.appId};
 
       UserApp.findById(args.appId, function(e, app){
-        args.name = app.fullName;
+        args.name = req.session.currentUser.user.fullName;
         Idea.addFeedback(args, function(e, o){
     
           if (e){
@@ -206,98 +295,6 @@ IdeasController = function(store, socket) {
       });
     },
 
-    /*
-    findStream: function(req, res){
-      var id = req.params.id;
-      console.log("range", req.header('Range'));
-      async.parallel({
-        stream: function(cb){
-          store.couch.db.view('coordel/projectStream', { startkey: [id, {}], endkey: [id], descending: true}, function (e, stream) {
-            if (e){
-              cb('error ' + e);
-            } else {
-              var map = {}
-                , users = [];
-
-              stream = _.map(stream, function(item){
-                var id = item.actor.id;
-                if (!map[id]){
-                  users.push(id);
-                  map[id] = true;
-                }
-                return item.value;
-              });
-
-              Idea.findUserBatch(users, function(e, o){
-                if (e){
-                  res.json({
-                    success: false,
-                    errors: [e]
-                  });
-                } else {
-                  res.json({
-                    success: true,
-                    stream: results.stream,
-                    users: results.users
-                  });
-                }
-              });
-            }
-          });
-        },
-        users: function(cb){
-          Idea.findUsers(id, function(e, o){
-            if (e){
-              cb('error ' + e);
-            } else {
-              console.log("users", o);
-              cb(null, o);
-            }
-          });
-        }
-      },
-      function(e, results) {
-        console.log("findStream", e, results);
-        if (e){
-          res.json({
-            success: false,
-            errors: [e]
-          });
-        } else {
-          res.json({
-            success: true,
-            stream: results.stream,
-            users: results.users
-          });
-        }
-        
-      });
-    },
-    */
-
-    /*
-    findStream: function(req, res){
-      var id = req.params.id;
-      console.log("range", req.header('Range'));
-      store.couch.db.view('coordel/projectStream', { startkey: [id, {}], endkey: [id], descending: true}, function (e, stream) {
-        if (e){
-          res.json({error: e});
-        } else {
-
-          if (stream.length){
-            var list = [];
-            _.each(stream, function(item){
-              list.push(item.value);
-            });
-            res.json(list);
-          } else {
-            res.json([]);
-          }
-        }
-      });
-    },
-    */
-
     findDetails: function(req, res){
       var id= req.params.id;
 
@@ -338,7 +335,7 @@ IdeasController = function(store, socket) {
               var map = {
                 message: 'MESSAGES',
                 "project-gave-feedback": 'FEEDBACK',
-                "project-invites-sent": "INVITED",
+                "idea-invites-sent": "INVITED",
                 "task-cleared-issue": "CLEARED ISSUES",
                 "task-raised-issue": "RAISED ISSUES",
                 "task-created": "CREATED",
@@ -461,7 +458,7 @@ IdeasController = function(store, socket) {
         },
         supporting: function(cb){
           store.redis.smembers('ideas:' + id + ':supporting', function(e, o){
-            //console.log("smembers", e, o);
+            console.log("smembers", e, o);
             if (e){
               cb(e);
             } else {
@@ -512,7 +509,7 @@ IdeasController = function(store, socket) {
         } else {
           //console.log("results", results);
           var idea = results.idea
-            , supporting = results.supporting
+            , supporting = parseInt(results.supporting, 10)
             , following = 0
             , participating = 0
             , invited = 0;
@@ -635,7 +632,7 @@ IdeasController = function(store, socket) {
 
           //console.log("created idea", o);
           //add the idea with the creator's information to the redis timeline set
-          updateTimeline(o, user, function(e, res){
+          updateTimeline(o, function(e, res){
 
           });
 
@@ -666,6 +663,16 @@ IdeasController = function(store, socket) {
       //console.log("support", id, userid);
 
       support(id, userid, res);
+    },
+
+    removeSupport: function(req, res){
+      
+      var id = req.body.id
+        , userid = req.session.currentUser.appId;
+
+      //console.log("support", id, userid);
+
+      removeSupport(id, userid, res);
     },
 
     supportTime: function(req, res){
@@ -771,93 +778,38 @@ IdeasController = function(store, socket) {
           }
         });
       } else {
+      
         //otherwise, this is an email invite if the user isn't already part of the idea
         //first check if this user is already a member
-        var redis = store.redis
-          , couch = store.couch;
+        var couch = store.couch;
+        couch.db.get(ideaId, function(e, idea){
 
-
-
-        async.parallel({
-          joinHtml: function(cb){
-            var j = '';
-            //console.log("toEmail", toEmail);
-            /*
-            redis.get('users:'+ toEmail, function(e, o){
-              console.log("checked email", e, o);
-              var doJoin = false;
-              if (e) {
-                
-              } else if (o !== null){
-                
-              } else {
-                doJoin = true;
-              }
-
-              if (doJoin){
-                //create the message and links to join coordel
-                j = '<p>Share and support greate ideas. Coordel coordinates micro-funding of great ideas. Two clicks, and your idea is ready to be micro-funded. Support ideas with time or money!<p>';
-                j += '<p>Make great ideas happen. Coordel coordinates working together on Ideas. As fast and simple as email, but better coordinated. Just like a to-do list, but turbo charged.</p>';
-                j += '<p><a href="https://coordel.com">Join us</a>, today</p>';
-              }
-
-              cb(null, j);
-            });
-            */
-            cb(null, j);
-
-          },
-          ideaHtml: function(cb){
-            var i = '';
-            couch.db.get(ideaId, function(e, idea){
-
-
-              i += '<p>Hello ' + toName +',</p>';
-
-              i += '<p><a href="https://' + store.coordelUrl + '/' + user.username + '"><strong>' + user.fullName + '</strong></a> invited you to see an <a href="' + idea.shortUrl + '">Idea</a> ';
-              i += 'on <a href="https://' + store.coordelUrl + '">Coordel</a> and sent you the following message--</p>';
-              
-              i += '<blockquote>&#147;' + message + '&#148;</blockquote>';
-
-              i += '<p>Here is a quick recap of the Idea--</p><blockquote>';
-              
-              i += '<p><strong>Name: </strong> ' + idea.name + '</p>';
-              i += '<p><strong>Purpose: </strong> ' + idea.purpose + '</p>';
-              i += '<p><strong>Link: </strong> ' + idea.shortUrl + '</p></blockquote>';
-              
-              cb(null, i);
-            });
-          }
-        },
-        function(e, results) {
-
-          var body = inviteHeaderHtml + results.ideaHtml + inviteFooterHtml
-            , subject = 'Check out this idea at Coordel';
-
-          var transport = nodemailer.createTransport("SMTP",{
-            service: "Sendgrid", // sets automatically host, port and connection security settings
-            auth: {
-                user: store.sendgrid.username,
-                pass: store.sendgrid.password
-            }
-          });
+          var email = store.email;
 
           var mailOptions = {
-            from: req.session.currentUser.fullName + '<' + req.session.currentUser.email + '>',
-            to: toName + '<' + toEmail + '>',
-            subject: subject,
-            html: body,
-            generateTextFromHtml: true
+            from: {
+              fullName: req.session.currentUser.fullName,
+              username: req.session.currentUser.username,
+              email: req.session.currentUser.email
+            },
+            to: {
+              fullName: toName,
+              email: toEmail,
+              username: ""
+            },
+            subject: 'Check out this idea at Coordel',
+            generateTextFromHtml: true,
+            idea: idea,
+            message: message
           };
 
-          transport.sendMail(mailOptions);
+          email.send('ideaInvite', mailOptions);
 
           res.json({
             success: true
           });
-          
+         
         });
-
       }
     },
 

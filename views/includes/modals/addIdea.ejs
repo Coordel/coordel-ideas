@@ -14,16 +14,12 @@
         <label></label>
         <textarea id="addPurpose" name="ideaPurpose" rows="5" maxchars="560" style="width: 520px" placeholder="Give the purpose of your idea..."></textarea>
         <span id="addPurposeCount" class="pull-right muted">560</span>
-        <div style="font-size: 12px; color:#888">
-          <div>
-            <strong style="font-size:14px">></strong> in front of a domain ( <strong>></strong>coordel.com ) points the idea at the domain owner.
-          </div>
-        </div>
+       
         
         <input id="addIdea_csrf" type="hidden" id="_csrf" name="_csrf" value="<%=token%>">
-      </fieldset>
-   
+      </fieldset> 
   </div>  
+  
   <div class="modal-footer" style="text-align: left">
     <form id="addIdeaForm" method="post" action="/api/v1/ideas">
     <input id="addShare" type="submit" value="Share" href="#" disabled="disabled" class="btn pull-right">
@@ -47,6 +43,5 @@
       <a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none;"><i style="margin-top: 9px" class="icon-remove"></i></a>
     </div>
     -->
-  </div>  
-              
+  </div>             
 </div>

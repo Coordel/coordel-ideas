@@ -1,6 +1,12 @@
 //tidy
 //store.redis.del('user:devcoordel', 'user:dev@coordel.com');
 /*
+var b = new Buffer("1");
+var s = b.toString('base64');
+console.log("b64 of 1", s);
+*/
+
+/*
 var multi = store.redis.multi();
 
 multi.hset('coordelapp:1', 'username', 'jeffgorder182');

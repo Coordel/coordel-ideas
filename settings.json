@@ -1,6 +1,7 @@
 {
   "version": "",
-  "coordelUrl": "work.coordel.com:8443",
+  "coordelUrl": "https://work.coordel.com:8443",
+  "url": "work.coordel.com:8443",
   "config": {
     "redisOptions": {
       "host": "dev.coordel.com",

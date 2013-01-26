@@ -14,7 +14,7 @@
         </div>
         <div class="controls muted">
           <label style="font-size: 12px" class="checkbox">
-          <input style="margin-bottom:0" type="checkbox" checked="true">
+          <input name="remember_me" style="margin-bottom:0" type="checkbox" checked="true">
           Remember me <span style="padding: 0 4px">&#149;</span> <span><a href="/password">Forgot Password</a></span> 
           </label>
           <input type='hidden' name='_csrf' value="<%=token%>">
@@ -22,18 +22,7 @@
       </div>
     </form>
   </div>
-  <div class="user-signup bg-gray rounded-column">
-    <form action="/signup" method="post" style="margin-bottom: 0;">
-      <div class="controls clearfix">
-        <input style="width: 303px" placeholder="Full name" type="text" name="signup-fullname" id="signup-fullname">
-        <input style="width: 303px" placeholder="E-mail" type="text" name="signup-email" id="signup-email">
-        <input style="width: 303px" placeholder="Password" type="password" name="signup-password" id="signup-password">
-        <input style="margin-bottom: 0" type="submit" value="Sign up for Coordel" class="btn submit btn-warning pull-right">
-        <input type="hidden" name="origin" value="index-signup">
-        <input type="hidden" name="_csrf" value="<%=token%>">
-      </div>
-    </form>
-  </div>
+  <% include ../includes/registration %>
   <% include ../includes/about %>
 </div>
 <div class="main-column">

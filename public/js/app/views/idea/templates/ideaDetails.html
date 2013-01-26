@@ -16,25 +16,31 @@
   </div>
   <table class="table profile-stats">
     <tr>
-      <th colspan="2" style="border-right: 1px solid #ddd">Money Support</th>
-      <th colspan="2">Time Support</th>
+      <th style="border-right: 1px solid #ddd">Supporting</th>
+      <th colspan="2" style="border-right: 1px solid #ddd">Time</th>
+      <th colspan="2">Money</th>
+      
     </tr>
     <tr>
       <td>
-        <strong data-dojo-attach-point="moneyPledged"></strong>
-        PLEDGED
-      </td>
-      <td>
-        <strong data-dojo-attach-point="moneyAllocated"></strong>
-        ALLOCATED
+        <strong data-dojo-attach-point="peopleSupporting"></strong>
+        <span data-dojo-attach-point="peopleLabel">PEOPLE</span>
       </td>
       <td>
         <strong data-dojo-attach-point="timePledged"></strong>
         PLEDGED
       </td>
-      <td style="border-right: none">
+      <td>
         <strong data-dojo-attach-point="timeReported"></strong>
         REPORTED
+      </td>
+      <td>
+        <strong data-dojo-attach-point="moneyPledged"></strong>
+        PLEDGED
+      </td>
+      <td style="border-right: none">
+        <strong data-dojo-attach-point="moneyAllocated"></strong>
+        ALLOCATED
       </td>
     </tr>
     <tr class="hide" data-dojo-attach-point="gaveList">

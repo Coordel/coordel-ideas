@@ -32,7 +32,7 @@
                 <div class="clearfix"></div>
               </li>
               <li class="divider"></li>
-              <li id="sign-out" data-token="<%=token%>"><a>Sign out</a></li>
+              <li id="sign-out" data-token="<%=token%>"><a href="/logout">Sign out</a></li>
             </ul>
           </div>
           <div class="top-divider pull-right"></div>
@@ -46,7 +46,7 @@
               <li id="menuIdeas"><a id="menuIdeas" href="/"><i class="c-icon-idea"></i>Ideas</a></li>
               <li id="menuCoordel"><a href="http://app.coordel.com:8090/web"><i class="c-icon-coordel"></i>Workspace</a></li>
               <li id="menuBlueprints"><a href="/blueprints"><i class="c-icon-blueprint"></i>Blueprints</a></li>
-              <li id="menuMe"  class="active"><a href="/<%=username%>"><i class="c-icon-stream"></i>Mine</a></li>
+              <li id="menuMe"><a href="/<%=username%>"><i class="c-icon-stream"></i>Mine</a></li>
             </ul>
           </div><!--/.nav-collapse -->
           <a style="cursor: default" class="brand" href="#"><img style="margin-left: 4px;" src="/lib/coordel-bootstrap/img/logo.png"/></a>
@@ -57,32 +57,177 @@
       <div class="left-column">
         <div class="bg-white rounded">
           <ul class="nav nav-tabs nav-stacked">
-            <li id="subNavAccount"> 
+            <!--<li id="subNavAccount"> 
               <a href="/setting/account"><i class="icon-chevron-right menu-chevron"></i>Account<span id="navAccount" class="label pull-right"></span></a>
+            </li>-->
+            <li  id="subNavAccount">
+              <a href="#"><i class="icon-chevron-right menu-chevron"></i>Account<span id="navAccount" class="label pull-right"></span></a>
             </li>
             <li  id="subNavProfile">
-              <a href="/settings/profile"><i class="icon-chevron-right menu-chevron"></i>Profile<span id="navProfile" class="label pull-right"></span></a>
+              <a href="#"><i class="icon-chevron-right menu-chevron"></i>Profile<span id="navProfile" class="label pull-right"></span></a>
             </li>
             <li id="subNavPassword">
-              <a href="/settings/password"><i class="icon-chevron-right menu-chevron"></i>Password<span id="navPassword" class="label pull-right"></span></a>
+              <a href="#"><i class="icon-chevron-right menu-chevron"></i>Password<span id="navPassword" class="label pull-right"></span></a>
             </li>
-            <li id="subNavNotifications">
-              <a href="/settings/notifications"><i class="icon-chevron-right menu-chevron"></i>Email Notifications<span id="navNotifications" class="label pull-right"></span></a>
+            <li id="subNavConnection">
+              <a href="#"><i class="icon-chevron-right menu-chevron"></i>Connections<span id="navAppsetings" class="label pull-right"></span></a>
             </li>
           </ul>
         </div>
         <% include includes/about %>
       </div>
       <div class="main-column">
-        <div id="userProfileContainer" class="user-profile-container nav user-profile rounded-column"></div>
-        <div class="stream-container no-padding stream-container-gray">
+        <div class="stream-container no-padding bg-white">
           <div class="stream-header bg-white">
-            <h4 id="mainColumnHeader"></h4>
+            <h4 id="mainColumnHeader">Profile</h4>
             <div></div>
           </div>
-          <div class="stream">
-            <div id="stream-items-container" class="stream-items">
-              
+          <style>
+            dd input[type=text], dd select, dd textarea{
+              margin-bottom: 0;
+            }
+
+            dd > div {
+              font-size: 14px;
+            }
+
+            dt,dd {
+              margin-bottom: 20px;
+            }
+          </style>
+          <div style="padding: 12px" id="settings">
+            <div id="profileSettings" class="">
+              <dl class="dl-horizontal">
+                <dt>Profile image</dt>
+                <dd>
+                  <img id="userImage" class="img-rounded"  style="margin-right: 8px">
+                  <div class="muted">Coordel uses <a target="_blank" href="http://gravatar.com">Gravatars</a> for profile images.</div>
+                </dd>
+              </dl>
+              <hr>
+               <dl class="dl-horizontal">
+                <dt>Name</dt>
+                <dd>
+                  <input id="profileName" type="text"/>
+                  <div class="muted">Enter your real name.</div>
+                </dd>
+                <dt>Location</dt>
+                <dd>
+                  <input id="profileLocation" type="text"/>
+                  <div class="muted">Where are you?</div>
+                </dd>
+                <dt>Local currency</dt>
+                <dd>
+                  <select id="profileLocalCurrency">  
+                    <option value="AUD">Australian Dollar</option>
+                    <option value="BRL">Brazilian Real</option>
+                    <option value="GBP">British Pound</option>
+                    <option value="CAD">Canadian Dollar</option>
+                    <option value="CNY">Chinese Yuan Renminbi</option>
+                    <option value="DKK">Danish Krone</option>
+                    <option value="EUR">Euro</option>
+                    <option value="HKD">Hong Kong Dollar</option>
+                    <option value="JPY">Japanese Yen</option>
+                    <option value="NZD">New Zealand Dollar</option>
+                    <option value="PLN">Polish Zloty</option>
+                    <option value="RUB">Russian Ruble</option>
+                    <option value="SLL">Sierra Leone Leone</option>
+                    <option value="SGD">Singapore Dollar</option>
+                    <option value="SEK">Swedish Krona</option>
+                    <option value="CHF">Swiss Franc</option>
+                    <option value="THB">Thai Baht</option>
+                    <option value="USD">United States Dollar</option>
+                  </select>
+                  <div class="muted">Select your preferred currency. Transactions are done in Bitcoin, but your local currency will also be displayed.</div>
+                </dd>
+                <dt>Personal link</dt>
+                <dd>
+                  <input id="profilePersonalLink" type="text"/>
+                  <div class="muted">Enter your personal website or blog.</div>
+                </dd>
+                <dt>Bio</dt>
+                <dd>
+                  <textarea id="profileBio" maxlength="160"></textarea>
+                  <div class="muted">A little bit about you.</div>
+                </dd>
+                <dt>&nbsp;</dt>
+                <dd>
+                  <button id="profileSaveChanges" class="btn btn-primary">Save changes</button>
+                </dd>
+              </dl>
+            </div>
+            <div id="accountSettings" class="hide">
+              <dl class="dl-horizontal">
+                <dt>Username</dt>
+                <dd>
+                  <input id="accountUsername" type="text"/>
+                  <div class="muted">Link to your Ideas at https://coordel.com/<%=username%>.</div>
+                </dd>
+                <dt>E-mail</dt>
+                <dd>
+                  <input id="accountEmail" type="text"/>
+                  <div class="muted">Enter the e-mail you would like to use.</div>
+                </dd>
+                <dt>&nbsp;</dt>
+                <dd>
+                  <button id="accountSaveChanges" class="btn btn-primary">Save changes</button>
+                </dd>
+              </dl>
+            </div>
+            <div id="connectionSettings" class="hide">
+              <dl class="dl-horizontal">
+                <dt>Twitter connection</dt>
+                <dd>
+                  <div class="btn-group" data-toggle="buttons-radio">
+                    <button id="twitterConnectedOff" type="button" class="btn active">Off</button>
+                    <button id="twitterConnectedOn" type="button" class="btn">On</button>
+                  </div>
+                  <div class="muted">Connect to <a target="_blank" href="https://twitter.com">Twitter</a> to enable the option to tweet your comments.</div>
+                </dd>
+                <dt>Coinbase connection</dt>
+                <dd>
+                  <div class="btn-group" data-toggle="buttons-radio">
+                    <button id="coinbaseConnectedOff" type="button" class="btn active">Off</button>
+                    <button id="coinbaseConnectedOn" type="button" class="btn">On</button>
+                  </div>
+                  <div class="muted">Connect to <a target="_blank" href="https://coinbase.com">Coinbase</a> to enable Bitcoin payments.</div>
+                </dd>
+              </dl>
+            </div>
+            <div id="passwordSettings" class="hide">
+              <dl class="dl-horizontal">
+                <dt>Current password</dt>
+                <dd>
+                  <input id="passwordCurrent" type="password"/>
+                  <div><a tabindex="-1" style="font-size: 12px" href="/password">Forgot your password?</a></div>
+                </dd>
+              </dl>
+              <hr>
+              <dl class="dl-horizontal">
+                <dt>New password</dt>
+                <dd>
+                  <input id="passwordNew" type="password"/>
+                  <div class="score" style="display: block;">
+                    <span>
+                      <b id="passwordStrengthIndicator" class="fill">&nbsp;</b>
+                    </span>
+                  </div>
+                </dd>
+                <dt>Verify password</dt>
+                <dd>
+                  <input id="passwordNewVerify" type="password"/>
+                </dd>
+                <dt>&nbsp</dt>
+                <dd>
+                  <div id="passwordErrorsContainer" class="alert alert-error hide">
+                    <div id="passwordErrors"></div>
+                  </div>
+                  <div id="passwordSuccessContainer" class="alert alert-success hide">
+                    <div id="passwordSuccess">Password update successful.</div>
+                  </div>
+                  <button id="passwordSaveChanges" class="btn btn-primary">Save changes</button>
+                </dd>
+              </dl>
             </div>
           </div>
           <div class="stream-footer bg-white">
@@ -127,9 +272,9 @@
     src="//ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js"></script>
     <script>
       // load our app module and wait for the DOM to be ready
-      require(['app/controllers/app', 'dojo/domReady!' ], function(app){
+      require(['app/controllers/settings', 'dojo/domReady!' ], function(app){
         //this let's us bootstrap the objects from the server
-        app.init({_csrf:'<%=_csrf%>', profile: JSON.parse(unescape('<%-profile%>')), user: JSON.parse(unescape('<%- user%>')), username: '<%=username%>', menu: '<%=menu%>', subNav: '<%=subNav%>'});
+        app.init({_csrf:'<%=_csrf%>', profile: JSON.parse(unescape('<%-profile%>')), currencies: JSON.parse(unescape('<%-currencies%>')), user: JSON.parse(unescape('<%- user%>')), username: '<%=username%>', menu: '<%=menu%>', subNav: '<%=subNav%>'});
       });
     </script>
   </body>
