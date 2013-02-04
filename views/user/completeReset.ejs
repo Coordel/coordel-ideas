@@ -1,0 +1,30 @@
+<% include header %>
+<div class="account-content">
+  <h3>Reset your password</h3>
+  <div>
+    <p>Please enter and verify entry of a new password.</p>
+  </div>
+  <div id="settings">
+    <dl class="dl-horizontal">
+      <dt>New password</dt>
+      <dd>
+        <input id="resetPasswordNew" type="password"/>
+      </dd>
+      <dt>Verify password</dt>
+      <dd>
+        <input id="resetPasswordNewVerify" type="password"/>
+      </dd>
+      <dt>&nbsp</dt>
+      <dd>
+        <div id="resetPasswordErrorsContainer" class="alert alert-error hide">
+          <div id="resetPasswordErrors"></div>
+        </div>
+        <button id="resetPasswordSaveChanges" class="btn btn-primary">Reset Password</button>
+        <input id="resetPasswordHash" type="hidden" value="<%=hash%>"/>
+      </dd>
+    </dl>
+  </div>
+</div>
+<% include footer %>
+
+

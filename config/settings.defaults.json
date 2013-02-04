@@ -26,7 +26,13 @@
     },
     "coinbase": {
       "clientId": "d729e2b02f813472238104d0c434c29d20bf0871b1b1843c5ad746b633b685f7",
-      "clientSecret": "b0f8fb5788c977fa99084054b7cabd9308f4e10a12487c59e48b6220fb0f8088"
+      "clientSecret": "b0f8fb5788c977fa99084054b7cabd9308f4e10a12487c59e48b6220fb0f8088",
+      "salesAccountApiKey": "1a540b19322194cec1bf462eefbbf0d4fef32334d2c75161f43f1bc74281dc5e",
+      "salesReceiveAccount": "1JaXtjkXitvzZeF2tGwsHvMbVVqXoL2hHk"
+    },
+    "bitly": {
+      "login": "coordel",
+      "apiKey": "R_a91e7a62e711c839e5ea3731da1df6a7"
     }
   },
   "config" : {
@@ -38,13 +44,12 @@
       "auth": "4dbd78fa8e5679b37d9df21324c0c85e"
     },
 
-
-
     "couchOptions":{
       "host": "coordel.iriscouch.com",
       "port": 5984,
       "auth": {"username": "admin", "password": "admin1129"},
-      "cache": false
+      "cache": false,
+      "followUrl": "https://coordel.iriscouch.com:5984/coordel-pre"
     },
     
     "couchName": "coordel-pre",

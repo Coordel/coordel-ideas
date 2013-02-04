@@ -14,8 +14,9 @@ define([
     "dojo/dom-construct",
     "dojo/store/JsonRest",
     "dojo/_base/array",
-    "dojo/request"
-], function(declare, _WidgetBase, _TemplatedMixin, template, fileHtml, userHtml, giverHtml, reportHtml, on, domClass, topic, lang, build, JsonRest, array, request) {
+    "dojo/request",
+    "app/models/currency"
+], function(declare, _WidgetBase, _TemplatedMixin, template, fileHtml, userHtml, giverHtml, reportHtml, on, domClass, topic, lang, build, JsonRest, array, request, currency) {
  
   return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -67,13 +68,37 @@ define([
         */
         
         //expanded info
-        self.purposeContainer.innerHTML = idea.purpose.replace(/\n/g, "<br>");
+        if (idea.purpose){
+          self.purposeContainer.innerHTML = idea.purpose.replace(/\n/g, "<br>");
+        } else {
+          self.purposeContainer.innerHTML = '<em class="muted">Woops, purposeless!</em>';
+        }
         $(self.purposeContainer).linkify({target: '_blank'});
-        self.deadlineContainer.innerHTML = moment(idea.deadline).format('h:mm A - D MMM YY');
+
+        if (idea.deadline){
+          self.deadlineContainer.innerHTML = moment(idea.deadline).format('h:mm A - D MMM YY');
+        } else {
+          domClass.add(self.deadlineContainer, 'hide');
+        }
+
+        
+        if (self.account.balance > 0 && self.currentUser.appId === idea.responsible){
+          /*
+          console.log("prices", self.bitcoinPrices, "local", self.localCurrency);
+          currency.init(self.bitcoinPrices, self.localCurrency);
+          domClass.remove(self.paymentContainer, 'hide');
+          console.log("btc", currency.formatBtc(self.account.balance));
+          console.log("local", currency.toLocal(self.account.balance));
+          self.paymentBtcAmount.innerHTML = currency.formatBtc(self.account.balance);
+          self.paymentLocalAmount.innerHTML = currency.toLocal(self.account.balance);
+          */
+        }
+        
         self.purposeFooter.innerHTML = moment(idea.updated).format('h:mm A - D MMM YY');
 
         $('.idea-purpose-icon').tooltip({title: "Idea purpose", placement: "left"});
         $('.idea-deadline-icon').tooltip({title: "Idea deadline", placement:"left"});
+        $('.idea-payment-icon').tooltip({title: "Idea account balance", placement:"left"});
       });
       
     },
@@ -82,6 +107,8 @@ define([
       var self = this;
       request('/bitcoin/prices', {handleAs: "json"}).then(function(prices){
         self.bitcoinPrices = prices;
+        currency.init(prices, self.localCurrency);
+        self.currency = currency;
         var account = self.account;
         self.peopleSupporting.innerHTML = self.supporting;
         if (parseInt(self.supporting,10) === 1){
@@ -108,22 +135,7 @@ define([
     getLocalAmount: function(btcAmount){
    
       var self = this;
-
-      var localValue = self.bitcoinPrices[self.localCurrency]["24h"];
-
-      var symbol = self.bitcoinPrices[self.localCurrency].symbol;
- 
-      var newValue = btcAmount * localValue;
-
-      newValue = accounting.formatNumber(newValue, [precision = 2], [thousand = ","], [decimal = "."]);
-
-      if (symbol){
-        newValue = symbol + newValue;
-      } else {
-        newValue = newValue + " " + self.localCurrency;
-      }
-  
-      return newValue;
+      return self.currency.getSymbol() + self.currency.toLocal(btcAmount);
     },
 
     showActivity: function(activity){

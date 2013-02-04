@@ -4,8 +4,23 @@
   border: none;
 }
 
+.span3 {
+  width: 240px;
+}
 
+.rounded-marketing {
+  border-radius: 3px 3px 3px 3px;
+  padding: 8px;
+  min-height: 255px;
+}
 
+.center {
+  text-align: center;
+}
+
+.account-wrapper {
+  margin-bottom: 20px;
+}
 
 
 .support .qs-content {

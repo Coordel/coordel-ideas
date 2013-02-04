@@ -9,6 +9,7 @@
     <link href="lib/coordel-bootstrap/css/coordel.css" rel="stylesheet" media="screen">
     <link href="css/ideas.css" rel="stylesheet" media="screen">
     <link rel="shortcut icon" href="img/favicon.gif" /> 
+    <% include ./includes/analytics %>
   </head>
   <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -30,7 +31,7 @@
                 <div class="clearfix"></div>
               </li>
               <li class="divider"></li>
-              <li id="sign-out" data-token="<%=token%>"><a>Sign out</a></li>
+              <li><a href="/logout">Sign out</a></li>
             </ul>
           </div>
           <div class="top-divider pull-right"></div>
@@ -44,7 +45,7 @@
               <li id="menuIdeas"><a id="menuIdeas" href="/"><i class="c-icon-idea"></i>Ideas</a></li>
               <li id="menuCoordel"><a href="http://app.coordel.com:8090/web"><i class="c-icon-coordel"></i>Workspace</a></li>
               <li id="menuBlueprints" class="active"><a href="/blueprints"><i class="c-icon-blueprint"></i>Blueprints</a></li>
-              <li id="menuStream"><a href="/<%=username%>"><i class="c-icon-stream"></i>Mine</a></li>
+              <li id="menuStream"><a href="/<%=username%>"><i class="c-icon-stream"></i>Portfolio</a></li>
             </ul>
           </div><!--/.nav-collapse -->
           <a style="cursor: default" class="brand" href="#"><img src="/img/logo.png"/></a>

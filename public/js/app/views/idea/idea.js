@@ -66,6 +66,7 @@ define([
           domClass.add(self.cancelTimeContainer, "hide");
           domClass.add(self.proxyAllocateContainer, "hide");
           domClass.add(self.proxyDeallocateContainer, "hide");
+          domClass.add(self.makePaymentContainer, "hide");
           domClass.replace(self.dogear, "");
         },
 
@@ -74,6 +75,13 @@ define([
             , idea = self.idea;
 
           self.resetState();
+
+          //if the idea has an account balance and I'm the responsible show the pay button
+          /*
+          if (idea.account.balance > 0 && user.app.id === idea.responsible){
+            domClass.remove(self.makePaymentContainer, "hide");
+          }
+          */
         
           //if I'm the creator of this idea, then hide the support/removeSupport buttons
           if (user.app.id === idea.creator){
@@ -85,7 +93,7 @@ define([
           if (array.indexOf(user.account.supportedIdeas, idea._id )>-1){
             domClass.add(self.pledgeSupportContainer, "hide");
             //if I'm not the creator, then show the option to remove support
-            console.log("updating because this is an idea I'm supporting");
+            //console.log("updating because this is an idea I'm supporting");
             if(idea.creator !== self.currentUser.appId){
               domClass.remove(self.removeSupportContainer, "hide");
             }
@@ -104,7 +112,7 @@ define([
               return item.appId !== self.currentUser.appId;
             });
             if (!list.length){
-              console.log("hide allocate by proxy");
+              ////console.log("hide allocate by proxy");
               domClass.add(self.addProxyContainer, "hide");
             } else {
               domClass.remove(self.addProxyContainer, "hide");
@@ -261,7 +269,7 @@ define([
           domClass.add(this.toggler, "hide");
           self.collapsed = false;
           //domClass.remove(self.activityContainer, "hide");
-          ideaDetails({idea: self.idea}).placeAt(self.detailsContainer);
+          ideaDetails({idea: self.idea, localCurrency: self.currentUser.app.localCurrency}).placeAt(self.detailsContainer);
           ideaStream({idea:self.idea}).placeAt(self.streamContainer);
         },
 
@@ -277,7 +285,7 @@ define([
           }
 
           var sptHandle = topic.subscribe("coordel/supportAccount", function(acct){
-            console.log("supportAccount", acct);
+            ////console.log("supportAccount", acct);
             //self.currentUser.account = acct;
             if (self.currentUser.appId === self.idea.creator){
               self.user.account = acct;
@@ -287,19 +295,19 @@ define([
           });
 
           topic.subscribe("coordel/twitterAuthorize", function(account){
-            console.log("twitterAuthorize", self.currentUser, account);
+            //console.log("twitterAuthorize", self.currentUser, account);
             //the user clicked authorize and it happend, set the checkbox to true
             dom.byId("tweetReply-"+self.idea._id).checked = true;
           });
 
           topic.subscribe("coordel/coinbaseAuthorize", function(account){
-            console.log("coinbaseAuthorize", self.currentUser, account);
+            //console.log("coinbaseAuthorize", self.currentUser, account);
           });
 
 
 
           topic.subscribe("coordel/ideaAction", function(action, ideaId, type){
-            console.log("ideaAction", action, ideaId, type);
+            //console.log("ideaAction", action, ideaId, type);
       
             if (self.idea._id === ideaId){
 
@@ -431,7 +439,7 @@ define([
               this.innerHTML = "collapse";
               self.collapsed = false;
               //domClass.remove(self.activityContainer, "hide");
-              ideaDetails({idea: self.idea}).placeAt(self.detailsContainer);
+              ideaDetails({idea: self.idea, currentUser: self.currentUser}).placeAt(self.detailsContainer);
               ideaStream({idea:self.idea}).placeAt(self.streamContainer);
 
             } else {
@@ -512,7 +520,7 @@ define([
             });
 
             if (!self.currentUser.app.twitterToken){
-              console.log("we weren't authenticated", self.currentUser.app);
+              //console.log("we weren't authenticated", self.currentUser.app);
               var tweetHandle = on(dom.byId("tweetReply-"+self.idea._id), "click", function(e){
                 e.preventDefault();
                 window.open('/connect/twitter', 'mywin','left=20,top=20,width=500,height=500,location=1,resizable=1');
@@ -540,6 +548,7 @@ define([
                   "X-CSRF-Token": _csrf
                 }
               }).then(function(res){
+
                 handle.remove();
                 dom.byId("replyMessage-"+self.idea._id).value = "";
                 $(self.doReply).popover('hide');
@@ -578,7 +587,7 @@ define([
 
             //only show contacts that aren't already in the project
             var contactList = array.filter(self.contacts, function(item){
-              console.log("testing existing users", self.idea.users, item.appId,  array.indexOf(self.idea.users, item.appId));
+              //console.log("testing existing users", self.idea.users, item.appId,  array.indexOf(self.idea.users, item.appId));
               return array.indexOf(self.idea.users, item.appId) === -1;
             });
 
@@ -587,11 +596,13 @@ define([
             self.doingInvite = !self.doingInvite;
             var emailHandle = on(dom.byId("submitEmailInvite-"+self.idea._id), "click", function(e){
               e.preventDefault();
-              var isFollow = false;
+              var isFollow = false
+                , inviteType = 'E-mail';
               if (domClass.contains(contactTabContain, "active")){
                 isFollow = true;
+                inviteType = 'Existing contact';
               }
-              console.log("isFollow", isFollow, self.idea);
+              //console.log("isFollow", isFollow, self.idea);
               
               xhr.post('/ideas/'+self.idea._id + "/invites", {
                 handleAs: "json",
@@ -608,7 +619,8 @@ define([
                   "X-CSRF-Token": _csrf
                 }
               }).then(function(res){
-                console.log("response from invite", res);
+                _gaq.push(['_trackEvent', 'Ideas', 'Invited', inviteType]);
+                //console.log("response from invite", res);
                 emailHandle.remove();
                 dom.byId("inviteName-"+self.idea._id).value = "";
                 dom.byId("inviteEmail-"+self.idea._id).value = "";
@@ -643,11 +655,11 @@ define([
                 }
             }).then(function(res){
               //update supporting
-              console.log("supported response", res);
+              _gaq.push(['_trackEvent', 'Ideas', 'Supported']);
               res = JSON.parse(res);
               if (res.success){
                 topic.publish("coordel/supportIdea", res.incrementBy);
-                console.log("self", self.idea);
+                //console.log("self", self.idea);
                 topic.publish("coordel/ideaAction", "support", self.idea._id);
               }
                 
@@ -666,11 +678,11 @@ define([
                 }
             }).then(function(res){
               //update supporting
-              console.log("removed response", res);
+              //console.log("removed response", res);
               res = JSON.parse(res);
               if (res.success){
                 topic.publish("coordel/supportIdea", res.incrementBy);
-                console.log("self", self.idea);
+                //console.log("self", self.idea);
                 topic.publish("coordel/ideaAction", "removeSupport", self.idea._id);
               }
                 
@@ -722,7 +734,7 @@ define([
 
             //load any existing proxy-allocations
             xhr('/ideas/' + self.idea._id + '/users/' + self.currentUser.appId + '/proxies/allocations', {handleAs: 'json'}).then(function(proxy){
-              console.log("existing proxy", proxy);
+              //console.log("existing proxy", proxy);
               var existing = false;
               if (proxy.length){
                 existing = proxy[0];
@@ -756,7 +768,7 @@ define([
             //get proxied allocations for this idea
             xhr('/ideas/' + self.idea._id + '/users/' + self.currentUser.appId + '/proxies/allocations', {handleAs: 'json'}).then(function(proxy){
             
-              console.log("proxy", proxy);
+              //console.log("proxy", proxy);
               if (proxy.length){
                 proxyDeallocateForm.show(proxy[0]);
               } else {

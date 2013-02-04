@@ -21,18 +21,21 @@ define(["dojo/dom"
 
     bitcoinPrices: null,
 
-    init: function(user, prices, contacts){
+    init: function(user, currency, contacts){
       var self = this;
 
       self._csrf = $('#addIdea_csrf').val();
 
       self.user = user;
-      self.bitcoinPrices = prices;
+      //self.bitcoinPrices = prices;
+      self.currency = currency;
       self.contacts = contacts;
 
+      /*
       if (user.localCurrency){
         self.localCurrency = user.localCurrency;
       }
+      */
 
       self.showAllocate();
 
@@ -65,8 +68,7 @@ define(["dojo/dom"
       array.forEach(pledges, function(item){
         new p({
           pledge: item,
-          bitcoinPrices: self.bitcoinPrices,
-          localCurrency: self.localCurrency,
+          currency: self.currency,
           contacts: self.contacts
         }).placeAt(dom.byId("proxyAllocationPledgesContainer"));
       });
@@ -129,6 +131,7 @@ define(["dojo/dom"
         }).then(function(resp){
           console.log("allocate response", resp);
           if (resp.success){
+            _gaq.push(['_trackEvent', 'Ideas', 'Proxy allocated']);
             $('#proxyAllocateModal').modal('hide');
             topic.publish("coordel/ideaAction", "proxyAllocate", self.pledge.project);
           } else {

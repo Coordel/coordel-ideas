@@ -158,7 +158,7 @@ module.exports = function(store) {
             errors: [e]
           });
         } else {
-          console.log("idea", idea);
+          //console.log("idea", idea);
           fn(null, idea);
         }
       });
@@ -177,6 +177,20 @@ module.exports = function(store) {
         } else {
           console.log("idea from hash", idea);
           fn(null, idea[0].value);
+        }
+      });
+    },
+
+    findAccountBalance: function(id, fn){
+      store.couch.db.view('coordel/ideaAccountBalance', {startkey:[id], endkey: [id, {}], group:true, group_level: "1", reduce: true}, function(e, res){
+        if (e){
+          fn({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          console.log("account balance response", res);
+          fn(null, res[0].value);
         }
       });
     },
@@ -219,6 +233,7 @@ module.exports = function(store) {
                   fn(e);
                 } else {
                   idea._rev = o.rev;
+                  console.log("added feedback", idea);
                   fn(null, idea);
                 }
               });
@@ -563,7 +578,7 @@ module.exports = function(store) {
 
     getShortUrl: function(ideaId, fn){
 
-      var longUrl = encodeURIComponent('http://coordel.com/ideas/'+ideaId);
+      var longUrl = encodeURIComponent(store.coordelUrl + '/ideas/'+ideaId);
 
       var b = store.bitly;
 

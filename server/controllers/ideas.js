@@ -31,10 +31,6 @@ IdeasController = function(store, socket) {
   
     var hashtagMatches = purpose.match(hashtagPattern);
     var pointerMatches = purpose.match(pointerPattern);
-
- 
-
-
   }
 
   //used to sum money and time allocations
@@ -229,7 +225,7 @@ IdeasController = function(store, socket) {
       var user = {appId: args.appId};
 
       UserApp.findById(args.appId, function(e, app){
-        args.name = req.session.currentUser.user.fullName;
+        args.name = req.session.currentUser.fullName;
         Idea.addFeedback(args, function(e, o){
     
           if (e){
@@ -374,6 +370,15 @@ IdeasController = function(store, socket) {
             }
           });
         },
+        accountBalance: function(cb){
+          Idea.findAccountBalance(id, function(e, res){
+            if (e){
+              cb(e);
+            } else {
+              cb(null, res);
+            }
+          });
+        },
         account: function(cb){
           //console.log("idea support account", id);
           store.couch.db.view('coordel/ideaSupportAccount', {
@@ -487,7 +492,7 @@ IdeasController = function(store, socket) {
           });
         },
         gaveMoney: function(cb){
-          store.couch.db.view('coordel/ideaMoneyAllocations', {startkey: [id], endkey:[id,{}], include_docs: true}, function(e,o){
+          store.couch.db.view('coordel/ideaMoneyPledgesAllocated', {startkey: [id], endkey:[id,{}], include_docs: true}, function(e,o){
             if (e){
               cb(e);
             } else {
@@ -513,6 +518,10 @@ IdeasController = function(store, socket) {
             , following = 0
             , participating = 0
             , invited = 0;
+
+
+          //add the account balance to the account
+          results.account.balance = results.accountBalance;
 
           _.each(idea.assignments, function(assign){
             if (assign.role === "FOLLOWER" && assign.status === "INVITE"){
@@ -788,7 +797,7 @@ IdeasController = function(store, socket) {
 
           var mailOptions = {
             from: {
-              fullName: req.session.currentUser.fullName,
+              fullName: req.session.currentUser.fullName + ' via Coordel',
               username: req.session.currentUser.username,
               email: req.session.currentUser.email
             },

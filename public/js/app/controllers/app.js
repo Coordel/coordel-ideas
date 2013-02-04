@@ -9,6 +9,7 @@ define(["dojo/dom",
   "dojo/hash",
   "dijit/registry",
   "app/models/app",
+  "app/models/currency",
   "app/views/miniProfile/miniProfile",
   "app/views/userProfile/userProfile",
   "app/views/idea/idea",
@@ -31,7 +32,7 @@ define(["dojo/dom",
   "app/views/addForm/addForm",
   "dojo/domReady!" ], function(dom
                     , topic, cookie, array, on, domClass, build, request, hash, registry
-                    , model, miniProfile, userProfile, idea, blueprint, moneyForm
+                    , model, currency, miniProfile, userProfile, idea, blueprint, moneyForm
                     , timeForm, contact, allocate, reportTimeForm, addProxy
                     , cancelMoneyForm, cancelTimeForm, removeProxyForm, feedbackForm, feedback, proxyAllocateForm, proxyDeallocateForm, donationsForm, features){
 
@@ -63,6 +64,34 @@ define(["dojo/dom",
       this.contacts = args.contacts;
       this.show();
 
+      $("#ideasCarousel").carousel({interval: 10000});
+      $("#workspaceCarousel").carousel({interval: 10000});
+
+      $("#loginButton").click(function(){
+        _gaq.push(
+          // Queue the tracking event
+          ['_trackEvent', 'Ideas', 'Login'],
+          // Queue the callback function immediately after.
+          // This will execute in order.
+          function() {
+            // Submit the parent form
+            $("#loginForm").submit();
+          }
+        );
+      });
+
+      $("#startRegistration").click(function(e){
+        _gaq.push(
+          // Queue the tracking event
+          ['_trackEvent', 'Registration', 'Started'],
+          // Queue the callback function immediately after.
+          // This will execute in order.
+          function() {
+            // Submit the parent form
+            $("#registrationForm").submit();
+          }
+        );
+      });
 
       if (!args.subNav && !args.registrationOpen){
         self.closeRegistration();
@@ -78,15 +107,16 @@ define(["dojo/dom",
         handleAs: "json"
         }).then(function(prices){
           self.bitcoinPrices = prices;
-          moneyForm.init(args.user, prices);
-          allocate.init(args.user, prices);
+          currency.init(prices, args.user.localCurrency);
+          moneyForm.init(args.user, currency);
+          allocate.init(args.user, currency);
           reportTimeForm.init(args.user);
-          addProxy.init(args.user, prices, args.contacts);
-          proxyAllocateForm.init(args.user, prices, args.contacts);
+          addProxy.init(args.user, currency, args.contacts);
+          proxyAllocateForm.init(args.user, currency, args.contacts);
           proxyDeallocateForm.init(args.user);
-          cancelMoneyForm.init(args.user, prices);
+          cancelMoneyForm.init(args.user, currency);
           cancelTimeForm.init(args.user);
-          removeProxyForm.init(args.user, prices, args.contacts);
+          removeProxyForm.init(args.user, currency, args.contacts);
           feedbackForm.init(args.user);
         });
 
@@ -95,15 +125,15 @@ define(["dojo/dom",
 
     closeRegistration: function(){
       var self = this;
-      console.log("registration closed");
-      domClass.add(dom.byId("registrationForm"), "hide");
+      //console.log("registration closed");
+      domClass.add(dom.byId("registrationFormContainer"), "hide");
       domClass.remove(dom.byId("registrationClosedMessage"), "hide");
 
 
       $(function() {
         $('#requestSignupButton').click(function(e) {
           var _csrf = $('#addIdea_csrf').val();
-          console.log("clicked", _csrf);
+          //console.log("clicked", _csrf);
           var email = $("#request-signup-email").val()
             , fullname = $("#request-signup-fullname").val();
           // Prevent the form from submitting with the default action
@@ -120,7 +150,7 @@ define(["dojo/dom",
           {
             //self.model.timeline.notify(idea);
             //topic.publish("coordel/addIdea", idea);
-            console.log("res", res);
+            //console.log("res", res);
             domClass.add(dom.byId("requestInviteForm"), "hide");
             domClass.remove(dom.byId("requestInviteSuccessMessage"), "hide");
             
@@ -135,7 +165,7 @@ define(["dojo/dom",
     setSearch: function(){
       $(".search-query").keyup(function(e){
         if (e.keyCode === 13){
-          console.log("submit the search", $(e.target).val());
+          //console.log("submit the search", $(e.target).val());
           window.location = "/search?q=" + $(e.target).val();
         }
       });
@@ -309,15 +339,15 @@ define(["dojo/dom",
           options.subNavId = "subNavSupporting";
         break;
         case 'moneyPledged':
-          options.header = "Pledged money";
+          options.header = "Money pledges";
           options.subNavId = "subNavMoney";
         break;
         case 'timePledged':
-          options.header = "Pledged time";
+          options.header = "Time pledges";
           options.subNavId = "subNavTime";
         break;
         case 'proxiedToMe':
-          options.header = "Proxied to me";
+          options.header = "Proxies";
           options.subNavId = "subNavProxy";
         break;
         case 'contacts':
@@ -378,19 +408,19 @@ define(["dojo/dom",
 
       //register for socketio events
       socket.on("idea", function (idea) {
-        console.log("SOCKET IDEA", idea);
+        //console.log("SOCKET IDEA", idea);
         self.model.timeline.notify(idea);
         topic.publish("coordel/addIdea", idea);
       });
 
       socket.on("stream", function(item){
-        console.log("SOCKET REPLY", item);
+        //console.log("SOCKET REPLY", item);
         topic.publish("coordel/stream", item);
       });
 
       if (self.user){
         socket.on("miniProfile:"+self.user.appId, function(item){
-          console.log("SOCKET miniProfile", item);
+          //console.log("SOCKET miniProfile", item);
           self.model.miniProfile = item;
           if (self.currentMenu === "#menuMe"){
             self.setUserNav();
@@ -399,7 +429,7 @@ define(["dojo/dom",
         });
 
         socket.on("supportAccount:"+self.user.appId, function(item){
-          console.log("SOCKET account", item);
+          //console.log("SOCKET account", item);
           self.model.currentUser.account = item;
           topic.publish("coordel/supportAccount", item);
         });
@@ -409,7 +439,7 @@ define(["dojo/dom",
         });
 
         socket.on("contact:"+self.user.appId, function(item){
-          console.log("got a new contact", item);
+          //console.log("got a new contact", item);
           ideaId = item.ideaId;
           contact = item.contact;
           self.model.contacts.push(contact);
@@ -417,14 +447,14 @@ define(["dojo/dom",
         });
 
         socket.on("twitter:"+self.user.appId, function(account){
-          console.log("got twitter auth", account);
+          //console.log("got twitter auth", account);
           self.model.currentUser.app.twitterToken = account.token;
           self.model.currentUser.app.twitterTokenSecret = account.tokenSecret;
           topic.publish("coordel/twitterAuthorize", account);
         });
 
         socket.on("coinbase:"+self.user.appId, function(account){
-          console.log("got coinbase auth", account);
+          //console.log("got coinbase auth", account);
           self.model.currentUser.app.coinbaseAccessToken = account.coinbaseAccessToken,
           self.model.currentUser.app.coinbaseRefreshToken = account.coinbaseRefreshToken;
           topic.publish("coordel/coinbaseAuthorize", account);
@@ -495,12 +525,6 @@ define(["dojo/dom",
         }
         
       }
-
-      $('#sign-out').click(function(){
-        $('#sign-out-form').submit();
-      });
-  
-      
 
       $("[rel=tooltip]").tooltip({
         placement: "bottom",
@@ -603,7 +627,7 @@ define(["dojo/dom",
         options.subNavId = self.subNavId;
       }
 
-      console.log("options", options);
+      //console.log("options", options);
 
       var i = new idea(options).placeAt("stream-items-container");
 
@@ -669,7 +693,7 @@ define(["dojo/dom",
       }, function(json, opts) {
         // Get current page
         var page = opts.state.currPage;
-        console.log("infinite scroll", json, opts);
+        //console.log("infinite scroll", json, opts);
         // Do something with JSON data, create DOM elements, etc ..
       });
        */
@@ -692,7 +716,8 @@ define(["dojo/dom",
         var options = {
           idea: item,
           currentUser: self.model.currentUser,
-          contacts: self.model.contacts
+          contacts: self.model.contacts,
+          bitcoinPrices: self.bitcoinPrices
         };
 
 
@@ -722,7 +747,7 @@ define(["dojo/dom",
         var i =new idea(options).placeAt("stream-items-container");
         /*
         if (args && args.unsorted){
-          console.log("idea name", idea.name);
+          //console.log("idea name", idea.name);
           i = new idea(options).placeAt("stream-items-container", "last");
         } else {
           i =
@@ -768,7 +793,7 @@ define(["dojo/dom",
         */
         /*
         if (args && args.unsorted){
-          console.log("idea name", idea.name);
+          //console.log("idea name", idea.name);
           i = new idea(options).placeAt("stream-items-container", "last");
         } else {
           i =
@@ -780,11 +805,11 @@ define(["dojo/dom",
         showIdea(item);
       };
 
-      console.log("doing the infinite scroll");
+      //console.log("doing the infinite scroll");
 
       $('#stream-items-container').infinitescroll({
 
-        // callback   : function () { console.log('using opts.callback'); },
+        // callback   : function () { //console.log('using opts.callback'); },
         navSelector   : "#scrollNext",
         nextSelector  : "#scrollNext",
         itemSelector  : "#stream-items-container .idea",
@@ -805,17 +830,17 @@ define(["dojo/dom",
         dataType    : 'json',
         extraScrollPx: 200,
         path: function(pageNumber) {
-          console.log("pagenumber", pageNumber);
+          //console.log("pagenumber", pageNumber);
           return "/ideas/timeline/" + pageNumber;
         } ,
         //behavior    : 'twitter',
         appendCallback  : false // USE FOR PREPENDING
         //pathParse      : function( pathStr, nextPage ){ return pathStr.replace('2', nextPage ); }
       }, function( response, opts ) {
-        console.log("response, opts", response, opts);
+        //console.log("response, opts", response, opts);
         var jsonData = response.results;
 
-        console.log("isDone", opts.state.isDone);
+        //console.log("isDone", opts.state.isDone);
            
             var newElements = "";
                 //var newItems = new Array();

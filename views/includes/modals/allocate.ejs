@@ -40,13 +40,15 @@
          
         </table>
         <div>
-          <p id="allocateOnceInstructions">Click "Confirm" to indicate you want transfer the above amount to the Idea's Bank and charge it to your Coinbase account.</p>
+          <p id="allocateOnceInstructions">Click "Confirm" to indicate you want transfer the above amount to the Idea's Bank and charge your Coinbase account.</p>
           
-          <p id="allocateRecurringInstructions" class="hide">Click "Confirm" to start your recurring pledge now, to indicate you want transfer the above amount to the Idea's Bank and charge it to your Coinbase account, and to order the process to repeat each month until you cancel the recurrance.</p>
+          <p id="allocateRecurringInstructions" class="hide">Click "Confirm" to start your recurring pledge now, to indicate you want transfer the above amount to the Idea's Bank and charge your Coinbase account, and to order the process to repeat each month until you cancel the recurrance.</p>
 
           <p>The Idea Responsible can then distribute the amount to the appropriate Idea participant or participants.</p>
 
-          <!--<p>You will be credited with <strong id="allocateOwnershipPoints">0.00</strong> ownership points.</p>-->
+          <p>You will be credited with <strong id="allocateOwnershipPoints">0.00</strong> ownership points.</p>
+
+          <div id="allocateFeeContainer" style="margin-top: 10px" class="alert alert-info hide"><small><p>You are sending less than .01 BTC (<span id="allocateFeeWarning">$.01</span>) so this transaction requires a .0005 BTC (<span id="allocateFeeAmount">$.01</span>) fee to be accepted by the bitcoin network.</p><p>This fee does not go to Coordel or Coinbase.</p></small><div>
         </div>
       </fieldset>
     </div>

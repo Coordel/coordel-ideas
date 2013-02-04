@@ -24,18 +24,21 @@ define(["dojo/dom",
 
     settings: null,
 
-    init: function(user, prices){
+    init: function(user, currency){
       var self = this;
 
       self._csrf = $('#addIdea_csrf').val();
 
       self.user = user;
 
-      self.bitcoinPrices = prices;
+      //self.bitcoinPrices = prices;
+      self.currency = currency;
 
+      /*
       if (self.user.localCurrency){
         self.localCurrency = user.localCurrency;
       }
+      */
 
       if (self.user.app.hasPaymentMethod){
         self.hasPaymentMethod = true;
@@ -79,7 +82,7 @@ define(["dojo/dom",
       on(dom.byId("supportMoneyUnderstand"), "click", function(e){
         //save the setting that the user saw the about giving money page
         self.settings.update([{hasViewedAboutMoney: true}]).then(function(res){
-          console.log("understand updated", user, res.userApp);
+          //console.log("understand updated", user, res.userApp);
           self.user.app = res.userApp;
         });
         self.detectAccount(self.user);
@@ -92,7 +95,7 @@ define(["dojo/dom",
       on(dom.byId("supportMoneyUseAccountUseExisting"), "click", function(){
         //save the setting that this user has a coinbase account
         self.settings.update([{hasPaymentMethod: true}]).then(function(res){
-          console.log("hasPaymentMethod updated", user, res.userApp);
+          //console.log("hasPaymentMethod updated", user, res.userApp);
           self.user.app = res.userApp;
         });
         self.showSupport();
@@ -112,7 +115,7 @@ define(["dojo/dom",
       });
 
       $('#supportMoneyModal').on('show', function () {
-        console.log("settings", self.hasViewedAboutMoney, self.hasPaymentMethod);
+        //console.log("settings", self.hasViewedAboutMoney, self.hasPaymentMethod);
         //clear all the fields
         self.showInfo();
         if (self.user.app.hasViewedAboutMoney){
@@ -138,23 +141,28 @@ define(["dojo/dom",
 
     showLocalCurrency: function(){
       var self = this;
-      dom.byId("localCurrencyCode").innerHTML = self.localCurrency;
+      dom.byId("localCurrencyCode").innerHTML = self.currency.localCurrency;
     },
 
     setBtcAmount: function(localAmount){
+      /*
       var self = this;
       var localValue = self.bitcoinPrices[self.localCurrency]["24h"];
       var newValue = localAmount * (1/localValue);
       newValue = accounting.formatNumber(newValue, [precision = 6], [thousand = ","], [decimal = "."]);
       dom.byId("supportMoneyBtcAmount").value = newValue;
+      */
+      dom.byId("supportMoneyBtcAmount").value = this.currency.toBtc(localAmount);
     },
 
     setLocalAmount: function(btcAmount){
+      /*
       var self = this;
       var localValue = self.bitcoinPrices[self.localCurrency]["24h"];
       var newValue = btcAmount * localValue;
       newValue = accounting.formatNumber(newValue, [precision = 2], [thousand = ","], [decimal = "."]);
-      dom.byId("supportMoneyLocalAmount").value = newValue;
+      */
+      dom.byId("supportMoneyLocalAmount").value = this.currency.toLocal(btcAmount);
     },
 
     detectAccount: function(user){
@@ -321,6 +329,7 @@ define(["dojo/dom",
 
       var db = stores.moneyStore();
       db.add(pledge).then(function(res){
+        _gaq.push(['_trackEvent', 'Ideas', 'Pledged money']);
         $('#supportMoneyModal').modal('hide');
         topic.publish("coordel/ideaAction", "pledgeMoney", pledge.project);
       });

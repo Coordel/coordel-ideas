@@ -8,14 +8,17 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/topic", "app/models/pledg
 
     bitcoinPrices: null,
 
-    init: function(user, prices){
+    init: function(user, currency){
       var self = this;
       self.user = user;
-      self.bitcoinPrices = prices;
+      //self.bitcoinPrices = prices;
+      self.currency = currency;
 
+      /*
       if (user.localCurrency){
         self.localCurrency = user.localCurrency;
       }
+      */
 
       on(dom.byId("cancelMoneySubmit"), "click", function(e){
         self.submit();
@@ -40,6 +43,7 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/topic", "app/models/pledg
     },
 
     setLocalAmount: function(btcAmount){
+      /*
       var self = this;
       var localValue = self.bitcoinPrices[self.localCurrency]["24h"];
       var newValue = btcAmount * localValue;
@@ -48,11 +52,14 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/topic", "app/models/pledg
       if (self.bitcoinPrices[self.localCurrency].symbol){
         dom.byId("cancelMoneyLocalSymbol").innerHTML = self.bitcoinPrices[self.localCurrency].symbol;
       }
+      */
+      dom.byId("cancelMoneyLocalAmount").innerHTML = this.currency.toLocal(btcAmount);
+      dom.byId("cancelMoneyLocalSymbol").innerHTML = this.currency.getSymbol();
     },
 
     setBtcAmount: function(btcAmount){
-      var newValue = accounting.formatNumber(btcAmount, [precision = 4], [thousand = ","], [decimal = "."]);
-      dom.byId("cancelMoneyBtcAmount").innerHTML = newValue;
+      //var newValue = accounting.formatNumber(btcAmount, [precision = 4], [thousand = ","], [decimal = "."]);
+      dom.byId("cancelMoneyBtcAmount").innerHTML = this.currency.formatBtc(btcAmount);
     },
 
     submit: function(){

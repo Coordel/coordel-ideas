@@ -1,33 +1,12 @@
 <% include header %>
 <div class="left-column">
-  <div style="padding-bottom: 7px;" class="user-login bg-gray rounded-column">
-    <form action="/sessions" method="post" style="margin-bottom: 0;">
-      <div>
-        <div class="controls">
-          <input style="width: 303px" placeholder="Username or e-mail" type="text" name="login-username" id="login-username">
-        </div>
-      </div>
-      <div>
-        <div class="controls">
-          <input style="width: 225px;" placeholder="Password" type="password"  name="login-password" id="login-password">
-          <input type="submit" value="Sign in" class="btn login btn-primary pull-right">
-        </div>
-        <div class="controls muted">
-          <label style="font-size: 12px" class="checkbox">
-          <input name="remember_me" style="margin-bottom:0" type="checkbox" checked="true">
-          Remember me <span style="padding: 0 4px">&#149;</span> <span><a href="/password">Forgot Password</a></span> 
-          </label>
-          <input type='hidden' name='_csrf' value="<%=token%>">
-        </div>
-      </div>
-    </form>
-  </div>
+  <% include ../includes/login %>
   <% include ../includes/registration %>
   <% include ../includes/about %>
 </div>
 <div class="main-column">
-  <div id="infoHeader" class="info-container bg-white rounded-column">
-    <div  id="myCarousel" class="carousel slide" style="height: 302px">  
+  <div id="infoHeader" class="info-container rounded-column">
+    <div id="ideasCarousel" class="carousel slide" style="height: 302px;">  
       <!-- Carousel items -->  
       <div class="carousel-inner">  
         <div class="active item">
@@ -68,6 +47,29 @@
       <!-- Carousel nav -->  
       <a class="carousel-control left" href="#myCarousel" data-slide="prev">‹</a>  
       <a class="carousel-control right" href="#myCarousel" data-slide="next">›</a>  
+    </div>
+  </div>
+  <div class="bg-white rounded-column">
+    <p class="lead center">Share your own inspiration and get inspired by others.</p>
+    <div class="row">
+      <div class="span3 bg-gray rounded-marketing">
+        <div class="center"><strong>Share</strong></div>
+        <p>Ideas create opportunity. As soon as you share your Idea on Coordel, you can get right to work making it happen.</p>
+        <ul>
+          <li>Share links to your Idea on Twitter, LinkedIn, and Facebook.</li>
+          <li>Invite others to support your Idea.</li>
+          <li>Get right to work in the <a href="/preview">Workspace</a> to make your Idea happen.</li>
+        </ul>
+      </div>
+      <div class="span3 bg-gray rounded-marketing">
+        <div class="center"><strong>Support</strong></div>
+        <p>Seize the opportunity created by shared Ideas. When you find a good Idea, take immediate action to help make it a success story.</p>
+        <ul>
+          <li>Indicate your support to help the best Ideas become more visible.</li>
+          <li>Pledge your time if you have relevant skills. Report your time when you're done.</li>
+          <li>Pledge money, and allocate it when you see progress.</li>
+        </ul>
+      </div>
     </div>
   </div>
   <div class="stream-container no-padding stream-container-gray">

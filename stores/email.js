@@ -11,10 +11,7 @@ var email = {
 
   send: function(templateName, locals){
     locals.coordelUrl = settings.coordelUrl;
-    console.log("locals in email send", locals);
     emailTemplates(templatesDir, function(err, template) {
-
-
 
       /*
       locals = {
@@ -28,13 +25,6 @@ var email = {
           email: "some@email.com",
           username: "username1"
         },
-        coordelUrl: "https://work.coordel.com:8443",
-        idea: {
-          name: "name of the idea",
-          purpose: "purpose of the idea",
-          shortUrl: "http://j.mp/238s9x"
-        },
-        message: "here is the message that was sent with the email",
         subject: "Check out this idea at Coordel"
       }
       */
@@ -54,7 +44,7 @@ var email = {
           console.log("error sending template" , err);
         } else {
           transport.sendMail({
-            from: locals.from.fullName + ' via Coordel<' + locals.from.email + '>',
+            from: locals.from.fullName + '<' + locals.from.email + '>',
             to: locals.to.fullName + '<' + locals.to.email + '>',
             subject: locals.subject,
             html: html,

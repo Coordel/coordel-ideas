@@ -14,6 +14,14 @@
     float: right;
 }
 
+.navbar-inverse .brand {
+  padding: 10px 14px;
+}
+
+.navbar-inverse .nav > li > a {
+  padding: 10px 12px 10px;
+}
+
 .donations-form {
   margin-left: 33px;
   margin-top: 10px;
@@ -28,6 +36,7 @@
 
 .other-content {
   padding: 0 20px;
+  margin-bottom: 20px;
 }
 
 .beta {

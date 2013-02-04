@@ -1,0 +1,47 @@
+<div>
+  <div id="makePaymentModal" data-backdrop="false" class="modal hide in">  
+    <div class="modal-header">  
+    <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
+    <h4 id="makePaymentTitle" style="text-align: center">Make a payment</h4>  
+  </div>  
+  
+  <div class="modal-body">  
+    <div id="makePaymentAction">
+      <fieldset style="width: 400px; margin: auto;">
+        <table class="table table-bordered">
+          <tr>
+            <th colspan="2">Idea Account Balance</th>
+          </tr>
+          <tr>
+            <td >
+              <strong><span id="makePaymentBtcAmount">0.00</strong>
+              <div>BTC</div>
+            </td>
+            <td>
+              <strong><span id="makePaymentLocalSymbol"></span><span id="makePaymentLocalAmount">0.00</span></strong>
+              <div id="makePaymentLocalCurrency">USD</div>
+            </td>
+          </tr>
+        </table>
+        <div style="margin-bottom: 20px" id="makePaymentSelectContainer"></div>
+        <h5>How much would you like to pay?</h5>
+        <div class="input-prepend pull-left">
+          <span class="add-on">BTC</span>
+          <input class="span2" id="makePaymentBtcAmount" placeholder="0.00" type="text">
+        </div>
+        <div class="pull-left" style="margin-left: 10px; margin-right: 10px;line-height: 30px">or</div>
+        <div class="input-prepend pull-left">
+          <span id="localCurrencyCode" class="add-on">USD</span>
+          <input class="span1" id="makePaymentLocalAmount" placeholder="0.00" type="text">
+        </div>
+        <div class="clearfix"></div>
+      </fieldset>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <!--<form id="payment-form">-->
+    <button class="btn btn-primary pull-right" disabled="disabled" type="submit" id="makePaymentSubmit">Make payment</button>
+    <input id="makePaymentIdea" type="hidden">
+    <!--</form>--> 
+  </div>            
+</div>

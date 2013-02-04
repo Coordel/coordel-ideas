@@ -245,8 +245,127 @@ UsersController = function(store) {
       res.render('user/login');
     },
 
-    resetPassword: function(req, res){
+    forgotPassword: function(req, res){
       res.render('user/resendPassword');
+    },
+
+    resetPassword: function(req, res){
+      var username = req.body.username.trim()
+        , email = req.body.email.trim()
+        , key = 'users:';
+
+
+      console.log("resetting password", username, email, key);
+
+      if (!username.length && !email.length){
+        res.json({
+          success: false,
+          errors: "Submit e-mail OR username."
+        });
+        return;
+      }
+
+      if (username.length && email.length){
+        //error the user gave both
+        res.json({
+          success: false,
+          errors: "Submit e-mail OR username, not both."
+        });
+        return;
+      }
+
+      if (email.length){
+        //reset by email
+        key = key + email;
+      } else if (username.length){
+        //reset by username
+        key = key + username;
+      }
+
+      console.log("key", key);
+
+      User.resetPassword(key, function(e, user){
+        if (e){
+          res.json({
+            success: false,
+            errors: "Incorrect e-mail or username."
+          });
+        } else {
+          //send the email with the hash in the link
+          var mailOptions = {
+            to: {
+              fullName: user.fullName,
+              email: user.email,
+              username: user.username
+            },
+            from: {
+              fullName: "Coordel",
+              email: "noreply@coordel.com",
+              username: ""
+            },
+            subject: "Your password has been reset",
+            resetUrl: store.coordelUrl + '/resets?h=' + encodeURIComponent(user.hash)
+          };
+
+          console.log("mail options", mailOptions);
+
+          store.email.send('passwordReset', mailOptions);
+          res.json({
+            success: true,
+            message: "Your password has been reset. Check your e-mail for a link to complete the reset process."
+          });
+        }
+      });
+    },
+
+    loadResetPassword: function(req, res){
+      var hash = req.query.h;
+
+      res.render('user/completeReset', {hash: hash});
+    },
+
+    completeResetPassword: function(req, res){
+      var newPass = req.body.newPass
+        , hash = req.body.hash;
+
+      //console.log("newPass", newPass, "hash", hash);
+
+      store.redis.get('reset:'+hash, function(e, reset){
+        if (e){
+          //error
+        } else {
+          //console.log('reset', reset);
+          reset = JSON.parse(reset);
+          //console.log("reset", reset);
+          var key = 'users:'+reset.userId;
+         // console.log("key", key);
+          store.redis.hgetall(key , function(e, user){
+           // console.log('got the user', e, user);
+            if (e){
+              //error
+            } else {
+              //first make sure that the password matches from the hash
+              //console.log("user.password", user.password, "reset.password", reset.pass, "new pass", newPass);
+              if (user.password === reset.pass){
+                //go ahead and set the new password to the new password
+                User.completeResetPassword(reset.userId, newPass, function(e, o){
+                  console.log("updated", e, o);
+
+                  req.session.username = o.username;
+                  req.session.currentUser = o;
+                  var token = Token.generate(o.username);
+                  res.cookie('logintoken', JSON.stringify(token), { expires: new Date(Date.now() + 2 * 604800000), path: '/' , domain: '.coordel.com'});
+                  res.json({
+                    success: true
+                  });
+                });
+              } else {
+                //error
+              }
+            }
+          });
+        }
+      });
     },
 
     updatePassword: function(req, res){
@@ -357,10 +476,7 @@ UsersController = function(store) {
       console.log("doing manual login");
       var username = req.body['login-username'];
       var password = req.body['login-password'];
-
-      var funcs = [];
-      var user;
-      //login the user
+   
       login(req, res, username, password);
 
     },
@@ -414,17 +530,20 @@ UsersController = function(store) {
       var v = validator.validate({email: email}, Schema);
 
       if (!v.valid){
-        res.json({error: 'invalid-email', report: v.errors});
+        res.json({success: false, error: 'invalid-email', report: v.errors});
       } else {
         //this checks if this email is available in user:[email];
         redis.get('users:'+ email, function(e, o){
           var message = 'This email is already registered!';
           console.log("get email", e,o);
           if (e) {
+            console.log("error with user email");
             res.json(message);
           } else if (o !== null){
+            console.log("user wasn't null, all bad");
             res.json(message);
           } else {
+            console.log("user ok");
             res.json(true);
           }
         });
@@ -530,7 +649,7 @@ UsersController = function(store) {
           var mailOptions = invite;
 
           mailOptions.to.fullName = mailOptions.to.firstName + ' ' + mailOptions.to.lastName;
-          mailOptions.from.fullName = mailOptions.from.firstName + ' ' + mailOptions.from.lastName;
+          mailOptions.from.fullName = mailOptions.from.firstName + ' ' + mailOptions.from.lastName + ' via Coordel';
           mailOptions.subject = invite.subject;
 
           //send email invite
@@ -544,8 +663,15 @@ UsersController = function(store) {
     },
 
     startRedeem: function(req, res){
-      var hash = decodeURIComponent(req.query.i)
-        , redis = store.redis;
+
+      var hash = false
+        , redis = store.redis
+        , i = req.query.i;
+
+      //if there's an i parameter
+      if (i){
+        hash = decodeURIComponent(i);
+      }
 
       
       //if there are any errors, just render the default signup page
@@ -559,38 +685,45 @@ UsersController = function(store) {
 
         redis.get('invite-hashes:'+hash, function(e, id){
 
-          console.log("hash", hash, id);
-    
-          //load the user with the userid
-          var key = 'user:' + id;
-          console.log("USER GET KEY", key);
-          redis.hgetall(key, function(e, user){
-            console.log("USER", e, user);
-            if (e){
-              //console.log("couldn't load existing user from store",err);
-              fn('user-not-found');
-            } else {
-              user.hash = hash;
+          console.log("hash", e, hash, id);
 
-              //console.log("found the user", user);
-              if (!user.fullName){
-                if (user.firstName && user.lastName){
-                  user.fullName = user.firstName + ' ' + user.lastName;
-                } else {
-                  user.fullName = '';
+          if (id){
+            //load the user with the userid
+            var key = 'user:' + id;
+            console.log("USER GET KEY", key);
+            redis.hgetall(key, function(e, user){
+              console.log("USER", e, user);
+              if (e){
+                //console.log("couldn't load existing user from store",err);
+                fn('user-not-found');
+              } else {
+                user.hash = hash;
+
+                //console.log("found the user", user);
+                if (!user.fullName){
+                  if (user.firstName && user.lastName){
+                    user.fullName = user.firstName + ' ' + user.lastName;
+                  } else {
+                    user.fullName = '';
+                  }
                 }
+
+                if (!user.username){
+                  user.username = '';
+                }
+
+                //blank the temp password so the user can enter a new one
+                user.password = '';
+
+                res.render('user/redeem', user);
               }
-
-              if (!user.username){
-                user.username = '';
-              }
-
-              //blank the temp password so the user can enter a new one
-              user.password = '';
-
-              res.render('user/redeem', user);
-            }
-          });
+            });
+          } else {
+            //no user, start registration
+            startRegistration(req, res, defaultData);
+          }
+    
+          
 
           //now we have the id of the user load the user
 

@@ -340,8 +340,6 @@ module.exports = function(store) {
                         result.deallocatedProxiedToMeIdeas.push(item.project);
                       }
                     }
-                   
-
                   } else if (item.docType === "time-report") {
               
                     result.reportedTime  = parseFloat(result.reportedTime) + parseFloat(item.amount);

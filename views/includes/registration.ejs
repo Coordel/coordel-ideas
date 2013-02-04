@@ -1,5 +1,5 @@
 <div id="registrationClosedMessage" class="bg-gray rounded-column hide">
-  <div id="closedRegistrationAlert" class="alert alert-block">
+  <div id="closedRegistrationAlert" class="alert alert-info">
     Registration is currently closed. Please leave us your name and e-mail, and we'll let you know as soon as we are open to new members. 
   </div>
   <div id="requestInviteForm">
@@ -11,17 +11,17 @@
       <button id="requestSignupButton" style="margin-bottom: 0;color: #333333;font-weight:bold" class="btn submit-button btn-warning pull-right">Submit</button>
     </div>
   </div>
-  <div id="requestInviteSuccessMessage" class="alert alert-block hide">
+  <div id="requestInviteSuccessMessage" class="alert alert-info hide">
     We have received your e-mail, successfully. Thank you for your interest in Coordel. 
   </div>
 </div>
-<div id="registrationForm" class="user-signup bg-gray rounded-column">
-  <form action="/signup" method="post" style="margin-bottom: 0;">
+<div id="registrationFormContainer" class="user-signup bg-gray rounded-column">
+  <form id="registrationForm" action="/signup" method="post" style="margin-bottom: 0;">
     <div class="controls clearfix">
       <input style="width: 303px" placeholder="Full name" type="text" name="signup-fullname" id="signup-fullname">
       <input style="width: 303px" placeholder="E-mail" type="text" name="signup-email" id="signup-email">
       <input style="width: 303px" placeholder="Password" type="password" name="signup-password" id="signup-password">
-      <input style="margin-bottom: 0" type="submit" value="Sign up for Coordel" class="btn submit btn-warning pull-right">
+      <input style="margin-bottom: 0" id="startRegistration"  type="button" value="Sign up for Coordel" class="btn submit btn-warning pull-right">
       <input type="hidden" name="origin" value="index-signup">
       <input type="hidden" name="_csrf" value="<%=token%>">
     </div>

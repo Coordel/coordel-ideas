@@ -28,6 +28,8 @@ define([
         self.localCurrency = self.user.localCurrency;
       }
 
+      //console.log("userProfile", self.user);
+
       self.profileImage.src = self.user.imageUrl;
       self.fullName.innerHTML = self.user.fullName;
       self.username.innerHTML = self.user.username;
@@ -37,8 +39,9 @@ define([
         domClass.remove(self.other, "hide");
         self.location.innerHTML = self.user.location || "";
         self.url.innerHTML = "";
-        if (self.user.url){
-          self.url.innerHTML = self.user.ur;
+        if (self.user.personalLink){
+          self.url.innerHTML = self.user.personalLink;
+          self.url.href = self.user.personalLink;
         }
       }
 

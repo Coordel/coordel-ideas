@@ -20,7 +20,7 @@ MoneyPledgesController = function(store, socket) {
     var appId = user.appId;
     //when we create a pledge, need to add support to the idea as well if we haven't already
     Idea.support(ideaId, appId, function(e,o){
-      console.log("supported an idea when pledging", e, o);
+      //console.log("supported an idea when pledging", e, o);
       if (o[0] && o[1]){
         socket.emit('supporting:'+appId,  "1");
       }
@@ -60,7 +60,7 @@ MoneyPledgesController = function(store, socket) {
 
     create: function(req, res){
       var pledge = req.body;
-      console.log("creating pledge", pledge);
+      //console.log("creating pledge", pledge);
 
       var user = {appId: pledge.creator};
 
@@ -101,7 +101,7 @@ MoneyPledgesController = function(store, socket) {
     save: function(req, res){
 
       var pledge = req.body;
-      console.log("saving pledge", pledge);
+      //console.log("saving pledge", pledge);
 
       var user = {appId: pledge.creator};
 
@@ -110,6 +110,59 @@ MoneyPledgesController = function(store, socket) {
         if (e){
           res.json(e);
         } else {
+
+          //if this pledge is proxied, then we need to see if the chosen proxy has proxy allocated yes
+          if (pledge.status === "PROXIED"){
+            pledge._rev = o.rev;
+            //console.log("here's the updated plege to do the proxy allocate", pledge);
+
+            MoneyPledge.findProxyAllocationsByIdea(pledge.project, function(e, proxyAllocs){
+              //console.log("found proxy allocations for this idea", proxyAllocs);
+
+              //now if there is a proxy-allocation by this proxy for this idea, then we need to do an allocation
+              var exists = _.filter(proxyAllocs, function(item){
+                return (item.creator === pledge.proxy);
+              });
+
+              if (exists.length){
+                var timestamp = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ");
+                var prox = exists[0], toSave = [];
+                //console.log("here's the proxy-allocation for this idea and this proxy", prox);
+                toSave.push({
+                  docType: "allocation",
+                  byProxy: true,
+                  project: pledge.project,
+                  pledgeId: pledge._id,
+                  amount: pledge.amount,
+                  created: timestamp,
+                  allocator: pledge.proxy,
+                  creator: pledge.creator,
+                  status: "STARTED"
+                });
+
+                pledge.status = "ALLOCATED";
+                toSave.push(pledge);
+
+                //console.log("here's the allocation docs toSave", toSave);
+
+                MoneyPledge.save(toSave, function(e, o){
+                  if (e){
+                    fn(e);
+                  } else {
+                    //now we need to get a new profile for the pledge creator and send the updated values
+                    Profile.findMiniProfile(user, function(e, mini){
+                      socket.emit('miniProfile:'+user.appId, mini);
+                    });
+                    Profile.findSupportAccount(user, function(e, acct){
+                      socket.emit('supportAccount:'+user.appId, acct);
+                    });
+                    res.json(o);
+                  }
+                });
+              }
+            });
+          }
+          
           //now we need to get a new profile for the pledge creator and send the updated values
           Profile.findMiniProfile(user, function(e, mini){
             socket.emit('miniProfile:'+user.appId, mini);
@@ -182,7 +235,7 @@ MoneyPledgesController = function(store, socket) {
 
       async.parallel({
         alloc: function(cb){
-          console.log("proxy-allocation to deallocate", alloc);
+          //console.log("proxy-allocation to deallocate", alloc);
           MoneyPledge.update(alloc, function(e, o){
             if (e){
               cb('error '+ e);
@@ -195,14 +248,14 @@ MoneyPledgesController = function(store, socket) {
           //get all pledges for this project
           MoneyPledge.findByIdea(alloc.project, function(e, pledges){
 
-            console.log("unfiltered project pledges", pledges);
+            //console.log("unfiltered project pledges", pledges);
 
             //filter for pledges that are recurring and allocated
             pledges = _.filter(pledges, function(item){
               return item.status === "ALLOCATED" && item.type === "RECURRING";
             });
 
-            console.log("idea pledges to proxy deallocate", pledges);
+            //console.log("idea pledges to proxy deallocate", pledges);
 
             //set recurring allocated back to proxied
             _.forEach(pledges, function(item){
@@ -211,7 +264,7 @@ MoneyPledgesController = function(store, socket) {
               toSave.push(item);
             });
 
-            console.log("recurring", toSave);
+            //console.log("recurring", toSave);
             //merge all allocations and pledges to do a bulk save
             if (toSave.length){
               MoneyPledge.save(toSave, function(e, o){
@@ -235,7 +288,7 @@ MoneyPledgesController = function(store, socket) {
             errors: [e]
           });
         } else {
-          console.log("alloc", alloc);
+          //console.log("alloc", alloc);
           //now we need to get a new profile for the pledge creator and send the updated values
           Profile.findMiniProfile(user, function(e, mini){
             socket.emit('miniProfile:'+user.appId, mini);
@@ -263,7 +316,7 @@ MoneyPledgesController = function(store, socket) {
 
       async.parallel({
         alloc: function(cb){
-          console.log("proxy-allocation", alloc);
+          //console.log("proxy-allocation", alloc);
           if (alloc._rev){
             MoneyPledge.update(alloc, function(e, o){
               if (e){
@@ -287,14 +340,14 @@ MoneyPledgesController = function(store, socket) {
           //get all the pledges for this idea
           MoneyPledge.findByIdea(alloc.project, function(e, pledges){
 
-            console.log("unfiltered project pledges", pledges);
+            //console.log("unfiltered project pledges", pledges);
 
             //filter for pledges that are proxied
             pledges = _.filter(pledges, function(item){
               return item.status === "PROXIED";
             });
 
-            console.log("idea pledges to proxy allocate", pledges);
+            //console.log("idea pledges to proxy allocate", pledges);
 
             //create allocations for each pledge and update the pledge status to ALLOCATED
             _.forEach(pledges, function(item){
@@ -314,7 +367,7 @@ MoneyPledgesController = function(store, socket) {
               item.status = "ALLOCATED";
               toSave.push(item);
             });
-            console.log("pledges and allocations", toSave);
+            //console.log("pledges and allocations", toSave);
             //merge all allocations and pledges to do a bulk save
             MoneyPledge.save(toSave, function(e, o){
               if (e){

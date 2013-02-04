@@ -16,18 +16,21 @@ define(["dojo/dom"
 
     bitcoinPrices: null,
 
-    init: function(user, prices, contacts){
+    init: function(user, currency, contacts){
       var self = this;
 
-      console.log("initing addProxyForm");
+      //console.log("initing addProxyForm");
 
       self.user = user;
-      self.bitcoinPrices = prices;
+      //self.bitcoinPrices = prices;
+      self.currency = currency;
       self.contacts = contacts;
 
+      /*
       if (user.localCurrency){
         self.localCurrency = user.localCurrency;
       }
+      */
    
       if (user.app.coinbaseAccessToken){
         //this user has authorized their account with coinbase
@@ -65,24 +68,24 @@ define(["dojo/dom"
 
 
     showAuthorize: function(){
-      console.log("show authorize");
+      //console.log("show authorize");
       domClass.remove(dom.byId("addProxyAuthorize"), "hide");
       domClass.add(dom.byId("addProxyAction"), "hide");
       domClass.add(dom.byId("addProxySubmit"), "hide");
     },
 
     showProxy: function(){
-      console.log("show proxy");
+      //console.log("show proxy");
       var self = this;
       domClass.add(dom.byId("addProxyAuthorize"), "hide");
       domClass.remove(dom.byId("addProxyAction"), "hide");
       domClass.remove(dom.byId("addProxySubmit"), "hide");
 
-      console.log("contacts", self.contacts);
+      //console.log("contacts", self.contacts);
 
       array.forEach(registry.findWidgets(dom.byId("addProxySelectContainer")), function(item){
         item.destroy();
-        console.log("destroyed");
+        //console.log("destroyed");
       });
 
       var list = array.filter(self.contacts, function(item){
@@ -98,6 +101,8 @@ define(["dojo/dom"
       var self = this;
 
       self.pledge = pledge;
+
+      self.showFee(pledge);
 
       //it's possible that the user authenticated after this init was called on load...make sure
       if (self.user.app.coinbaseAccessToken){
@@ -117,6 +122,16 @@ define(["dojo/dom"
       }
     },
 
+    showFee: function(pledge){
+      if (pledge.amount < 0.01){
+        var symbol = this.currency.getSymbol();
+
+        domClass.remove(dom.byId("addProxyFeeContainer"), "hide");
+        dom.byId("addProxyFeeWarning").innerHTML = symbol + this.currency.toLocal(0.01);
+        dom.byId("addProxyFeeAmount").innerHTML = symbol + this.currency.toLocal(0.0005);
+      }
+    },
+
     showError: function(){
       domClass.add(dom.byId("addProxyAuthorize"), "hide");
       domClass.add(dom.byId("addProxyAction"), "hide");
@@ -125,27 +140,29 @@ define(["dojo/dom"
     },
 
     setOwnershipPoints: function(btcAmount){
+      /*
       var self = this;
       var newValue = btcAmount / 0.075;
 
       newValue = accounting.formatNumber(newValue, [precision = 4], [thousand = ","], [decimal = "."]);
-      dom.byId("addProxyOwnershipPoints").innerHTML = newValue;
+      */
+      dom.byId("addProxyOwnershipPoints").innerHTML = this.currency.getOwnership(btcAmount);
     },
 
     setLocalAmount: function(btcAmount){
+      /*
       var self = this;
       var localValue = self.bitcoinPrices[self.localCurrency]["24h"];
       var newValue = btcAmount * localValue;
       newValue = accounting.formatNumber(newValue, [precision = 2], [thousand = ","], [decimal = "."]);
-      dom.byId("addProxyLocalAmount").innerHTML = newValue;
-      if (self.bitcoinPrices[self.localCurrency].symbol){
-        dom.byId("addProxyLocalSymbol").innerHTML = self.bitcoinPrices[self.localCurrency].symbol;
-      }
+      */
+      dom.byId("addProxyLocalAmount").innerHTML = this.currency.toLocal(btcAmount);
+      dom.byId("addProxyLocalSymbol").innerHTML = this.currency.getSymbol();
     },
 
     setBtcAmount: function(btcAmount){
-      var newValue = accounting.formatNumber(btcAmount, [precision = 4], [thousand = ","], [decimal = "."]);
-      dom.byId("addProxyBtcAmount").innerHTML = newValue;
+      //var newValue = accounting.formatNumber(btcAmount, [precision = 8], [thousand = ","], [decimal = "."]);
+      dom.byId("addProxyBtcAmount").innerHTML = this.currency.formatBtc(btcAmount);
     },
 
     submit: function(){

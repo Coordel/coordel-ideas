@@ -63,6 +63,33 @@ module.exports = function(store){
     }
   };
 
+  function tempPassword(){
+
+    function rand(digits){
+      return Math.floor(Math.random()* parseInt(digits+1, 10));
+    }
+
+    var year = (1970 + rand(500)),
+        month = rand(11),
+        day = rand(28),
+        hour = rand(23),
+        min = rand(59),
+        sec = rand(59),
+        mills = rand(999);
+
+    var dt = new Date(year, month, day, hour, min, sec, mills);
+
+    console.log("dt", dt);
+
+    var time = dt.getTime().toString(),
+        password = new Buffer(time).toString('base64');
+
+        console.log("password", password);
+
+    return password;
+
+  }
+
   function loginUser(login, fn){
     var redis = store.redis;
     //login will contain the user, key to find the userid, and the password
@@ -231,8 +258,68 @@ module.exports = function(store){
       }
     },
 
+    resetPassword: function(key, fn){
+      //this function returns a user with a hash that can be used to send an email link
+      //and can be used to verify that the reset is correct
+      console.log("in user.resetPassword",key);
+      //create a temp password
+      var tempPass = tempPassword();
+
+      console.log("temp password", tempPass);
+
+      //increment the reset passwords set to get a new id
+      store.redis.incr('password-resets', function(e, id){
+
+        console.log("password reset id", id);
+
+        saltAndHash(new Buffer(id).toString('base64'), function(e, hash){
+          console.log("hash", hash);
+         
+          store.redis.get(key, function(e, userId){
+            if (e){
+              fn(e);
+            } else if (userId === null){
+              fn('user not found');
+            } else {
+              console.log("user found", e, userId);
+              var multi = store.redis.multi();
+              multi.set('reset:' + hash, JSON.stringify({userId: userId, pass:tempPass}));
+              var userKey = 'users:' + userId;
+              multi.hset(userKey, 'password', tempPass);
+              multi.hgetall(userKey);
+              multi.exec(function (e, replies){
+                var user = _.last(replies);
+                user.hash = hash;
+                if (e){
+                  fn(e);
+                } else {
+                  fn(null, user);
+                }
+              });
+            }
+          });
+        });
+      });
+    },
+
+    completeResetPassword: function(userId, password, fn){
+      console.log("userid, password", userId, password);
+      saltAndHash(password, function(e, hashPassword){
+        var key = 'users:' + userId;
+        var multi = store.redis.multi();
+        multi.hset(key, 'password', hashPassword);
+        multi.hgetall(key);
+        multi.exec(function(e, o){
+          var user = _.last(o);
+          console.log("heres the user", e, o);
+          fn(null, user);
+        });
+      });
+    },
+
     updatePassword: function(args, fn){
       //args ={userId, current, newPass};
+
 
       loadUser(args.id, function(e, user){
         console.log("result from updatePassword load user", e, user);
@@ -241,6 +328,7 @@ module.exports = function(store){
         } else if (user === null){
           fn('user-not-found');
         } else {
+          console.log("current", args.current, 'user', user.password);
           bcrypt.compare(args.current, user.password, function(err, res) {
             if (res){
               saltAndHash(args.newPass, function(e, hashPassword){
@@ -261,13 +349,13 @@ module.exports = function(store){
       var key = 'inviteRequest:' + user.email;
       console.log("key", key, user);
       redis.exists(key, function(e, o){
-        console.log('testing exists', e, o);
+        //console.log('testing exists', e, o);
         if (e){
           fn(null, [0]);
         } else if (o===0){
-          console.log("didn't exist, pushing");
+          //console.log("didn't exist, pushing");
           redis.set(key, user.email, function(e, o){
-            console.log("set the key", e, o);
+            //console.log("set the key", e, o);
           });
           redis.lpush('inviteRequests', JSON.stringify(user), function(e, o){
             if (e){
@@ -277,13 +365,13 @@ module.exports = function(store){
             }
           });
         } else {
-          console.log("existed, don't insert");
+          //console.log("existed, don't insert");
           fn(null, [0]);
         }
       });
     },
 
-    //if the user doesn't have a username, they were imported from the old system. so we need to show them a page where 
+    //if the user doesn't have a username, they were imported from the old system. so we need to show them a page where
     //they can create a username and then
 
     importUser: function(user, fn){

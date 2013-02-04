@@ -17,6 +17,8 @@ define([
 
     pledge: null,
 
+    currency: null,
+
     //  your custom code goes here
     postCreate: function(){
       this.inherited(arguments);
@@ -48,22 +50,28 @@ define([
     },
 
     setLocalAmount: function(btcAmount){
+      /*
       console.log("local btcAmout", btcAmount);
       var self = this;
       var localValue = self.bitcoinPrices[self.localCurrency]["24h"];
       var newValue = btcAmount * localValue;
       newValue = accounting.formatNumber(newValue, [precision = 2], [thousand = ","], [decimal = "."]);
-      self.localAmount.innerHTML = newValue;
-      console.log("localAmount", newValue);
+      */
+      this.localAmount.innerHTML = this.currency.getSymbol() + this.currency.toLocal(btcAmount);
+ 
     },
 
     setBtcAmount: function(btcAmount){
+      /*
       var self = this;
+
       console.log("btc btcAmout", btcAmount);
       var newValue = accounting.formatNumber(btcAmount, [precision = 4], [thousand = ","], [decimal = "."]);
 
       self.btcAmount.innerHTML = newValue;
       console.log("btcAmount", newValue);
+      */
+      this.btcAmount.innerHTML = this.currency.formatBtc(btcAmount);
     }
     
   });

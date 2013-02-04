@@ -46,7 +46,8 @@
   "created": "date of allocation start",
   "creator": "person who did the allocation (proxy or person)",
   "completed": "date allocation successful",
-  "failed": "date allocation failed"
+  "failed": "date allocation failed",
+  "fee": "amount charged by Coordel on allocation = amount * 5%"
 }
 
 {
@@ -62,6 +63,19 @@
 {
   "_id": "xxx",
   "_rev": "1-xxx",
+  "docType": "idea-payment",
+  "project": "id of idea from which the payment is made",
+  "amount": "amount of the payment",
+  "created": "date of payment",
+  "creator": "person who made the payment",
+  "recipient": "person who received the payment"
+}
+
+//the balance of an idea can be determined by adding allocations and subtracting payments
+
+{
+  "_id": "xxx",
+  "_rev": "1-xxx",
   "docType": "time-report",
   "project": "id of thing to which pledge is made",
   "username": "person who made the report",
@@ -69,5 +83,10 @@
   "amount": "hours reported",
   "created": "",
   "creator": "",
-  "status": "STARTED|COMPLETED|FAILED"
+  "status": "STARTED|COMPLETED|FAILED",
+  "completed": "date the report payment was completed",
+  "fee": "amount charged by Coordel on completion = amount * .0005 BTC"
 }
+
+//when a time report is started, then coordel has ownership points in the idea. when it's completed, 
+//the idea has paid for the hours

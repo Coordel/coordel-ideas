@@ -51,6 +51,21 @@ define(["dojo/text!./templates/purposeHelp.html", "dojo/domReady!"],function(pur
 */
       });
 
+      $("#addShare").click(function(){
+
+        _gaq.push(
+          // Queue the tracking event
+          ['_trackEvent', 'Ideas', 'Added'],
+          // Queue the callback function immediately after.
+          // This will execute in order.
+          function() {
+            // Submit the parent form
+            //console.log("got the callback");
+            $("#addIdeaForm").submit();
+          }
+        );
+      });
+
       $("#addPurpose").bind('blur', function(){
         $(this).popover('hide');
       });

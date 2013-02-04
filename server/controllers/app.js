@@ -225,6 +225,7 @@ AppController = function(store) {
             if (e){
                 cb(e);
               } else {
+                
                 cb(null, [o]);
               }
             });

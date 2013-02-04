@@ -1,0 +1,22 @@
+<div style="padding-bottom: 7px;" class="user-login bg-gray rounded-column">
+  <form id="loginForm" action="/sessions" method="post" style="margin-bottom: 0;">
+    <div>
+      <div class="controls">
+        <input style="width: 303px" placeholder="Username or e-mail" type="text" name="login-username" id="login-username">
+      </div>
+    </div>
+    <div>
+      <div class="controls">
+        <input style="width: 225px;" placeholder="Password" type="password"  name="login-password" id="login-password">
+        <input id="loginButton" type="button" value="Sign in" class="btn login btn-primary pull-right">
+      </div>
+      <div class="controls muted">
+        <label style="font-size: 12px" class="checkbox">
+        <input name="remember_me" style="margin-bottom:0" type="checkbox" checked="true">
+        Remember me <span style="padding: 0 4px">&#149;</span> <span><a href="/password">Forgot Password</a></span> 
+        </label>
+        <input type='hidden' name='_csrf' value="<%=token%>">
+      </div>
+    </div>
+  </form>
+</div>

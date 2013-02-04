@@ -1,48 +1,12 @@
 <% include header %>
 <div class="left-column">
-  <div style="padding-bottom: 7px;" class="user-login bg-gray rounded-column">
-    <form action="/sessions" method="post" style="margin-bottom: 0;">
-      <div>
-        <div class="controls">
-          <input style="width: 303px" placeholder="Username or e-mail" type="text" name="login-username" id="login-username">
-        </div>
-      </div>
-      <div>
-        <div class="controls">
-          <input style="width: 225px;" placeholder="Password" type="password"  name="login-password" id="login-password">
-          <input type="submit" value="Sign in" class="btn login btn-primary pull-right">
-        </div>
-        <div class="controls muted">
-          <label style="font-size: 12px" class="checkbox">
-          <input name="remember_me" style="margin-bottom:0" type="checkbox" checked="true">
-          Remember me <span style="padding: 0 4px">&#149;</span> <span><a href="/password">Forgot Password</a></span> 
-          </label>
-          <input type='hidden' name='_csrf' value="<%=token%>">
-        </div>
-      </div>
-    </form>
-  </div>
+  <% include ../includes/login %>
   <% include ../includes/registration %>
-  
-  <div class="bg-white rounded">
-    <ul class="nav nav-tabs nav-stacked">
-      <li id="menuPreviewWorkspace" class="active"> 
-        <a href="#workspace"><i class="icon-chevron-right menu-chevron"></i>Powerful workspace<span id="navPreviewWorkspace" class="label pull-right"></span></a>
-      </li>
-      <li id="menuPreviewCoordination"> 
-        <a href="#coordination"><i class="icon-chevron-right menu-chevron"></i>Better coordination<span id="navPreviewCoordination" class="label pull-right"></span></a>
-      </li>
-      <li  id="menuPreviewPerformance">
-        <a href="#performance"><i class="icon-chevron-right menu-chevron"></i>Increased performance<span id="navPreviewSupporting" class="label pull-right"></span></a>
-      </li>
-    </ul>
-  </div>
-
-<% include ../includes/about %>
+  <% include ../includes/about %>
 </div>
 <div class="main-column">
-  <div id="infoHeader" class="info-container bg-white rounded-column">
-    <div  id="myCarousel" class="carousel slide" style="height: 302px">  
+  <div id="infoHeader" class="info-container rounded-column">
+    <div  id="workspaceCarousel" class="carousel slide" style="height: 302px">  
       <!-- Carousel items -->  
       <div class="carousel-inner">  
         <div class="active item">
@@ -69,7 +33,7 @@
               <img src="/img/coordination.png"/>
             </div>
             <div class="intro">
-              <h1>Coordinate your Work Better</h1>
+              <h1>Coordinate with Others Better</h1>
               <p>As fast and simple as email, but better coordinated </p>
             </div>
           </div>
@@ -92,9 +56,32 @@
     </div>
     
   </div>
+  <div class="bg-white rounded-column">
+    <p class="lead center">Increase your own performance and better coordinate your work with others.</p>
+    <div class="row">
+      <div class="span3 bg-gray rounded-marketing">
+        <div class="center"><strong>Perform</strong></div>
+        <p>Increased productivity means you have more time. More time means you can choose to support <a href="/intro">Ideas</a> that inspire you. Get started working smarter.</p>
+        <ul>
+          <li>Turbo through all of your Tasks and focus only on what's Current.</li>
+          <li>Track all your deadlines in one place.</li>
+          <li>Get Alerts the instant something affects you.</li>
+        </ul>
+      </div>
+      <div class="span3 bg-gray rounded-marketing">
+        <div class="center"><strong>Coordinate</strong></div>
+        <p>It takes a team to turn Ideas into success stories. Get started coordinating better.</p>
+        <ul>
+          <li>Work transparently, automatically. No more cc, bcc, reply all madness.</li>
+          <li>Find Deliverables exactly where you expect them to be. No more confusion.</li>
+          <li>Send and receive messages in context.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
   <div class="stream-container bg-white no-padding">
   <div class="stream-header">
-    <h4 id="container-header">Workspace</h4>
+    <h4 id="container-header">Workspace Features</h4>
   </div>
   <div class="stream">
     <div id="stream-items-container" class="stream-items padding-20">
@@ -107,13 +94,13 @@
         </div>
       </div>
       <div id="coordination" class="support">
-        <h2>Coordination</h4>
+        <h3>Coordinate</h3>
         <div>
           <% include features/coordination %>
         </div>
       </div>
       <div id="performance" class="support">
-        <h2>Performance</h4>
+        <h3>Perform</h3>
         <div>
           <% include features/performance %>
         </div>

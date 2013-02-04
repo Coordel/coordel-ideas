@@ -1,18 +1,96 @@
-define(["dojo/dom", "dojo/domReady!"], function(dom){
+define(["dojo/dom", "dojo/dom-class", "dojo/on", "dojo/request/xhr", "dojo/domReady!"], function(dom, domClass, on, xhr){
 
   var account = {
     init: function(){
       var self = this;
 
+      self._csrf = $('#addIdea_csrf').val();
+
       var template = dom.byId("loginFormTemplate").text;
 
+      
+
       var v1 = "/api/v1";
+
+      var reset = dom.byId('resetPasswordSaveChanges');
+      if (reset){
+        on(reset, 'click', function(){
+          var newPass = dom.byId('resetPasswordNew').value
+            , verifyPass = dom.byId('resetPasswordNewVerify').value
+            , hash = decodeURIComponent(dom.byId('resetPasswordHash').value);
+
+          console.log("newPass", newPass, "hash", hash);
+
+
+          if (newPass !== verifyPass){
+            //not the same, end it
+          } else {
+
+            xhr.post('/resets', {
+              data: {
+                newPass: newPass,
+                hash: hash
+              },
+              handleAs: "json",
+              headers: {
+                "X-CSRF-Token": self._csrf
+              }
+            }).then(function(res){
+              window.location.href = '/';
+            });
+
+
+          }
+          
+        });
+      }
+
+      
+      var resend = dom.byId('resendPasswordSubmit');
+      if (resend){
+        console.log("setting submit");
+        on(resend, 'click', function(e){
+          console.log("clicked", e);
+
+          var email = dom.byId('resendEmail').value
+            , username = dom.byId('resendUsername').value;
+
+          console.log("username", username);
+          
+          xhr.post('/password/resets', {
+          data: {
+            email: email,
+            username:  username
+          },
+          handleAs: "json",
+          headers: {
+            "X-CSRF-Token": self._csrf
+          }
+        }).then(function(res){
+            console.log("response from post of reset", res);
+            if (res.success){
+              var node = dom.byId('resendPasswordSuccess');
+              domClass.remove(node, 'hide');
+              node.innerHTML = res.message;
+            } else {
+              console.log("show the error", res.errors);
+              var eNode = dom.byId('resendPasswordErrors');
+              domClass.remove(eNode, 'hide');
+              eNode.innerHTML = res.errors;
+            }
+          });
+        });
+      }
+      
+      
 
       $("#login").popover({
         placement: 'bottom',
         html: true,
         content: template
       });
+
+      
 
       $('#account').validate({
         rules: {
@@ -163,8 +241,12 @@ define(["dojo/dom", "dojo/domReady!"], function(dom){
       $("#submit-form").click(function(){
         if (!$("#account").valid()){
           $(this).effect("shake", { times:2 }, 500);
+        } else {
+          _gaq.push(['_trackEvent', 'Registration', 'Completed']);
         }
       });
+
+
 
       $("#fullname").focus().blur();
       $("#email").focus().blur();
@@ -189,9 +271,11 @@ define(["dojo/dom", "dojo/domReady!"], function(dom){
       }
 
     },
+
     validateLogin: function(args){
       console.log('validating');
     },
+
     checkPassword: function(username, password){
       var shortPass = 'error';
       var badPass = 'weak';

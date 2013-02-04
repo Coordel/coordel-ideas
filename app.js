@@ -3,6 +3,7 @@ var express = require('express')
   , https = require('https')
   , fs = require('fs')
   , stripe = require('stripe')('E165dyefezzTaQwOZs0146cQRYCfNA1G')
+  , moment = require('moment')
   , serverConfig = false;
 
 //certificates
@@ -21,8 +22,6 @@ var express = require('express')
   , settings = require('./config/settings').settings("settings", "./config")
   , redisOpts = settings.config.redisOptions
   , couchOpts = settings.config.couchOptions
-  , bitlyOpts = settings.config.bitlyOptions
-  , twitterOpts = settings.config.twitter
   , sendgridOpts = settings.config.sendgridOptions
   , moment = require('moment')
   , passport = require('passport')
@@ -37,13 +36,18 @@ var store = {
   redis: require('./stores/redis').Store,
   bitcoin: require('./stores/bitcoin').Store,
   email: require('./stores/email').Store,
+  coinbase: settings.auth.coinbase,
   timeFormat: "YYYY-MM-DDTHH:mm:ss.SSSZ",
-  bitly: bitlyOpts,
-  twitter: twitterOpts,
+  bitly: settings.auth.bitly,
+  twitter: settings.auth.twitter,
   sendgrid: sendgridOpts,
-  coordelUrl: settings.coordelUrl
+  coordelUrl: settings.coordelUrl,
+  followUrl: couchOpts.followUrl
 };
 
+//start the payments method
+var payments = require('./server/util/payments');
+payments.start(store);
 
 
 //configure express
@@ -187,7 +191,8 @@ passport.use('coinbase', new OAuth2Strategy({
   },
   function(req, accessToken, refreshToken, profile, done) {
 
-    var appId = req.session.currentUser.appId;
+    var appId = req.session.currentUser.appId
+      , expires = moment().add('s', 7200).format(store.timeFormat);
 
     var keys = [
       {
@@ -195,18 +200,20 @@ passport.use('coinbase', new OAuth2Strategy({
       },
       {
         name: "coinbaseRefreshToken", value: refreshToken
+      },
+      {
+        name: "coinbaseTokenExpires", value: expires
       }
     ];
 
     socket.emit('coinbase:'+ appId, {
       coinbaseAccessToken: accessToken,
-      coinbaseRefreshToken: refreshToken
+      coinbaseRefreshToken: refreshToken,
+      coinbaseTokenExpires: expires
     });
 
-    console.log("keys for coinbase", keys);
-
     UserApp.set(appId, keys, function(err, app) {
-      console.log("updated app with coinbase keys", app);
+      //console.log("updated app with coinbase keys", app);
       done(err, app);
     });
   }
@@ -248,7 +255,10 @@ var Pledges = require('./server/controllers/pledges')(store, socket);
 app.get('/intro', configureServer,  Intro.index);
 app.get('/preview',  configureServer,  Intro.preview);
 app.get('/login', Users.login);
-app.get('/password', Users.resetPassword);
+app.get('/password', Users.forgotPassword);
+app.post('/password/resets', Users.resetPassword); //resets password and resends to user
+app.get('/resets', Users.loadResetPassword);
+app.post('/resets', Users.completeResetPassword);
 app.post('/password', Users.updatePassword);
 app.get('/success', Intro.blueprints);
 app.get('/tos', Intro.tos);
@@ -262,9 +272,9 @@ app.get('/logout', loadUser, Users.logout);
 app.post('/signup', configureServer, Users.startRegistration); //set up as Begin Registration goal in analytics
 app.post('/register', configureServer, Users.completeRegistration); //set up as Complete Registration goal in analytics
 app.post('/invite', Users.invite); //set up as Invite to Join goal in analytics
-app.get('/redeem', Users.startRedeem); //set up as Start Redeem Join Invite goal in alytics
-app.post('/completeRedeem', Users.completeRedeem); //set up as Comlete Redeem Join Invite goal in alytics
-app.post('/requestInvite', Users.requestInvite);
+app.get('/redeem', Users.startRedeem); //set up as Start Redeem Join Invite goal in analytics
+app.post('/completeRedeem', Users.completeRedeem); //set up as Complete Redeem Join Invite goal in analytics
+app.post('/requestInvite', Users.requestInvite);//set up as Request Registration Invite in analytics
 
 //single idea
 app.get('/ideas/:id', App.showIdea);
@@ -425,6 +435,8 @@ app.get('/connect/coinbase/error', function(req, res){
 // Otherwise, authentication has failed.
 app.get('/connect/coinbase/callback', //set up in analytics as Coinbase Connection
   passport.authorize('coinbase', {failureRedirect: '/login' }), function(req, res){
+    var code = req.query.code;
+    console.log("code", code);
     res.render('close');
   });
 
@@ -451,7 +463,7 @@ app.get('/connect/twitter/callback', //set up in analytics as Twitter Connection
     // Associate the Twitter account with the logged-in user.
     //account.userId = cur.id;
 
-    console.log("should save the account for the user",user, account);
+    //console.log("should save the account for the user",user, account);
     res.render('close');
     
     var appId = req.session.currentUser.appId;
@@ -470,10 +482,10 @@ app.get('/connect/twitter/callback', //set up in analytics as Twitter Connection
       }
     ];
 
-    console.log("keys for twitter", keys);
+    //console.log("keys for twitter", keys);
     
     UserApp.set(appId, keys, function(err, app) {
-      console.log("updated app with twitter keys", app);
+      //console.log("updated app with twitter keys", app);
     });
   });
 
@@ -489,7 +501,7 @@ app.get('/:username', loadUser, users.show);
 
 //api
 app.post(v1 + '/account');
-app.put(v1 + '/account/password'); //resets password and resends to user
+
 app.get(v1 + '/users/email/', Users.checkEmail); //checks if email exists, returns json object with error or success members
 app.get(v1 + '/users/username/', Users.checkUsername); //checks if username exists, returns json object with error or success members
 

@@ -88,6 +88,7 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/topic", "app/models/pledg
 
       var db = stores.timeStore();
       db.add(pledge).then(function(res){
+        _gaq.push(['_trackEvent', 'Ideas', 'Pledged time']);
         $('#supportTimeModal').modal('hide');
         topic.publish("coordel/ideaAction", "pledgeTime", pledge.project);
       });

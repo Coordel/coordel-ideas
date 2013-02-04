@@ -74,7 +74,7 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/request","dojo/topic", "a
       //update the pledge status to ALLOCATED
       self.pledge.status = "ALLOCATED";
 
-      console.log("report", report, "pledge", self.pledge);
+      //console.log("report", report, "pledge", self.pledge);
 
       var url = '/api/v1/pledges/timeReports';
       request.post(url, {
@@ -88,11 +88,12 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/request","dojo/topic", "a
           handleAs: "json"
         }).then(function(resp){
           if (resp.success){
-            console.log("successful", resp.allocation);
+            _gaq.push(['_trackEvent', 'Ideas', 'Reported time']);
+            //console.log("successful", resp.allocation);
             topic.publish("coordel/ideaAction", "reportTime", self.pledge.project, self.pledge.type);
             $('#reportTimeModal').modal('hide');
           } else {
-            console.log("failed", resp.errors);
+            //console.log("failed", resp.errors);
           }
            
           //the login won't work for sure because we don't have a password

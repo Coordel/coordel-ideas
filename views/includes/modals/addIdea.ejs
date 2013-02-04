@@ -6,7 +6,7 @@
   </div>  
   
   <div class="modal-body">  
-    
+    <div  id="addIdeaMain">
       <fieldset>
         <label></label>
         <input id="addName" name="ideaName" type="text" max="65" style="width: 520px;" placeholder="Name your idea...">
@@ -18,11 +18,11 @@
         
         <input id="addIdea_csrf" type="hidden" id="_csrf" name="_csrf" value="<%=token%>">
       </fieldset> 
-  </div>  
-  
+    </div>
+  </div> 
   <div class="modal-footer" style="text-align: left">
     <form id="addIdeaForm" method="post" action="/api/v1/ideas">
-    <input id="addShare" type="submit" value="Share" href="#" disabled="disabled" class="btn pull-right">
+    <input id="addShare" type="button" value="Share" href="#" disabled="disabled" class="btn pull-right">
     </form>  
     <!--
     <div id="addLocationBtn" class="btn-group pull-left">

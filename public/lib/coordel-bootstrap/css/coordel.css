@@ -496,7 +496,7 @@ p {
   margin: 0 auto 10px;
 }
 #account input[type=text],
-#account input[type=password] {
+#account input[type=password],#resend input[type=text] {
   width: 350px;
 }
 #account .help-inline {
