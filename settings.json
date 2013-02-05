@@ -17,14 +17,6 @@
       "cache": false,
       "followUrl": "http://localhost:5984/coordel-dev"
     },
-    "sendgridOptions": {
-      "host" : "smtp.sendgrid.net",           
-      "port" : "587",
-      "domain" : "coordel.com", 
-      "username" : "dev@coordel.com",
-      "password": "dev1129",
-      "url": "dev.coordel.com:8085"
-    },
     "couchName": "coordel-dev"
   }
 }

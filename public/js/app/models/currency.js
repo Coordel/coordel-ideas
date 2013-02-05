@@ -7,7 +7,7 @@ define(function(){
     bitcoinPrices: null,
 
     init: function(prices, localCurrency){
-      console.log("init currency", prices, localCurrency);
+      //console.log("init currency", prices, localCurrency);
       this.bitcoinPrices = prices;
       if (localCurrency){
         this.localCurrency = localCurrency;
@@ -18,13 +18,13 @@ define(function(){
     toLocal: function(btcAmount){
 
       var self = this;
-      console.log("btcAmount to convert", btcAmount, self.bitcoinPrices);
+      //console.log("btcAmount to convert", btcAmount, self.bitcoinPrices);
       var d = self.bitcoinPrices[self.localCurrency]["24h"]
         , w = self.bitcoinPrices[self.localCurrency]["7d"]
         , m = self.bitcoinPrices[self.localCurrency]["30d"];
 
-      console.log("btcAmount to convert", btcAmount, self.bitcoinPrices);
-      console.log("d", d, "w", w, "m", m);
+      //console.log("btcAmount to convert", btcAmount, self.bitcoinPrices);
+      //console.log("d", d, "w", w, "m", m);
       //the api returns day, week, month as available.
       var localValue;
 

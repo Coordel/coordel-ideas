@@ -47,6 +47,8 @@ define([
 
         currentUser: null,
 
+        bitcointPrices: null,
+
         doingAction: false,
 
         collapsed: true,
@@ -379,6 +381,11 @@ define([
                     $(self.domNode).delay(200).fadeOut().fadeIn('fast');
                   }
                   break;
+                case "makePayment":
+                  $(self.domNode).delay(200).fadeOut().fadeIn('fast');
+                  var amount = parseFloat(type.amount);
+                  self.ideaDetails.updateAccountBalance(-amount);
+                  break;
               }
             }
             
@@ -439,7 +446,8 @@ define([
               this.innerHTML = "collapse";
               self.collapsed = false;
               //domClass.remove(self.activityContainer, "hide");
-              ideaDetails({idea: self.idea, currentUser: self.currentUser}).placeAt(self.detailsContainer);
+              //console.log("idea prices", self.bitcoinPrices);
+              self.ideaDetails = ideaDetails({idea: self.idea, currentUser: self.currentUser, bitcoinPrices: self.bitcoinPrices}).placeAt(self.detailsContainer);
               ideaStream({idea:self.idea}).placeAt(self.streamContainer);
 
             } else {

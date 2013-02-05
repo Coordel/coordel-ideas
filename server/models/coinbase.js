@@ -81,8 +81,8 @@ module.exports = function(store) {
        // }
         
       } else {
-        var getUrl = apiUrl + resource + '?access_token='+token;
-        request.post({url: getUrl, json: data}, function(e, r, body){
+        var postUrl = apiUrl + resource + '?access_token='+token;
+        request.post({url: postUrl, json: data}, function(e, r, body){
           if (e) {
             console.log("Error Posting URL", getUrl, e);
             return fn('Unexpected error posting url');
@@ -199,6 +199,20 @@ module.exports = function(store) {
     }
   };
 
+  var coordel = {
+    sendMoney: function(data, fn){
+      var postUrl = apiUrl + '/transactions/send_money?api_key='+store.coinbase.salesAccount;
+      request.post({url: postUrl, json: data}, function(e, r, body){
+        if (e) {
+          console.log("Error Posting URL", getUrl, e);
+          return fn('Unexpected error posting url');
+        } else {
+          fn(null, body);
+        }
+      });
+    }
+  };
+
   var users = {
     add: function(){
 
@@ -208,7 +222,8 @@ module.exports = function(store) {
   Coinbase = {
     account: account,
     transactions: transactions,
-    users: users
+    users: users,
+    coordel: coordel
   };
 
   return Coinbase;

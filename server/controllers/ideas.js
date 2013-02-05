@@ -213,6 +213,24 @@ IdeasController = function(store, socket) {
       //get the timeline
     },
 
+    makePayment: function(req, res){
+      var payment = JSON.parse(req.body.payment);
+      console.log("payment", payment);
+      Idea.makePayment(payment, function(e, o){
+        if (e){
+          res.json({
+            success: false,
+            errors: [e]
+          });
+        } else {
+          res.json({
+            success: true,
+            payment: o
+          });
+        }
+      });
+    },
+
     addFeedback: function(req, res){
 
       var args = {

@@ -1,0 +1,23 @@
+<% include ../header/html %>
+<div>
+  <h3 style="font-size:18px;-webkit-font-smoothing:antialiased">
+    You have a payment pending from <%=from.titleName%>
+  </h3>
+  <div>
+    <p>Amount of payment: <strong> <%=btcAmount%> BTC</strong> (worth <%=localAmount%>)</p>
+    <p>Idea: <em><%=idea.name%></em></p>
+    <p>You have not yet created a new or connected your existing <a href="https://coinbase.com">Coinbase Wallet</a> to your Coordel account. Until you do, you will not receive your payment.</p>
+    <p>To connect you Coinbase Wallet to your Coordel account do the following -- </p>
+    <p>
+      <ol>
+        <li>Login to <a href="<%=coordelUrl%>">Coordel</a>.</li>
+        <li>Click on the Gear dropdown in the main menu and click &lsquo;Edit Profile.&rsquo;</li>
+        <li>On the Profile page, click the &lsquo;Connections&rsquo; menu on the top left side of the page.</li>
+        <li>Turn the &lsquo;Coinbase connection&rsquo; on. A new page will pop up that will allow you to &lsquo;Sign in&rsquo; to your existing account or &lsquo;Sign up&rsquo; for a new one.</li>
+        <li>Turn the &lsquo;Coinbase connection&rsquo; off and then back on, and authorize your new account for use with Coordel.</li>
+      </ol>
+    </p>
+    <p>Coordel can then send this and future payments to your Coinbase Wallet.</p>
+  </div>
+</div>
+<% include ../footer/html %>

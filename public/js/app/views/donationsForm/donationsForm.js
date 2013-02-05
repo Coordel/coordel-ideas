@@ -78,7 +78,7 @@ define(["dojo/dom"
       });
 
       on(dom.byId("donate50"), "click", function(){
-        self.setValue(50);
+        self.setValue(false);
         $("#donate5").popover("hide");
         $("#donate10").popover("hide");
         $("#donate20").popover("hide");
@@ -130,10 +130,30 @@ define(["dojo/dom"
       });
     });
 
-    },
+  },
     setValue: function(amount){
-      dom.byId("donationsAmount").innerHTML = amount.toString();
-      $("#submitAmount").val(amount.toString());
+      if (amount){
+        dom.byId("donationsAmount").innerHTML = amount.toString();
+        $("#submitAmount").val(amount.toString());
+        domClass.add(dom.byId("donationsOtherAmountContainer"), 'hide');
+      } else {
+        var amtContain = dom.byId("donationsAmountContainer");
+        domClass.add(amtContain, 'hide');
+        domClass.remove(dom.byId("donationsOtherAmountContainer"), 'hide');
+
+        on(dom.byId("otherDonationAmount"), "keyup", function(e){
+          if (e.target.value.length){
+            domClass.remove(amtContain, 'hide');
+            $("#submitAmount").val(e.target.value);
+            dom.byId("donationsAmount").innerHTML = e.target.value;
+          } else {
+            domClass.add(amtContain, 'hide');
+            $("#submitAmount").val('');
+            dom.byId("donationsAmount").innerHTML = '';
+          }
+        });
+      }
+      
     }
   };
 

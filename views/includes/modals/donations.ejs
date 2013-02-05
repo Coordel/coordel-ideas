@@ -17,6 +17,7 @@
         </div>
         <form action="/connect/stripe/payments" method="POST" id="payment-form">
           <div>
+           
             <div class="pull-left" style="margin-right: 20px">
               <label>Card Number</label>
               <input type="text"  placeholder="•••• •••• •••• ••••" size="20" autocomplete="off" class="card-number" id="card-number"/>
@@ -41,10 +42,18 @@
             <div class="clearfix"></div>
           </div>
           <hr>
+          <div id="donationsOtherAmountContainer" class="hide">
+            <div class="input-prepend pull-left">
+              <span class="add-on">$</span>
+              <input size="20" id="otherDonationAmount" type="text" placeholder="Donation amount">
+            </div>
+            <div class="clearfix"></div>
+            <hr>
+          </div>
           <div id="errorsContainer" class="alert alert-error hide">
            <span class="payment-errors"></span>
           </div>
-          <button style="font-size:16px;font-weight:bold"  class="btn btn-block btn-primary submit-button">Pay $<span id="donationsAmount">1</span>.00</button>
+          <button style="font-size:16px;font-weight:bold"  class="btn btn-block btn-primary submit-button">Pay<span id="donationsAmountContainer"> $<span id="donationsAmount">1</span>.00</span></button>
           <input type="hidden" name="submitAmount" id="submitAmount"/>
           <input id="addIdea_csrf" type="hidden" id="_csrf" name="_csrf" value="<%=token%>">
           <input type="hidden" name="description" value="Donation to Coordel"/>

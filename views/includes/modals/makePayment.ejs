@@ -6,25 +6,27 @@
   </div>  
   
   <div class="modal-body">  
-    <div id="makePaymentAction">
+    <div id="makePaymentAction" class="pledge-allocation">
       <fieldset style="width: 400px; margin: auto;">
         <table class="table table-bordered">
           <tr>
-            <th colspan="2">Idea Account Balance</th>
+            <th colspan="2" style="text-align:center">Available Balance</th>
           </tr>
           <tr>
             <td >
-              <strong><span id="makePaymentBtcAmount">0.00</strong>
+              <strong><span id="makePaymentBtcBalance">0.00</strong>
               <div>BTC</div>
             </td>
             <td>
-              <strong><span id="makePaymentLocalSymbol"></span><span id="makePaymentLocalAmount">0.00</span></strong>
+              <strong>
+                <span id="makePaymentLocalSymbol"></span><span id="makePaymentLocalBalance">0.00</span><sup class="muted">*</sup>
+              </strong>
               <div id="makePaymentLocalCurrency">USD</div>
             </td>
           </tr>
         </table>
         <div style="margin-bottom: 20px" id="makePaymentSelectContainer"></div>
-        <h5>How much would you like to pay?</h5>
+        <h5>Payment amount</h5>
         <div class="input-prepend pull-left">
           <span class="add-on">BTC</span>
           <input class="span2" id="makePaymentBtcAmount" placeholder="0.00" type="text">
@@ -35,12 +37,14 @@
           <input class="span1" id="makePaymentLocalAmount" placeholder="0.00" type="text">
         </div>
         <div class="clearfix"></div>
+
       </fieldset>
     </div>
   </div>
   <div class="modal-footer">
     <!--<form id="payment-form">-->
     <button class="btn btn-primary pull-right" disabled="disabled" type="submit" id="makePaymentSubmit">Make payment</button>
+    <small class="pull-left"><sup>*</sup>Calculated based on BTC amount</small>
     <input id="makePaymentIdea" type="hidden">
     <!--</form>--> 
   </div>            

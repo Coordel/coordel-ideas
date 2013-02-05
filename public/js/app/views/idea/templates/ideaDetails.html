@@ -7,7 +7,7 @@
       <span><i class="icon-time idea-deadline-icon"></i><span> <span data-dojo-attach-point="deadlineContainer"></span>
     </div>
     <div data-dojo-attach-point="paymentContainer" class="hide">
-      <button class="btn btn-primary btn-mini pull-right">Make payment</button>
+      <button data-dojo-attach-point="paymentButton" class="btn btn-primary btn-mini pull-right" data-toggle="modal" data-target="#makePaymentModal">Make payment</button>
       <span><i class="icon-qrcode idea-payment-icon"></i><span> <span>
         <span><span data-dojo-attach-point="paymentBtcAmount"></span> <span>BTC</span>
         <span> (</span><span data-dojo-attach-point="paymentSymbol">$</span><span data-dojo-attach-point="paymentLocalAmount"></span> <span data-dojo-attach-point="paymentLocalCurrency">USD</span><span>) </span> 

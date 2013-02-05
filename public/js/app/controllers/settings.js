@@ -286,7 +286,11 @@ define(["dojo/dom"
     },
 
     connect: function(service){
-      window.open('/connect/'+service, 'mywin','left=20,top=20,width=500,height=500,toolbar=1,resizable=0');
+      var width = '500';
+      if (service === 'coinbase'){
+        width = '980';
+      }
+      window.open('/connect/'+service, 'mywin','left=20,top=20,width=' + width + ',height=500,toolbar=1,resizable=0');
       return false;
     },
 

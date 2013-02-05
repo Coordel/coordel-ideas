@@ -20,6 +20,7 @@ define(["dojo/dom",
   "app/views/allocateForm/allocateForm",
   "app/views/reportTimeForm/reportTimeForm",
   "app/views/addProxyForm/addProxyForm",
+  "app/views/makePaymentForm/makePaymentForm",
   "app/views/cancelMoneyForm/cancelMoneyForm",
   "app/views/cancelTimeForm/cancelTimeForm",
   "app/views/removeProxyForm/removeProxyForm",
@@ -33,7 +34,7 @@ define(["dojo/dom",
   "dojo/domReady!" ], function(dom
                     , topic, cookie, array, on, domClass, build, request, hash, registry
                     , model, currency, miniProfile, userProfile, idea, blueprint, moneyForm
-                    , timeForm, contact, allocate, reportTimeForm, addProxy
+                    , timeForm, contact, allocate, reportTimeForm, addProxy, makePaymentForm
                     , cancelMoneyForm, cancelTimeForm, removeProxyForm, feedbackForm, feedback, proxyAllocateForm, proxyDeallocateForm, donationsForm, features){
 
   var app = {
@@ -62,7 +63,7 @@ define(["dojo/dom",
       this.subNav = args.subNav;
       this.model= model.init(args);
       this.contacts = args.contacts;
-      this.show();
+      
 
       $("#ideasCarousel").carousel({interval: 10000});
       $("#workspaceCarousel").carousel({interval: 10000});
@@ -106,18 +107,29 @@ define(["dojo/dom",
       request("/bitcoin/prices", {
         handleAs: "json"
         }).then(function(prices){
+
           self.bitcoinPrices = prices;
+          self.show();
+
           currency.init(prices, args.user.localCurrency);
           moneyForm.init(args.user, currency);
+
           allocate.init(args.user, currency);
           reportTimeForm.init(args.user);
           addProxy.init(args.user, currency, args.contacts);
           proxyAllocateForm.init(args.user, currency, args.contacts);
           proxyDeallocateForm.init(args.user);
+
           cancelMoneyForm.init(args.user, currency);
           cancelTimeForm.init(args.user);
+
           removeProxyForm.init(args.user, currency, args.contacts);
+
           feedbackForm.init(args.user);
+
+  
+          makePaymentForm.init(args.user, currency, args.contacts);
+  
         });
 
 
@@ -174,6 +186,8 @@ define(["dojo/dom",
     showBlueprints: function(args){
 
       var self = this;
+
+      donationsForm.init();
 
       self.setSearch();
 
@@ -609,6 +623,7 @@ define(["dojo/dom",
         isMe = false;
       }
 
+
       var options = {
         idea: item,
         currentUser: self.model.currentUser,
@@ -712,7 +727,12 @@ define(["dojo/dom",
         isMe = false;
       }
 
+
+
       function showIdea(item){
+
+        
+
         var options = {
           idea: item,
           currentUser: self.model.currentUser,
@@ -753,8 +773,6 @@ define(["dojo/dom",
           i =
         }*/
       }
-
-   
 
       array.forEach(ideas, function(item){
         showIdea(item);

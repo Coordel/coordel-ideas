@@ -9,5 +9,9 @@ $10
 
 $20
 <a class="coinbase-button" data-code="085868f23577725f2b4d6c07060b0227" data-button-style="donation_small" href="https://coinbase.com/checkouts/085868f23577725f2b4d6c07060b0227">Donate Bitcoins</a><script src="https://coinbase.com/assets/button.js" type="text/javascript"></script>
+
 $50
 <a class="coinbase-button" data-code="0be6622e5af88764728b158181981cf2" data-button-style="donation_small" href="https://coinbase.com/checkouts/0be6622e5af88764728b158181981cf2">Donate Bitcoins</a><script src="https://coinbase.com/assets/button.js" type="text/javascript"></script>
+
+Other default to $50
+<a class="coinbase-button" data-code="0cdab0ad369e3cff7fadb31a98f75a5f" data-button-style="donation_small" href="https://coinbase.com/checkouts/0cdab0ad369e3cff7fadb31a98f75a5f">Donate Bitcoins</a><script src="https://coinbase.com/assets/button.js" type="text/javascript"></script>

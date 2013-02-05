@@ -15,8 +15,9 @@ define([
     "dojo/store/JsonRest",
     "dojo/_base/array",
     "dojo/request",
-    "app/models/currency"
-], function(declare, _WidgetBase, _TemplatedMixin, template, fileHtml, userHtml, giverHtml, reportHtml, on, domClass, topic, lang, build, JsonRest, array, request, currency) {
+    "app/models/currency",
+    "app/views/makePaymentForm/makePaymentForm"
+], function(declare, _WidgetBase, _TemplatedMixin, template, fileHtml, userHtml, giverHtml, reportHtml, on, domClass, topic, lang, build, JsonRest, array, request, currency, makePaymentForm) {
  
   return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -45,7 +46,7 @@ define([
 
       self.store.get(self.idea._id).then(function(details){
 
-        console.log("details", details);
+        //console.log("details", details);
 
         var idea = details.idea;
 
@@ -83,24 +84,35 @@ define([
 
         
         if (self.account.balance > 0 && self.currentUser.appId === idea.responsible){
-          /*
-          console.log("prices", self.bitcoinPrices, "local", self.localCurrency);
-          currency.init(self.bitcoinPrices, self.localCurrency);
+          
+       
+          currency.init(self.bitcoinPrices, self.currentUser.app.localCurrency);
           domClass.remove(self.paymentContainer, 'hide');
-          console.log("btc", currency.formatBtc(self.account.balance));
-          console.log("local", currency.toLocal(self.account.balance));
           self.paymentBtcAmount.innerHTML = currency.formatBtc(self.account.balance);
           self.paymentLocalAmount.innerHTML = currency.toLocal(self.account.balance);
-          */
+
+          on(self.paymentButton, "click", function(){
+            console.log("show payment form", self.account.balance, self.idea);
+            makePaymentForm.show(self.idea, self.account.balance);
+          });
+        
         }
         
         self.purposeFooter.innerHTML = moment(idea.updated).format('h:mm A - D MMM YY');
 
         $('.idea-purpose-icon').tooltip({title: "Idea purpose", placement: "left"});
         $('.idea-deadline-icon').tooltip({title: "Idea deadline", placement:"left"});
-        $('.idea-payment-icon').tooltip({title: "Idea account balance", placement:"left"});
+        $('.idea-payment-icon').tooltip({title: "Idea available balance", placement:"left"});
       });
       
+    },
+
+    updateAccountBalance: function(btcAmount){
+
+      var self = this;
+      self.account.balance += btcAmount;
+      self.paymentBtcAmount.innerHTML = currency.formatBtc(self.account.balance);
+      self.paymentLocalAmount.innerHTML = currency.toLocal(self.account.balance);
     },
 
     setAccount: function(){
@@ -139,7 +151,7 @@ define([
     },
 
     showActivity: function(activity){
-      console.log("showing activity", activity);
+      //console.log("showing activity", activity);
      
       var self = this
         , row;

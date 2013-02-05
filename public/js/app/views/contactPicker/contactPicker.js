@@ -20,6 +20,10 @@ define([
 
     contacts: [],
 
+    change: function(item){
+      
+    },
+
     //  your custom code goes here
     postCreate: function(){
       this.inherited(arguments);
@@ -43,9 +47,9 @@ define([
         }
       , updater: function (item) {
           var newitem = JSON.parse(item);
-          console.log("contact picker selected item", item);
           self.value = newitem.appId;
           self.currentContact = item;
+          self.change(JSON.parse(item));
           return newitem.fullName;
         }
       , highlighter: function(item){

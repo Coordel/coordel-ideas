@@ -514,6 +514,7 @@ app.get(v1 + '/ideas/:id/stream', Ideas.findStream);
 app.post(v1 + '/pledges/money', Pledges.create); //set up as Pledge Money in analytics
 app.put(v1 + '/pledges/money/:pledgeId', Pledges.save);
 app.post(v1 + '/pledges/allocations', Pledges.allocate); //set up as Allocate Money in analytics
+app.post(v1 + '/payments', Ideas.makePayment);
 
 app.post(v1 + '/pledges/timeReports', Pledges.reportTime);
 app.post(v1 + '/pledges/time', Pledges.create); //set up as Pledge Time in analytics

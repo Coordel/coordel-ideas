@@ -5,7 +5,8 @@ var _ = require('underscore')
   , follow = require('follow')
   , settings = require('../../config/settings').settings('settings', './config')
   , coinbaseAuth = settings.auth.coinbase
-  , moment = require('moment');
+  , moment = require('moment')
+  , _ = require('underscore');
 
 
 exports.start = function (store){
@@ -47,17 +48,13 @@ exports.start = function (store){
         });
       },
       recipient: function(cb){
-        if (item.byProxy){
-          UserApp.findById(item.recipient, function(e, user){
-            if (e){
-              cb(e);
-            } else {
-              cb(null, user);
-            }
-          });
-        } else {
-          cb(null,{});
-        }
+        UserApp.findById(item.recipient, function(e, user){
+          if (e){
+            cb(e);
+          } else {
+            cb(null, user);
+          }
+        });
       },
       ideaAccountBalance: function(cb){
         //get the idea's available cash
@@ -82,18 +79,102 @@ exports.start = function (store){
         });
       }
     }, function(e, results){
-
+      var currency = require('./currency')(results.prices, results.recipient.localCurrency);
+      console.log("recipient", results.recipient);
       if(e){
         console.log("error getting objects for use with payment");
       }else {
-        //console.log("results", results);
-        //the amount of the payment has to be less than the current idea balance
-        
+        var hasAccount = results.recipient.hasPaymentMethod;
+        if (hasAccount){
+          //send an email telling to connect, leave payment status STARTED
+          console.log("not connected to coinbase, send an email");
+
+          var email = store.email;
+
+          var mailOptions = {
+            from: {
+              fullName: results.creator.fullName + ' via Coordel',
+              username: results.creator.username,
+              email: results.creator.email,
+              titleName: results.creator.fullName
+            },
+            to: {
+              fullName: results.recipient.fullName,
+              email: results.recipient.email,
+              username: results.recipient.username
+            },
+            subject: 'Payment pending',
+            generateTextFromHtml: true,
+            idea: results.idea,
+            btcAmount: currency.formatBtc(item.amount),
+            localAmount:  currency.getSymbol() + currency.toLocal(item.amount) + ' ' + currency.localCurrency
+          };
+
+          email.send('paymentPending', mailOptions);
+
+        } else if (item.amount < results.ideaAccountBalance){
+          //money not available fail the payment
+          console.log("amount exceeds idea account balance, fail payment");
+          item.status = "FAILED";
+          item.failed = moment().format(store.timeFormat);
+          store.couch.db.save(item, function(e, res){
+            console.log("payment failed", item);
+          });
+        } else if (_.indexOf(results.idea.users, results.recipient.id) === -1){
+          //user not part of idea, can't make this kind of payment, fail the payment
+          console.log("recipient not part of idea, fail payment");
+          item.status = "FAILED";
+          item.failed = moment().format(store.timeFormat);
+          store.couch.db.save(item, function(e, res){
+            console.log("payment failed", item);
+          });
+        } else {
+          Coinbase.account.getReceiveAddress(results.recipient, function(e, address){
+            if (e){
+              console.log("error getting receive address", e);
+            } else {
+
+              var data = {
+                transaction: {
+                  to: address,
+                  amount: item.amount,
+                  notes: 'Coordel payment -- amount <b>' + currency.formatBtc(item.amount) + ' BTC</b> (worth ' + currency.getSymbol() + currency.toLocal(item.amount) + ' ' + currency.localCurrency + ').<br><br>'
+                }
+              };
+
+              //add the fee on transaction amounts less than .01
+              if (item.amount < 0.01){
+                data.transaction.fee = 0.0005;
+              }
+
+              //sender
+              data.transaction.notes += 'Sender -- ' + results.creator.fullName + '<br><br>';
+              //idea
+              data.transaction.notes += 'Coordel Idea -- <i>&lsquo; ' + results.idea.name.trim() + '&rsquo; </i><br><br>';
+              
+              console.log("payment data", data);
+              Coinbase.coordel.sendMoney(data, function(e, res) {
+                if (e){
+                  //send failed, probably network error or something bad.
+                  console.log("coinbase sendMoney error", e);
+                } else {
+                  console.log("response from coinbase.coordel sendMoney", res);
+                  if (res.success){
+                    item.status = "COMPLETED";
+                    item.completed = moment().format(store.timeFormat);
+                    store.couch.db.save(item, function(e, res){
+                      console.log("payment completed", item);
+                    });
+                  }
+                }
+              });
+            }
+          });
+        }
       }
     });
   };
   
-
   var allocate = function(item){
     console.log("allocate", item);
 
@@ -149,11 +230,13 @@ exports.start = function (store){
         Coinbase.account.getBalance(results.user, function(e, balance){
           console.log("balance", balance);
           var currency = require('./currency')(results.prices, results.user.localCurrency)
-            , fee = currency.formatBtc(item.amount * 0.05);
+            , fee = item.amount * 0.05;
 
           if (e){
+            console.log("error getting account balance", e);
 
           } else {
+            console.log("testing allocation", balance, item.amount + fee);
             //we only allocate when there is balance available. otherwise, the system tries daily until there is balance
             if (balance > (item.amount + fee)){
               //do a send transaction
@@ -175,7 +258,9 @@ exports.start = function (store){
               Coinbase.transactions.sendMoney(results.user, data, function(e, res) {
                 if (e){
                   //send failed, probably network error or something bad.
+                  console.log("coinbase sendMoney error", e);
                 } else {
+                  console.log("response from coinbase sendMoney", res);
                   if (res.success){
                     item.status = "COMPLETED";
                     item.completed = moment().format(store.timeFormat);

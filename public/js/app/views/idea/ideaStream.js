@@ -40,7 +40,7 @@ define([
         var sorted = mem.query(null, {sort: [{attribute:"time", descending: false}]});
 
         array.forEach(sorted, function(item){
-          console.log("item", item);
+          //console.log("item", item);
           if (item.docType && item.docType === "message"){
             //add a new message
             new message({idea: self.idea, message: item, users: users}).placeAt(self.domNode, "first");

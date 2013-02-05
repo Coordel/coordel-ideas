@@ -190,7 +190,12 @@ module.exports = function(store) {
           });
         } else {
           console.log("account balance response", res);
-          fn(null, res[0].value);
+          if (res.length){
+            fn(null, res[0].value);
+          } else {
+            fn(null, 0.00);
+          }
+          
         }
       });
     },
@@ -826,6 +831,17 @@ module.exports = function(store) {
           //console.log("reply from saving reply", o);
           a._rev = o.rev;
           fn(null, a);
+        }
+      });
+    },
+
+    makePayment: function(payment, fn){
+      store.couch.db.save(payment, function(e, res){
+        if (e){
+          fn(e);
+        } else {
+          payment._rev = res.rev;
+          fn(null, payment);
         }
       });
     },
