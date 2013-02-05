@@ -1,5 +1,9 @@
 @import url("support.css");
 
+.badge-feedback, .badge-proxies {
+  position: relative;
+}
+
 .dollar {
     margin-left: 4px;
     height: 16px;
@@ -275,6 +279,28 @@
   font-size: 20px;
 }
 
+.profile-small-text {
+  font-size: 11px;
+}
+
+.profile-proxy-container {
+  position:absolute; 
+  top: 70px; 
+  left: 226px;
+}
+
+.profile-proxy-score {
+  color: #fff; 
+  position:absolute; 
+  top:71px; 
+  left:226px;
+  height: 35px;
+  line-height: 35px;
+  width: 35px;
+  text-align: center;
+  cursor: pointer;
+}
+
 .profile-image {
   margin: 20px auto 12px;
   height: 73px;
@@ -283,14 +309,14 @@
 
 .profile-feedback-container {
   position:absolute; 
-  top: 65px; 
+  top: 70px; 
   left: 296px;
 }
 
 .profile-feedback-score {
   color: #fff; 
   position:absolute; 
-  top:66px; 
+  top:71px; 
   left:298px;
   height: 35px;
   line-height: 35px;

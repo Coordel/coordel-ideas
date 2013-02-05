@@ -4,12 +4,13 @@ define([
     "dijit/_TemplatedMixin",
     "dojo/text!./templates/userProfile.html",
     "dojo/text!./templates/feedbackTip.html",
+    "dojo/text!./templates/proxyTip.html",
     "dojo/on",
     "dojo/dom-class",
     "dojo/topic",
     "dojo/request",
     "dojo/_base/lang"
-], function(declare, _WidgetBase, _TemplatedMixin, template, tipHtml, on, domClass, topic, request, lang) {
+], function(declare, _WidgetBase, _TemplatedMixin, template, tipHtml, proxyTipHtml, on, domClass, topic, request, lang) {
  
   return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -47,6 +48,7 @@ define([
 
       self.setAccount();
       self.setProfile();
+      self.setProxies();
       
       topic.subscribe("coordel/addIdea", function(idea){
         if (self.user.appId === idea.creator){
@@ -71,6 +73,38 @@ define([
         self.setAccount();
       });
 
+    },
+
+    setProxies: function(){
+      var self = this
+        , proxies = self.user.proxies
+        , sum = self.user.proxies.ideas + self.user.proxies.people;
+
+      console.log("proxies", proxies);
+      if (sum > 0){
+        if (sum > 9999){
+          sum = Math.round(sum/1000);
+          sum = sum.toString() + 'k';
+          domClass.add(self.proxySum, "profile-small-text");
+        } else if (sum > 999 && sum <= 9999 ){
+          sum = Math.round((sum/1000)* 10)/10;
+          sum = sum.toString() + 'k';
+          domClass.add(self.proxySum, "profile-small-text");
+        }
+
+        self.proxySum.innerHTML = sum;
+
+        $(self.proxySum).tooltip("destroy");
+
+        $(self.proxySum).tooltip({
+          title: lang.replace(proxyTipHtml, proxies),
+          placement: "bottom",
+          html: true
+        });
+        
+      } else {
+        domClass.add(self.proxySum, "hide");
+      }
     },
 
     setProfile: function(){

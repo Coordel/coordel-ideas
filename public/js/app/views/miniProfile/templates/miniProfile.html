@@ -1,12 +1,18 @@
 <div>
   <!-- Profile recap -->
-  <div style="margin-bottom: 9px; position:relative;">
-    <img data-dojo-attach-point="feedbackImage" src="/img/feedback.png" class="pull-right"/>
-    <a data-dojo-attach-point="feedbackLink" href="/feedback"><span data-dojo-attach-point="feedbackAvg" style="position:absolute; top:8px; right: 7px;color:#fff;"></span></a>
+  <div style="margin-bottom: 9px;">
+    <div class="badge-feedback pull-right">
+      <img data-dojo-attach-point="feedbackImage" src="/img/feedback.png"/>
+      <a data-dojo-attach-point="feedbackLink" href="/feedback"><span data-dojo-attach-point="feedbackAvg" style="position:absolute; top:8px; right: 7px;color:#fff;"></span></a>
+    </div>
+    <div class="badge-proxies pull-right">
+      <img data-dojo-attach-point="proxiesImage" src="/img/proxies.png"/>
+      <a data-dojo-attach-point="proxiesLink" href="/proxy"><span data-dojo-attach-point="proxySum" style="position:absolute; top:8px; right: 7px;color:#fff; width: 22px; text-align: center"></span></a>
+    </div>
     <img data-dojo-attach-point="profileImage" style="margin-right: 9px;" height="36" width="36" src="" class="img-rounded pull-left"/>
     <div class="clearfix">
       <div><a href="" data-dojo-attach-point="profileName" class="fullname"></a></div>
-      <div style="font-size: 12px; color: #999; line-height: 16px">View my profile</div>
+      <div style="font-size: 12px; color: #999; line-height: 16px">View my portfolio</div>
     </div>
   </div>
   <div class="mini-stats clearfix">

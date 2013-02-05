@@ -230,6 +230,45 @@ module.exports = function(store) {
       });
     },
 
+    findProxies: function(appId, fn){
+      store.couch.db.view('coordel/ideaProxies', {startkey: [appId], endkey: [appId, {}]}, function(e, proxies){
+        if (e){
+          fn('error '+e);
+        } else {
+          
+          var map = {
+            ideas: {},
+            people: {}
+          };
+
+          var result = {
+            people: 0,
+            ideas: 0
+          };
+
+          proxies = _.map(proxies, function(item){
+            console.log('proxy', item);
+            return item.value;
+          });
+
+          _.each(proxies, function(item){
+
+            if (!map.ideas[item.project]){
+              map.ideas[item.project] = true;
+              result.ideas = result.ideas + 1;
+            }
+
+            if (!map.people[item.creator]){
+              map.people[item.creator] = true;
+              result.people = result.people + 1;
+            }
+          });
+
+          fn(null, result);
+        }
+      });
+    },
+
     findSupportAccount: function(user, fn){
       var redis = store.redis
         , couch = store.couch;

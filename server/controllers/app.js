@@ -969,6 +969,15 @@ AppController = function(store) {
             cb(null, o);
           }
         });
+      },
+      proxies: function(cb){
+        Profile.findProxies(user.appId, function(e, o){
+          if(e){
+            cb('error'+e);
+          } else {
+            cb(null, o);
+          }
+        });
       }
     },
     function(e, results) {
@@ -979,6 +988,7 @@ AppController = function(store) {
       user.app = results.userApp;
       user.account = results.supportAccount;
       user.feedback = results.feedback;
+      user.proxies = results.proxies;
 
     
 
