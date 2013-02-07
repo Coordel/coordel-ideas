@@ -257,7 +257,7 @@ AppController = function(store) {
           token: res.locals.token,
           title: 'Coordel idea',
           menu: '#menuOtherIdea',
-          subNav: '',
+          subNav: 'singleIdea',
           user: ext.user,
           ideas: compress(results.ideas),
           profile: ext.profile,

@@ -57,7 +57,6 @@ module.exports = function(store) {
               //console.log("error getting contacts", e);
               cb('error '+e);
             } else {
-              //console.log("got contacts", o);
               cb(null, o);
             }
           });
@@ -129,7 +128,6 @@ module.exports = function(store) {
               });
            
               var result = {
-               
                 withTime: 0,
                 withMoney: 0
               };
@@ -138,11 +136,13 @@ module.exports = function(store) {
                 _.each(acct, function(item){
                   if (item.docType === "money-pledge") {
                     if (item.status === "PLEDGED"){
-                      
+                      console.log("pledged", item);
                       result.withMoney = result.withMoney + 1;
-                    } else if (item.status === "PROXIED"){
+                    } else if (item.status === "PROXIED" && item.creator === user.appId){
+                      console.log("proxied", item);
                       result.withMoney = result.withMoney + 1;
                     } else if (item.status === "ALLOCATED" && item.type === "RECURRING"){
+                      console.log("allocated recurring", item);
                       result.withMoney = result.withMoney + 1;
                     }
                   } else if (item.docType === "time-pledge") {
@@ -204,12 +204,51 @@ module.exports = function(store) {
               }
             }
           });
+        },
+        proxies: function(cb){
+          store.couch.db.view('coordel/ideaProxies', {startkey: [user.appId], endkey: [user.appId, {}]}, function(e, proxies){
+            if (e){
+              cb(e);
+            } else {
+              
+              var map = {
+                ideas: {},
+                people: {}
+              };
+
+              var result = {
+                people: 0,
+                ideas: 0
+              };
+
+              proxies = _.map(proxies, function(item){
+                //console.log('proxy', item);
+                return item.value;
+              });
+
+              _.each(proxies, function(item){
+
+                if (!map.ideas[item.project]){
+                  map.ideas[item.project] = true;
+                  result.ideas = result.ideas + 1;
+                }
+
+                if (!map.people[item.creator]){
+                  map.people[item.creator] = true;
+                  result.people = result.people + 1;
+                }
+              });
+
+              cb(null, result);
+            }
+          });
         }
       },
       function(e, profile) {
         if (e){
           fn(e);
         } else {
+          
           fn(null, profile);
         }
       });
@@ -247,7 +286,7 @@ module.exports = function(store) {
           };
 
           proxies = _.map(proxies, function(item){
-            console.log('proxy', item);
+            //console.log('proxy', item);
             return item.value;
           });
 

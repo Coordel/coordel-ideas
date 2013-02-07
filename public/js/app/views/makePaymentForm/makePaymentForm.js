@@ -67,7 +67,7 @@ define(["dojo/dom"
         self.submit();
       });
 
-      console.log("make payment form initialized");
+      //console.log("make payment form initialized");
     },
 
     show: function(idea, balance){

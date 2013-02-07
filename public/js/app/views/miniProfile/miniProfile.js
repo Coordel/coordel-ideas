@@ -49,7 +49,7 @@ define([
       });
 
       topic.subscribe("coordel/miniProfile", function(mini){
-        console.log("miniProfile got new profile", mini);
+        //console.log("miniProfile got new profile", mini);
         self.miniProfile = mini;
         self.setProfile();
       });
@@ -60,7 +60,7 @@ define([
         , proxies = self.user.proxies
         , sum = self.user.proxies.ideas + self.user.proxies.people;
 
-      console.log("proxies", proxies);
+      //console.log("proxies", proxies);
       if (sum > 0){
         if (sum > 9999){
           sum = Math.round(sum/1000);
@@ -109,7 +109,7 @@ define([
             performance: Math.round(self.miniProfile.feedback.performance.avg)
           };
 
-          console.log("setting miniProfile", tipValues);
+          //console.log("setting miniProfile", tipValues);
 
           $(self.feedbackAvg).tooltip("destroy");
 

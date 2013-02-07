@@ -4,13 +4,15 @@ define([
     "dijit/_TemplatedMixin",
     "dojo/text!./templates/contact.html",
     "dojo/text!./templates/reportEntry.html",
+    "dojo/text!./templates/feedbackTip.html",
+    "dojo/text!./templates/proxyTip.html",
     "dojo/on",
     "dojo/dom-class",
     "dojo/dom-construct",
     "dojo/request",
     "dojo/_base/array",
     "dojo/_base/lang"
-], function(declare, _WidgetBase, _TemplatedMixin, template, reportHtml, on, domClass, build, request, array, lang) {
+], function(declare, _WidgetBase, _TemplatedMixin, template, reportHtml, tipHtml, proxyTipHtml, on, domClass, build, request, array, lang) {
  
   return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -23,7 +25,10 @@ define([
     //  your custom code goes here
     postCreate: function(){
       this.inherited(arguments);
-      var self = this;
+      var self = this
+        , info = self.contact.info;
+
+      console.log("contact", self.contact);
 
       this.userImage.src = this.contact.imageUrl;
       
@@ -35,13 +40,34 @@ define([
         this.userNameLink.innerHTML = this.contact.firstName + " " + this.contact.lastName;
       }
 
+     if (info.bio){
+        self.bio.innerHTML = info.bio;
+      } else {
+        domClass.add(self.bio, 'hide');
+      }
+
+      if (info.personalLink){
+        self.personalLink.innerHTML = info.personalLink;
+        self.personalLink.href = info.personalLink;
+      } else {
+        domClass.add(self.personalLink, 'hide');
+      }
+
+      if (info.location){
+        self.location.innerHTML = info.location;
+      } else {
+        domClass.add(self.location, 'hide');
+      }
+
+      if (info.location && info.personalLink){
+        domClass.remove(self.dividerBullet, 'hide');
+      }
+
       if (this.contact.username){
         this.userNameLink.href = '/'+this.contact.username;
       } else {
         this.userNameLink.href = "#";
       }
-      
-      
       
       //this.usernameLink.innerHTML = this.contact.username;
 
@@ -57,14 +83,64 @@ define([
         }
       });
 
+      console.log("contact before load", self.contact);
+
       request("/contacts/" + self.contact.appId + "/profile", {handleAs:"json"}).then(function(profile){
-        if (profile.feedback.coordination.avg !== 0 && profile.feedback.performance.avg !== 0){
-          self.coord.innerHTML = Math.round(profile.feedback.coordination.avg);
-          self.perf.innerHTML = Math.round(profile.feedback.performance.avg);
+        console.log('contact profile', profile);
+
+        var proxies = profile.proxies
+        , sum = profile.proxies.ideas + profile.proxies.people;
+
+        if (sum > 0){
+          if (sum > 9999){
+            sum = Math.round(sum/1000);
+            sum = sum.toString() + 'k';
+            domClass.add(self.proxySum, "profile-small-text");
+          } else if (sum > 999 && sum <= 9999 ){
+            sum = Math.round((sum/1000)* 10)/10;
+            sum = sum.toString() + 'k';
+            domClass.add(self.proxySum, "profile-small-text");
+          }
+
+          self.proxySum.innerHTML = sum;
+
+          $(self.proxySum).tooltip("destroy");
+
+          $(self.proxySum).tooltip({
+            title: lang.replace(proxyTipHtml, proxies),
+            placement: "bottom",
+            html: true
+          });
+          
         } else {
-          domClass.add(self.profileAverages, "hide");
+          domClass.add(self.proxySum, "hide");
         }
-        
+
+
+
+        if (profile.feedback.avg > 0){
+          //set the average
+          self.feedbackAvg.innerHTML = profile.feedback.avg;
+          //tooltip
+          var tipValues = {
+            coordination: Math.round(profile.feedback.coordination.avg),
+            performance: Math.round(profile.feedback.performance.avg)
+          };
+
+          $(self.feedbackAvg).tooltip("destroy");
+
+          $(self.feedbackAvg).tooltip({
+            title: lang.replace(tipHtml, tipValues),
+            placement: "bottom",
+            html: true
+          });
+
+        } else {
+          //hide the feedback graphic
+          domClass.add(self.feedbackImage, "hide");
+        }
+
+
         
         var row;
         var mini = [
@@ -81,6 +157,8 @@ define([
         });
         
         if (profile.activity.other.length){
+          row = build.toDom("<h5>Activity</h5>");
+          build.place(row, self.activityContainer);
           array.forEach(profile.activity.other, function(item){
             row = build.toDom(lang.replace(reportHtml, item));
             build.place(row, self.activityContainer);
@@ -88,7 +166,7 @@ define([
         }
 
         if (profile.activity.tasks.length){
-          row = build.toDom("<h5>Tasks</h5>");
+          row = build.toDom("<h5>Task activity</h5>");
           build.place(row, self.activityContainer);
           array.forEach(profile.activity.tasks, function(item){
             row = build.toDom(lang.replace(reportHtml, item));

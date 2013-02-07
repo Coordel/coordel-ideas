@@ -1,20 +1,7 @@
 <div class="contact">
   <div class="message-content">
     <div data-dojo-attach-point="profileAverages" class="pull-right">
-      <table class="table table-bordered">
-        <tr>
-          <td>
-            <strong><div data-dojo-attach-point="coord"></div></strong>
-            <div>COORDINATION</div>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <strong><div data-dojo-attach-point="perf"></div></strong>
-            <div>PERFORMANCE</div>
-          </td>
-        </tr>
-      </table>
+      
     </div>
     <div class="idea-header">
       <a data-dojo-attach-point="userDetails">
@@ -24,19 +11,29 @@
       </a>
     </div>
     
-
-    <div data-dojo-attach-point="bio">Here is the profile of the person that we might want to see</div>
-    <div data-dojo-attach-point="other">
-      <span data-dojo-attach-point="location">Location</span> 
-      <span data-dojo-attach-point="url">http://url.com</span>
+    <div class="clearfix">
+      <div class="badge-feedback pull-right">
+        <img data-dojo-attach-point="feedbackImage" src="/img/feedback.png"/>
+        <a data-dojo-attach-point="feedbackLink" href="/feedback"><span data-dojo-attach-point="feedbackAvg" style="position:absolute; top:8px; right: 7px;color:#fff;"></span></a>
+      </div>
+      <div class="badge-proxies pull-right">
+        <img data-dojo-attach-point="proxiesImage" src="/img/proxies.png"/>
+        <a data-dojo-attach-point="proxiesLink" href="/proxy"><span data-dojo-attach-point="proxySum" style="position:absolute; top:8px; right: 7px;color:#fff; width: 22px; text-align: center"></span></a>
+      </div>
+      <div data-dojo-attach-point="bio"></div>
+    
+      <div data-dojo-attach-point="other">
+        <span data-dojo-attach-point="location"></span> 
+        <span data-dojo-attach-point="dividerBullet" class="hide">&nbsp;&#149;&nbsp;</span> 
+        <a data-dojo-attach-point="personalLink"></a>
+      </div>
     </div>
-     
     <div class="details-footer">
       <span><a data-dojo-attach-point="toggler" style="cursor: pointer"><i style="margin-top: -1px" class="icon-th-large icon-blue"></i> <span data-dojo-attach-point="toggleLabel">show activity</span></a></span>
     </div>
+
     <div class="activity hide" style="border-top: 1px solid #ccc;padding:20px 0 0 8px" data-dojo-attach-point="activityContainer">
       <div class="clearfix"></div>
-      
     </div>
   </div>
 

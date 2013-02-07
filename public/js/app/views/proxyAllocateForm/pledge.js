@@ -46,7 +46,7 @@ define([
 
       self.proxiedBy.innerHTML = by;
       self.imageUrl.src = imageUrl;
-      console.log("proxied by", by);
+      //console.log("proxied by", by);
     },
 
     setLocalAmount: function(btcAmount){

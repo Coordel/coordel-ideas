@@ -291,23 +291,70 @@ module.exports = function(store) {
             apps = _.filter(apps, function(a){
               return a;
             });
-            
-            //need to send back only the contact info
-            apps = _.map(apps, function(a){
-              if (a){
-                return {
-                  firstName: a.firstName,
-                  fullName: a.fullName,
-                  appId: a.id,
-                  lastName: a.lastName,
-                  user: a.user,
-                  userId: a.userId,
-                  username: a.username,
-                  imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
-                };
-              }
+
+            multi = store.redis.multi();
+
+            _.each(apps, function(item){
+              var key = 'users:'+ item.userId;
+
+              multi.hgetall(key);
             });
-            return fn(null, apps);
+
+            multi.exec(function(e, users){
+              
+              if (e) return fn(e);
+              var info = [];
+              users = _.each(users, function(u){
+                if (u){
+                  var item = {};
+                  item.id = u.id;
+                  item.appId = u.appId;
+                  if (u.bio){
+                    item.bio = u.bio;
+                  }
+                  if (u.location){
+                    item.location = u.location;
+                  }
+                  if (u.personalLink){
+                    item.personalLink = u.personalLink;
+                  }
+                  console.log("info item", e, item);
+                  info.push(item);
+                }
+              });
+
+              //need to send back only the contact info
+              apps = _.map(apps, function(a){
+                if (a){
+                  return {
+                    firstName: a.firstName,
+                    fullName: a.fullName,
+                    appId: a.id,
+                    lastName: a.lastName,
+                    user: a.user,
+                    userId: a.userId,
+                    username: a.username,
+                    imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+                  };
+                }
+              });
+
+              //assign the info to the app
+              _.each(apps, function(a){
+
+                _.each(info, function(u){
+                  //console.log("app", a);
+                  if (a.appId === u.appId){
+                    a.info = u;
+                  }
+                });
+              });
+
+              return fn(null, apps);
+
+            });
+            
+            
           });
         } else {
           return fn(null, []);

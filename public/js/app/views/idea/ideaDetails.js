@@ -159,6 +159,8 @@ define([
       domClass.remove(self.activityContainer, "hide");
         
       if (activity.other.length){
+        row = build.toDom("<h5>Activity</h5>");
+        build.place(row, self.activityContainer);
         array.forEach(activity.other, function(item){
           row = build.toDom(lang.replace(reportHtml, item));
           build.place(row, self.activityContainer);
@@ -166,7 +168,7 @@ define([
       }
 
       if (activity.tasks.length){
-        row = build.toDom("<h5>Tasks</h5>");
+        row = build.toDom("<h5>Task activity</h5>");
         build.place(row, self.activityContainer);
         array.forEach(activity.tasks, function(item){
           row = build.toDom(lang.replace(reportHtml, item));

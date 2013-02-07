@@ -1,6 +1,6 @@
 //server support
 var express = require('express')
-  , https = require('https')
+  , http = require('http')
   , fs = require('fs')
   , stripe = require('stripe')('E165dyefezzTaQwOZs0146cQRYCfNA1G')
   , moment = require('moment')
@@ -168,7 +168,8 @@ function loadUser(req, res, next) {
 
 
 /*///////////////////////////*/
-var server = https.createServer(appOptions, app);
+var server = http.createServer(app);
+//var io = require('socket.io', {secure: true}).listen(server);
 var io = require('socket.io', {secure: true}).listen(server);
 
 //create the socket
@@ -256,10 +257,10 @@ app.get('/intro', configureServer,  Intro.index);
 app.get('/preview',  configureServer,  Intro.preview);
 app.get('/login', Users.login);
 app.get('/password', Users.forgotPassword);
-app.post('/password/resets', Users.resetPassword); //resets password and resends to user
+app.post('/password/resets', loadUser, Users.resetPassword); //resets password and resends to user
 app.get('/resets', Users.loadResetPassword);
 app.post('/resets', Users.completeResetPassword);
-app.post('/password', Users.updatePassword);
+app.post('/password', loadUser, Users.updatePassword);
 app.get('/success', Intro.blueprints);
 app.get('/tos', Intro.tos);
 app.get('/privacy', Intro.privacy);
@@ -271,43 +272,43 @@ app.post('/sessions/delete', loadUser, Users.logout);
 app.get('/logout', loadUser, Users.logout);
 app.post('/signup', configureServer, Users.startRegistration); //set up as Begin Registration goal in analytics
 app.post('/register', configureServer, Users.completeRegistration); //set up as Complete Registration goal in analytics
-app.post('/invite', Users.invite); //set up as Invite to Join goal in analytics
+app.post('/invite', loadUser, Users.invite); //set up as Invite to Join goal in analytics
 app.get('/redeem', Users.startRedeem); //set up as Start Redeem Join Invite goal in analytics
 app.post('/completeRedeem', Users.completeRedeem); //set up as Complete Redeem Join Invite goal in analytics
 app.post('/requestInvite', Users.requestInvite);//set up as Request Registration Invite in analytics
 
 //single idea
-app.get('/ideas/:id', App.showIdea);
-app.get('/i/:hash', App.showIdea);
+app.get('/ideas/:id', loadUser, App.showIdea);
+app.get('/i/:hash', loadUser, App.showIdea);
 
 //user's apps
-app.put('/users/apps/:appId', Users.setAppValues);
-app.get('/contacts/:contactId/profile', Users.getContactMiniProfile);
+app.put('/users/apps/:appId', loadUser, Users.setAppValues);
+app.get('/contacts/:contactId/profile', loadUser, Users.getContactMiniProfile);
 
 //user's blueprints
-app.post('/users/:appId/blueprints', Users.copyBlueprint);
+app.post('/users/:appId/blueprints', loadUser, Users.copyBlueprint);
 
 //paging timeline and trending
 app.get('/ideas/timeline/:page', Ideas.findTimeline);
 app.get('/ideas/trending/:page', Ideas.findTrending);
 
 //ideas client pages
-app.post('/ideas', Ideas.create); //set up as Add Idea in analytics
-app.post('/ideas/:id/replies', Ideas.reply);
-app.post('/ideas/:id/invites', Ideas.invite);
-app.post('/ideas/:id/supported', Ideas.support); //set up as Support Idea in analytics
-app.del('/ideas/:id/supported', Ideas.removeSupport);
+app.post('/ideas', loadUser, Ideas.create); //set up as Add Idea in analytics
+app.post('/ideas/:id/replies', loadUser, Ideas.reply);
+app.post('/ideas/:id/invites', loadUser, Ideas.invite);
+app.post('/ideas/:id/supported', loadUser, Ideas.support); //set up as Support Idea in analytics
+app.del('/ideas/:id/supported', loadUser, Ideas.removeSupport);
 //app.post('/ideas/:id/time', Ideas.supportTime);
 //app.put('/ideas/:id/time');
 //app.del('/ideas/:id/time/');
-app.get('/ideas/:id/users', Ideas.findUsers);
-app.get('/ideas/:id/users/:appId/proxies/allocations', Ideas.findUserProxyAllocationByIdea);
-app.get('/ideas/:id/users/:appId/feedback', Ideas.getUserFeedback);
-app.post('/ideas/:id/users/:appId/feedback', Ideas.addFeedback);
-app.get('/ideas/:id/pledges/money', Ideas.findMoneyPledges);
-app.get('/ideas/:id/pledges/time', Ideas.findTimePledges);
-app.get('/ideas/:id/pledges/proxy', Ideas.findProxyPledges);
-app.get('/ideas/:id/proxies/allocations', Ideas.findProxyAllocations);
+app.get('/ideas/:id/users', loadUser, Ideas.findUsers);
+app.get('/ideas/:id/users/:appId/proxies/allocations', loadUser, Ideas.findUserProxyAllocationByIdea);
+app.get('/ideas/:id/users/:appId/feedback', loadUser, Ideas.getUserFeedback);
+app.post('/ideas/:id/users/:appId/feedback', loadUser, Ideas.addFeedback);
+app.get('/ideas/:id/pledges/money', loadUser, Ideas.findMoneyPledges);
+app.get('/ideas/:id/pledges/time', loadUser, Ideas.findTimePledges);
+app.get('/ideas/:id/pledges/proxy', loadUser, Ideas.findProxyPledges);
+app.get('/ideas/:id/proxies/allocations', loadUser, Ideas.findProxyAllocations);
 
 //app.post('/ideas/:id/money', Ideas.supportMoney);
 //app.put('/ideas/:id/money');
@@ -315,34 +316,34 @@ app.get('/ideas/:id/proxies/allocations', Ideas.findProxyAllocations);
 //app.post('/ideas/:id/shared/:service'); //set up as Share Idea in analytics (with third party services--twitter, app.net, etc)
 
 app.get('/', loadUser, App.index);
-app.get('/trending', App.trending);
-app.get('/blueprints', App.blueprints);
-app.get('/supporting', App.supporting);
-app.get('/contacts', App.contacts);
-app.get('/money', App.moneyPledged);
-app.get('/time', App.timePledged);
-app.get('/proxy', App.proxiedToMe);
-app.get('/feedback', App.feedback);
-app.get('/search', App.search);
+app.get('/trending', loadUser, App.trending);
+app.get('/blueprints', loadUser, App.blueprints);
+app.get('/supporting', loadUser, App.supporting);
+app.get('/contacts', loadUser, App.contacts);
+app.get('/money', loadUser, App.moneyPledged);
+app.get('/time', loadUser, App.timePledged);
+app.get('/proxy', loadUser, App.proxiedToMe);
+app.get('/feedback', loadUser, App.feedback);
+app.get('/search', loadUser, App.search);
 app.get('/:username', loadUser, App.ideas);
 
-app.get('/:username/supporting', App.supporting);
-app.get('/:username/contacts', App.contacts);
-app.get('/:username/money', App.moneyPledged);
-app.get('/:username/time', App.timePledged);
-app.get('/:username/proxy', App.proxiedToMe);
-app.get('/:username/feedback', App.feedback);
+app.get('/:username/supporting', loadUser, App.supporting);
+app.get('/:username/contacts', loadUser, App.contacts);
+app.get('/:username/money', loadUser, App.moneyPledged);
+app.get('/:username/time', loadUser, App.timePledged);
+app.get('/:username/proxy', loadUser, App.proxiedToMe);
+app.get('/:username/feedback', loadUser, App.feedback);
 
 
 //settings
-app.get('/settings/profile', App.settings);
+app.get('/settings/profile', loadUser, App.settings);
 
-app.post('/settings/profile', Users.saveProfile);
-app.post('/settings/account', Users.saveAccount);
+app.post('/settings/profile', loadUser, Users.saveProfile);
+app.post('/settings/account', loadUser, Users.saveAccount);
 
 
 
-app.post('/settings', function(req, res){
+app.post('/settings', loadUser, function(req, res){
 
   var appId = req.session.currentUser.appId
     , keys = req.body.keys;
@@ -367,7 +368,7 @@ app.post('/settings', function(req, res){
   });
 });
 
-app.get('/settings/reset', function(req, res){
+app.get('/settings/reset', loadUser, function(req, res){
   var appId = req.session.currentUser.appId;
   UserApp.reset(appId, function(e, app){
     if(e){
@@ -409,7 +410,7 @@ app.post('/connect/stripe/payments', function(req, res){
 });
 
 //coinbase
-app.post('/coinbase/users', Coinbase.createUser);
+app.post('/coinbase/users', loadUser, Coinbase.createUser);
 
 
 //bitcoin
@@ -440,7 +441,7 @@ app.get('/connect/coinbase/callback', //set up in analytics as Coinbase Connecti
     res.render('close');
   });
 
-app.get('/disconnect/coinbase', Users.disconnectCoinbase);
+app.get('/disconnect/coinbase', loadUser, Users.disconnectCoinbase);
 
 
 //twitter routes
@@ -500,31 +501,31 @@ app.get('/:username', loadUser, users.show);
 */
 
 //api
-app.post(v1 + '/account');
 
 app.get(v1 + '/users/email/', Users.checkEmail); //checks if email exists, returns json object with error or success members
 app.get(v1 + '/users/username/', Users.checkUsername); //checks if username exists, returns json object with error or success members
 
 app.get(v1 + '/timeline', Ideas.timeline);
-app.get(v1 + '/ideas/search');
 app.get(v1 + '/ideas/:id', Ideas.findDetails);
-app.post(v1 + '/ideas');
 app.get(v1 + '/ideas/:id/stream', Ideas.findStream);
 
-app.post(v1 + '/pledges/money', Pledges.create); //set up as Pledge Money in analytics
-app.put(v1 + '/pledges/money/:pledgeId', Pledges.save);
-app.post(v1 + '/pledges/allocations', Pledges.allocate); //set up as Allocate Money in analytics
-app.post(v1 + '/payments', Ideas.makePayment);
+app.post(v1 + '/pledges/money', loadUser, Pledges.create); //set up as Pledge Money in analytics
+app.put(v1 + '/pledges/money/:pledgeId', loadUser, Pledges.save);
+app.post(v1 + '/pledges/allocations', loadUser, Pledges.allocate); //set up as Allocate Money in analytics
+app.post(v1 + '/payments', loadUser, Ideas.makePayment);
 
-app.post(v1 + '/pledges/timeReports', Pledges.reportTime);
-app.post(v1 + '/pledges/time', Pledges.create); //set up as Pledge Time in analytics
-app.put(v1 + '/pledges/time/:pledgeId', Pledges.save);
+app.post(v1 + '/pledges/timeReports', loadUser, Pledges.reportTime);
+app.post(v1 + '/pledges/time', loadUser, Pledges.create); //set up as Pledge Time in analytics
+app.put(v1 + '/pledges/time/:pledgeId', loadUser, Pledges.save);
 
 
-app.post(v1 + '/proxies/allocations', Pledges.proxyAllocate); //set up as Allocate Proxies in analytics
-app.post(v1 + '/proxies/deallocations', Pledges.proxyDeallocate);
+app.post(v1 + '/proxies/allocations', loadUser, Pledges.proxyAllocate); //set up as Allocate Proxies in analytics
+app.post(v1 + '/proxies/deallocations', loadUser, Pledges.proxyDeallocate);
 
 ///////********************************************************************//////
+/*
 server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
+*/
+server.listen(8080);

@@ -58,7 +58,7 @@ define(["dojo/dom",
       var self = this;
       self.user = args.user;
       self.otherUser = args.otherUser;
-      console.log("init app", args );
+      //console.log("init app", args );
       this.currentMenu = args.menu;
       this.subNav = args.subNav;
       this.model= model.init(args);
@@ -94,7 +94,11 @@ define(["dojo/dom",
         );
       });
 
+
+      //console.log("registration Open", args.subNav, args.registrationOpen);
+
       if (!args.subNav && !args.registrationOpen){
+        //console.log("closing registration");
         self.closeRegistration();
       }
 
@@ -102,7 +106,10 @@ define(["dojo/dom",
      
       timeForm.init(args.user);
 
-      donationsForm.init();
+      if (args.subNav !== "singleIdea"){
+        donationsForm.init();
+      }
+      
       
       request("/bitcoin/prices", {
         handleAs: "json"
@@ -418,7 +425,7 @@ define(["dojo/dom",
 
       setMenu(this.currentMenu);
 
-      var socket = io.connect(window.location.host, {secure: true});
+      var socket = io.connect(window.location.host);
 
       //register for socketio events
       socket.on("idea", function (idea) {
@@ -656,6 +663,8 @@ define(["dojo/dom",
       var self = this
         , contacts = this.contacts;
 
+      //console.log("contacts", contacts, self.user.contacts);
+
       array.forEach(contacts, function(item){
         
 
@@ -696,22 +705,6 @@ define(["dojo/dom",
     showTimeline: function(args){
       var self = this;
 
-      
-
-
-
-      /*
-      $('#stream-items-container').infinitescroll({
-        // other options
-        dataType: 'json',
-        appendCallback: false
-      }, function(json, opts) {
-        // Get current page
-        var page = opts.state.currPage;
-        //console.log("infinite scroll", json, opts);
-        // Do something with JSON data, create DOM elements, etc ..
-      });
-       */
 
       var ideas;
 
@@ -910,6 +903,7 @@ define(["dojo/dom",
     setUserNav: function(){
       var mini = this.model.miniProfile
         , user = this.model.currentUser;
+
 
       if (this.otherUser && this.otherUser.user){
         user = this.otherUser.user;

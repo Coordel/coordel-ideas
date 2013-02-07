@@ -27,7 +27,7 @@ module.exports = function(app, express, passport){
       'app.coordel.com:8090',
       'dev.coordel.com',
       'dev.coordel.com:8080',
-      'work.coordel.com:8443'
+      'work.coordel.com:8080'
     ];
     
     if(allowedHost.indexOf(req.headers.host) !== -1) {

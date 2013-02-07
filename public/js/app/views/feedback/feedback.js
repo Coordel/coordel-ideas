@@ -35,7 +35,7 @@ define([
       self.userImage.alt = self.from.fullName;
       self.userNameLink.href = '/'+self.from.username;
       self.userNameLink.innerHTML = self.from.fullName;
-      self.usernameLink.innerHTML = self.from.username;
+      //self.usernameLink.innerHTML = self.from.username;
       self.ideaName.innerHTML = self.feedback.name;
       self.ideaUrl.href = '/i/'+self.feedback.hash;
       self.feedbackDate.innerHTML = moment(self.feedback.created).format("h:mm A D MMM YY");

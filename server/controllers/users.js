@@ -400,6 +400,7 @@ UsersController = function(store) {
       var appId = req.params.appId
         , contactId = req.params.contactId;
 
+      //console.log("appId", appId, "contactId", contactId, "userId", userId);
       var user = {};
       user.appId = contactId;
       Profile.findMiniProfile(user, function(e, o){
