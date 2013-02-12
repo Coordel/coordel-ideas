@@ -1,0 +1,4 @@
+coordel-ideas
+=============
+License
+MIT
