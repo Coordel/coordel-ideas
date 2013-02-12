@@ -19,7 +19,7 @@
       // load our app module and wait for the DOM to be ready
       require(['app/controllers/app', 'dojo/domReady!' ], function(app){
         //this let's us bootstrap the ideas from the server
-        app.init({ideas:JSON.parse(unescape('<%- ideas%>')), menu: "<%=menu%>", registrationOpen: <%=registrationOpen%>});
+        app.init({ideas:JSON.parse(unescape('<%- ideas%>')), workspaceUrl: "<%=workspaceUrl%>", menu: "<%=menu%>", registrationOpen: <%=registrationOpen%>});
       });
     </script>
 

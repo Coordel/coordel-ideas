@@ -23,13 +23,7 @@ module.exports = function(app, express, passport){
   var allowCrossDomain = function(req, res, next) {
     // Add other domains you want the server to give access to
     // WARNING - Be careful with what origins you give access to
-    var allowedHost = [
-      'app.coordel.com:8090',
-      'dev.coordel.com',
-      'dev.coordel.com:8080',
-      'work.coordel.com:8080'
-    ];
-    
+    var allowedHost = settings.allowedHosts;
     if(allowedHost.indexOf(req.headers.host) !== -1) {
       res.header('Access-Control-Allow-Credentials', true);
       res.header('Access-Control-Allow-Origin', req.headers.host);
@@ -52,11 +46,20 @@ module.exports = function(app, express, passport){
     res.render('error', { error: err });
   }
 
-  
+  function httpsRedirect(req, res, next) {
+    // see above
+    //res.setHeader('Strict-Transport-Security', 'max-age=8640000; includeSubDomains');
+
+    if (app.settings.env === "production" && req.headers['x-forwarded-proto'] !== 'https') {
+      //console.log("not https", req.headers['x-forwarded-proto']);
+      return res.redirect(301, 'https://' + req.headers.host + '/');
+    }
+    next();
+  }
 
   //configure express
   app.configure(function(){
-    app.set('port', process.env.PORT || 8443);
+    app.set('port', process.env.PORT || 8080);
     app.set('views', __dirname + '/views');
     app.set('view engine', 'ejs');
     app.use(express.logger('dev'));
@@ -67,7 +70,10 @@ module.exports = function(app, express, passport){
     }));
     app.use(express.bodyParser());
     app.use(express.methodOverride());
-    app.use(allowCrossDomain); 
+    
+    app.use(allowCrossDomain);
+    app.use(httpsRedirect);
+    
     //app.use(express.csrf());
 
     app.use(function(req, res, next){
@@ -100,16 +106,16 @@ module.exports = function(app, express, passport){
 
       // default to plain-text. send()
       res.type('txt').send('Not found');
-
-
     });
   });
 
   app.configure('development', function(){
-    app.use(express.errorHandler());
+    app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   });
 
-  
-
+  app.configure('production', function(){
+    app.use(express.errorHandler());
+    app.use(express.logger());
+  });
 
 };

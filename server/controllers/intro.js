@@ -8,8 +8,11 @@ var _        = require('underscore')
 IntroController = function(store) {
 
   var Idea = require('../models/idea')(store);
+  var workUrl = store.workspaceUrl.substr(0, (store.workspaceUrl.length - 4));
 
   var Intro = {
+
+
 
     index: function(req, res){
       Idea.timeline(0, function(e, o){
@@ -22,14 +25,14 @@ IntroController = function(store) {
         
         ideas = escape(JSON.stringify(ideas));
         //console.log("ideas", ideas);
-        res.render('intro/index', {token: res.locals.token, title: 'Coordel', menu: "#menuIdeas", ideas: ideas, registrationOpen: req.session.serverConfig.registrationOpen});
+        res.render('intro/index', {token: res.locals.token, title: 'Coordel', menu: "#menuIdeas", ideas: ideas, workspaceUrl: workUrl, registrationOpen: req.session.serverConfig.registrationOpen});
       });
     },
     blueprints: function(req, res){
-      res.render('intro/blueprints', {token: res.locals.token, title: 'Coordel', menu: '#menuBlueprints', ideas: JSON.stringify([]), registrationOpen: req.session.serverConfig.registrationOpen});
+      res.render('intro/blueprints', {token: res.locals.token, title: 'Coordel', menu: '#menuBlueprints', ideas: JSON.stringify([]), workspaceUrl: workUrl, registrationOpen: req.session.serverConfig.registrationOpen});
     },
     preview: function(req, res){
-      res.render('intro/preview', {token: res.locals.token, title: "Coordel", menu: "#menuCoordel", ideas: JSON.stringify([]), registrationOpen: req.session.serverConfig.registrationOpen});
+      res.render('intro/preview', {token: res.locals.token, title: "Coordel", menu: "#menuCoordel", ideas: JSON.stringify([]), workspaceUrl: workUrl, registrationOpen: req.session.serverConfig.registrationOpen});
     },
     tos: function(req, res){
       res.render('other/tos', {token: res.locals.token, title: "Terms of Service"});

@@ -6,6 +6,19 @@ var cradle = require('cradle').setup(couchOpts);
 var cn  = new cradle.Connection();
 var db = cn.database(couchName);
 
+function getUrl(){
+  var protocol = 'http://'
+    , host = couchOpts.host;
+
+  if (couchOpts.auth.secure){
+    protocol = "https://" + couchOpts.auth.username + ":" + couchOpts.auth.password + "@";
+  } else {
+    host = couchOpts.host + ":" + couchOpts.port;
+  }
+
+  return protocol + host + "/" + couchName;
+}
+
 function newUUID(cacheNum){
   if (cacheNum === undefined) {
       cacheNum = 10;
@@ -29,7 +42,8 @@ var couch = {
   cn: cn,
   uuid: function(){
     return newUUID();
-  }
+  },
+  url: getUrl()
 };
 
 newUUID();

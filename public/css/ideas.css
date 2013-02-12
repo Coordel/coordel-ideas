@@ -4,6 +4,14 @@
   position: relative;
 }
 
+#feature-image {
+  margin-left: 8px;
+}
+
+.modal-backdrop {
+  background-color: #ffffff;
+}
+
 .dollar {
     margin-left: 4px;
     height: 16px;
@@ -16,6 +24,20 @@
     border: 1px solid darkGreen;
     border-radius: 23px;
     float: right;
+}
+
+.dollar-large {
+
+    height: 24px;
+    width: 24px;
+    line-height:24px;
+    background: #09A23A;
+    color: white;
+    font-size: 18px;
+    font-weight: normal;
+    border: 1px solid darkGreen;
+    border-radius: 23px;
+    display: inline-block;
 }
 
 .navbar-inverse .brand {
@@ -217,14 +239,15 @@
 
 .navbar-inverse .navbar-inner {
   background-image: url('/img/debut_dark.png');
+  background-color: #444444;
 }
 
 .wrapper {
   /*background-image: url('/img/cardboard_flat.png');*/
   background-image: url('/img/body-bg15.png');
-  background-color: #fff;
-  border-left: 1px solid #ccc;
-  border-right: 1px solid #ccc;
+  background-color: #ffffff;
+  border-left: 1px solid #cccccc;
+  border-right: 1px solid #cccccc;
 }
 
 .stream-container-gray{

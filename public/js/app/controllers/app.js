@@ -58,11 +58,16 @@ define(["dojo/dom",
       var self = this;
       self.user = args.user;
       self.otherUser = args.otherUser;
-      //console.log("init app", args );
+      console.log("init app", args );
       this.currentMenu = args.menu;
       this.subNav = args.subNav;
       this.model= model.init(args);
       this.contacts = args.contacts;
+
+      if (args.workspaceUrl){
+        //console.log("workspaceUrl", args.workspaceUrl);
+        self.workspaceUrl = args.workspaceUrl;
+      }
       
 
       $("#ideasCarousel").carousel({interval: 10000});
@@ -182,6 +187,7 @@ define(["dojo/dom",
     },
 
     setSearch: function(){
+      //console.log("set search");
       $(".search-query").keyup(function(e){
         if (e.keyCode === 13){
           //console.log("submit the search", $(e.target).val());
@@ -191,6 +197,8 @@ define(["dojo/dom",
     },
 
     showBlueprints: function(args){
+
+      console.log("blueprints args", args);
 
       var self = this;
 
@@ -392,8 +400,11 @@ define(["dojo/dom",
 
       var self = this;
 
+      //console.log("menu", self.currentMenu);
+
       if (self.currentMenu === "#menuCoordel"){
-        features.init();
+        //console.log("init features", self.workspaceUrl);
+        features.init(self.workspaceUrl);
       }
 
       //menu
@@ -415,12 +426,14 @@ define(["dojo/dom",
       });
 
       function setMenu(selector){
+        /*
         $("#menuIdeas").removeClass("active");
         $("#menuStream").removeClass("active");
         $("#menuCoordel").removeClass("active");
         $("#menuBlueprints").removeClass("active");
         $("#menuMe").removeClass("active");
         $(selector).addClass("active");
+        */
       }
 
       setMenu(this.currentMenu);

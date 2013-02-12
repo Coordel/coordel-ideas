@@ -175,7 +175,7 @@ module.exports = function(store) {
             errors: [e]
           });
         } else {
-          console.log("idea from hash", idea);
+          //console.log("idea from hash", idea);
           fn(null, idea[0].value);
         }
       });
@@ -189,7 +189,7 @@ module.exports = function(store) {
             errors: [e]
           });
         } else {
-          console.log("account balance response", res);
+          //console.log("account balance response", res);
           if (res.length){
             fn(null, res[0].value);
           } else {
@@ -238,7 +238,7 @@ module.exports = function(store) {
                   fn(e);
                 } else {
                   idea._rev = o.rev;
-                  console.log("added feedback", idea);
+                  //console.log("added feedback", idea);
                   fn(null, idea);
                 }
               });
@@ -375,7 +375,7 @@ module.exports = function(store) {
         index.end = ((page * perPage)-1) + perPage;
       }
 
-      console.log("index", index);
+      //console.log("index", index);
 
       var total = 0;
       
@@ -384,16 +384,16 @@ module.exports = function(store) {
        
         if (e){
           //some kind of error with couch
-          console.log("error getting count");
+          //console.log("error getting count");
         } else {
-          console.log(o);
+          //console.log(o);
           if (o.length){
             total = o[0].value;
           }
           
         }
 
-         console.log("results from reduce call", index, total);
+         //console.log("results from reduce call", index, total);
 
         //the timeline gets idea id's from the redis global:timeline set
         store.redis.lrange('global:timeline', index.start, index.end, function(e, o){
@@ -452,28 +452,28 @@ module.exports = function(store) {
         index.end = ((page * perPage)-1) + perPage;
       }
 
-      console.log("index", index);
+      //console.log("index", index);
 
       var total = 0;
       
       //first we need to get the count of all ideas to be able to enable pagination
       store.redis.zcard("global:trending", function(e, o){
-        console.log("results from zcard", e, o);
+        //console.log("results from zcard", e, o);
         if (e){
           //some kind of error with couch
-          console.log("error getting count");
+          //console.log("error getting count");
         } else {
       
           total = o;
     
         }
 
-        console.log("results from zcard", index, total);
+        //console.log("results from zcard", index, total);
 
         //the timeline gets ideas from the redis global:timeline set
         store.redis.zrevrange('global:trending', index.start, index.end, function(e, keys){
           if (e){
-            console.log('zrange error',e);
+            //console.log('zrange error',e);
             fn(e);
           } else {
             //console.log('trending keys', keys);
@@ -558,7 +558,7 @@ module.exports = function(store) {
         if (v.valid){
           self.getShortUrl(idea._id, function(e, surl){
             surl = JSON.parse(surl);
-            console.log("short url", surl, surl['status_code']);
+            //console.log("short url", surl, surl['status_code']);
             if(surl.status_code === 200){
               idea.shortUrl = surl.data.url;
               idea.hash = surl.data.hash;
@@ -822,7 +822,7 @@ module.exports = function(store) {
       a.updater = user.appId;
       a.isTweet = isTweet;
 
-      console.log("saving reply", a);
+      //console.log("saving reply", a);
       
       store.couch.db.save(a, function(e, o){
         if (e){

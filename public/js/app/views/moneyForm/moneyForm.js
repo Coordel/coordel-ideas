@@ -260,7 +260,7 @@ define(["dojo/dom",
       });
 
       on(dom.byId("supportMoneyBitcoinMovie"), "click", function(){
-        window.open('/bitcoin/video', 'mywin','left=100,top=100,width=560,height=315,location=1,resizable=0');
+        window.open('/bitcoin/video', 'mywin','left=100,top=100,width=640,height=360,location=1,resizable=0');
       });
     },
 

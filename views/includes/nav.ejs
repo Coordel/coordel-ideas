@@ -1,0 +1,9 @@
+<div class="nav-collapse collapse">
+  <img class="beta" src="/img/beta.png"/>
+  <ul class="nav">
+    <li id="menuIdeas" <% if (menu==="#menuIdeas"){ %>class="active"<% } %>><a id="menuIdeas" href="/"><i class="c-icon-idea"></i>Ideas</a></li>
+    <li id="menuCoordel"><a id="workspaceUrl" href="<%=workspaceUrl%>"><i class="c-icon-coordel"></i>Workspace</a></li>
+    <li id="menuBlueprints" <% if (menu==="#menuBlueprints"){ %>class="active"<% } %>><a href="/blueprints"><i class="c-icon-blueprint"></i>Blueprints</a></li>
+    <li id="menuStream" <% if (menu==="#menuMe"){ %>class="active"<% } %>><a href="/<%=username%>"><i class="c-icon-stream"></i>Portfolio</a></li>
+  </ul>
+</div><!--/.nav-collapse from include -->

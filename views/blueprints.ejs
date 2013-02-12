@@ -39,15 +39,7 @@
             <input style="width: 163px" type="text" class="search-query" placeholder="Search">
           </div>
           
-          <div class="nav-collapse collapse">
-            <img class="beta" src="/img/beta.png"/>
-            <ul class="nav">
-              <li id="menuIdeas"><a id="menuIdeas" href="/"><i class="c-icon-idea"></i>Ideas</a></li>
-              <li id="menuCoordel"><a href="http://app.coordel.com:8090/web"><i class="c-icon-coordel"></i>Workspace</a></li>
-              <li id="menuBlueprints" class="active"><a href="/blueprints"><i class="c-icon-blueprint"></i>Blueprints</a></li>
-              <li id="menuStream"><a href="/<%=username%>"><i class="c-icon-stream"></i>Portfolio</a></li>
-            </ul>
-          </div><!--/.nav-collapse -->
+          <% include ./includes/nav %>
           <a style="cursor: default" class="brand" href="#"><img src="/img/logo.png"/></a>
         </div>
       </div>

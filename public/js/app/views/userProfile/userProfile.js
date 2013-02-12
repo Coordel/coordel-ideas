@@ -33,7 +33,7 @@ define([
 
       self.profileImage.src = self.user.imageUrl;
       self.fullName.innerHTML = self.user.fullName;
-      self.username.innerHTML = self.user.username;
+      //self.username.innerHTML = self.user.username;
       self.bio.innerHTML = self.user.bio || "";
       domClass.add(self.other, "hide");
       if (self.user.location || self.user.url){
@@ -104,6 +104,7 @@ define([
         
       } else {
         domClass.add(self.proxySum, "hide");
+        domClass.add(self.proxyImage, "hide");
       }
     },
 

@@ -48,7 +48,7 @@ UsersController = function(store) {
       userData.userId = ids[0];
       userData.appId = ids[1];
       
-      console.log("register userData", userData);
+      //console.log("register userData", userData);
 
       //in the original app, firstName and lastName were used. in the latest version, that was replaced with fullname
       //to maintain compatibility, need to try and create the first and last names from the fullname given
@@ -68,19 +68,19 @@ UsersController = function(store) {
         userData.lastName = "";
       }
 
-      console.log("userdata after name check", userData);
+      //console.log("userdata after name check", userData);
 
       async.parallel({
         user: function(cb){
           User.create(userData, function(e, o){
-            console.log("user created", e, o);
+            //console.log("user created", e, o);
              
             cb(null, o);
           });
         },
         userApp: function(cb){
           App.create(userData, function(e, o){
-            console.log("app created", e, o);
+            //console.log("app created", e, o);
             cb(null, o);
           });
         }
@@ -157,11 +157,12 @@ UsersController = function(store) {
   }
 
   function login (req, res, username, password){
+
     User.login(username, password, function(e, o){
-      console.log("back from login", e, o);
+      //console.log("back from login", e, o);
 
       if (e){
-        console.log("redirecting to login");
+        //console.log("redirecting to login");
         //fail, redirect to signin
         res.redirect('/login');
 
@@ -170,16 +171,15 @@ UsersController = function(store) {
         res.redirect('/login');
 
       } else {
-        //console.log("login okay, user is good", o);
+        ////console.log("login okay, user is good", o);
         req.session.username = o.username;
         req.session.currentUser = o;
-        console.log("body", req.body);
+        //console.log("body", req.body);
         // Remember me
         if (req.body.remember_me) {
-          //console.log("remember this user");
+          ////console.log("remember this user");
           var token = Token.generate(o.username);
-          //console.log("token", Token);
-          res.cookie('logintoken', JSON.stringify(token), { expires: new Date(Date.now() + 2 * 604800000), path: '/' , domain: '.coordel.com'});
+          res.cookie('logintoken', JSON.stringify(token), { expires: new Date(Date.now() + 2 * 604800000), path: '/' , domain: store.cookieDomain});
         }
         res.redirect('/');
       }
@@ -188,7 +188,7 @@ UsersController = function(store) {
   }
 
   function startRegistration(req, res, userData){
-    console.log("userdata", userData);
+    //console.log("userdata", userData);
 
     if (userData.email && userData.email.length){
       var key = 'registration-starts';
@@ -203,7 +203,7 @@ UsersController = function(store) {
         val.fullName = userData.fullName;
       }
 
-      console.log('started registrations', val);
+      //console.log('started registrations', val);
 
       store.redis.sadd(key, JSON.stringify(val));
     }
@@ -218,7 +218,7 @@ UsersController = function(store) {
       var appId = req.params.appId
         , blueprint = JSON.parse(req.body.blueprint);
 
-      console.log("copy blueprint", appId, blueprint);
+      //console.log("copy blueprint", appId, blueprint);
       var stamp = moment().format(store.timeFormat);
       blueprint.username = appId;
       blueprint.creator = appId;
@@ -255,7 +255,7 @@ UsersController = function(store) {
         , key = 'users:';
 
 
-      console.log("resetting password", username, email, key);
+      //console.log("resetting password", username, email, key);
 
       if (!username.length && !email.length){
         res.json({
@@ -282,7 +282,7 @@ UsersController = function(store) {
         key = key + username;
       }
 
-      console.log("key", key);
+      //console.log("key", key);
 
       User.resetPassword(key, function(e, user){
         if (e){
@@ -307,7 +307,7 @@ UsersController = function(store) {
             resetUrl: store.coordelUrl + '/resets?h=' + encodeURIComponent(user.hash)
           };
 
-          console.log("mail options", mailOptions);
+          //console.log("mail options", mailOptions);
 
           store.email.send('passwordReset', mailOptions);
           res.json({
@@ -328,28 +328,28 @@ UsersController = function(store) {
       var newPass = req.body.newPass
         , hash = req.body.hash;
 
-      //console.log("newPass", newPass, "hash", hash);
+      ////console.log("newPass", newPass, "hash", hash);
 
       store.redis.get('reset:'+hash, function(e, reset){
         if (e){
           //error
         } else {
-          //console.log('reset', reset);
+          ////console.log('reset', reset);
           reset = JSON.parse(reset);
-          //console.log("reset", reset);
+          ////console.log("reset", reset);
           var key = 'users:'+reset.userId;
-         // console.log("key", key);
+         // //console.log("key", key);
           store.redis.hgetall(key , function(e, user){
-           // console.log('got the user', e, user);
+           // //console.log('got the user', e, user);
             if (e){
               //error
             } else {
               //first make sure that the password matches from the hash
-              //console.log("user.password", user.password, "reset.password", reset.pass, "new pass", newPass);
+              ////console.log("user.password", user.password, "reset.password", reset.pass, "new pass", newPass);
               if (user.password === reset.pass){
                 //go ahead and set the new password to the new password
                 User.completeResetPassword(reset.userId, newPass, function(e, o){
-                  console.log("updated", e, o);
+                  //console.log("updated", e, o);
 
                   req.session.username = o.username;
                   req.session.currentUser = o;
@@ -378,7 +378,7 @@ UsersController = function(store) {
         newPass: req.body.newPass
       };
 
-      console.log("args to send to updatePassword", args);
+      //console.log("args to send to updatePassword", args);
 
       User.updatePassword(args, function(e, text){
         if (e){
@@ -400,7 +400,7 @@ UsersController = function(store) {
       var appId = req.params.appId
         , contactId = req.params.contactId;
 
-      //console.log("appId", appId, "contactId", contactId, "userId", userId);
+      ////console.log("appId", appId, "contactId", contactId, "userId", userId);
       var user = {};
       user.appId = contactId;
       Profile.findMiniProfile(user, function(e, o){
@@ -419,7 +419,7 @@ UsersController = function(store) {
       var id = req.session.currentUser.id
         , data = req.body;
 
-      console.log('saving profile', id, data);
+      //console.log('saving profile', id, data);
 
       User.save(id, data, function(e, user){
         if (e){
@@ -441,7 +441,7 @@ UsersController = function(store) {
       var id = req.session.currentUser.id
         , data = req.body;
 
-      console.log('saving account', id, data);
+      //console.log('saving account', id, data);
 
       User.save(id, data, function(e, user){
         if (e){
@@ -461,20 +461,20 @@ UsersController = function(store) {
 
     disconnectTwitter: function(req, res){
       App.disconnectTwitter(req.session.currentUser.appId, function(e, app){
-        console.log(app, req.session.currentUser.app);
+        //console.log(app, req.session.currentUser.app);
         //req.session.currentUser.app = app;
       });
     },
 
     disconnectCoinbase: function(req, res){
       App.disconnectCoinbase(req.session.currentUser.appId, function(e, app){
-        console.log(app, req.session.currentUser.app);
+        ////console.log(app, req.session.currentUser.app);
         //req.session.currentUser.app = app;
       });
     },
 
     manualLogin: function(req, res){
-      console.log("doing manual login");
+      //console.log("doing manual login");
       var username = req.body['login-username'];
       var password = req.body['login-password'];
    
@@ -508,9 +508,9 @@ UsersController = function(store) {
         fullname: req.body.fullname,
         email: req.body.email
       };
-      console.log("user", user);
+      //console.log("user", user);
       User.requestInvite(user, function(e, o){
-        console.log("inviterequest", e, o);
+        //console.log("inviterequest", e, o);
         if (e){
           res.json({
             success: false,
@@ -536,15 +536,15 @@ UsersController = function(store) {
         //this checks if this email is available in user:[email];
         redis.get('users:'+ email, function(e, o){
           var message = 'This email is already registered!';
-          console.log("get email", e,o);
+          //console.log("get email", e,o);
           if (e) {
-            console.log("error with user email");
+            //console.log("error with user email");
             res.json(message);
           } else if (o !== null){
-            console.log("user wasn't null, all bad");
+            //console.log("user wasn't null, all bad");
             res.json(message);
           } else {
-            console.log("user ok");
+            //console.log("user ok");
             res.json(true);
           }
         });
@@ -564,7 +564,7 @@ UsersController = function(store) {
         //this checks if this username is available in user:[username];
         redis.get('users:' + username, function(e, o){
           var message = 'This username is already taken!';
-          console.log("get username", e, o);
+          //console.log("get username", e, o);
           if (e) {
             res.json(message);
           } else if (o !== null){
@@ -599,9 +599,9 @@ UsersController = function(store) {
 
       } else {
         register(userData, function(e, o){
-          console.log("registered", e, o);
+          //console.log("registered", e, o);
           if (e) {
-            console.log("registration errors", e, o);
+            //console.log("registration errors", e, o);
             //handle registration errors
           } else {
             login(req, res, o.userApp.username, o.userApp.password);
@@ -612,7 +612,7 @@ UsersController = function(store) {
 
     invite: function(req, res){
       var invite = req.body;
-      console.log("invite body", invite);
+      //console.log("invite body", invite);
 
       //first we need to make a lookup for the invite so when the user comes back
       //create a hash of the invite id that can be used for lookup in the redeem call
@@ -629,7 +629,7 @@ UsersController = function(store) {
         , hash = b.toString('base64')
         , key = 'invite-hashes:' + hash;
 
-      console.log("hash", hash);
+      //console.log("hash", hash);
 
       invite.hash = encodeURIComponent(hash);
    
@@ -686,21 +686,21 @@ UsersController = function(store) {
 
         redis.get('invite-hashes:'+hash, function(e, id){
 
-          console.log("hash", e, hash, id);
+          //console.log("hash", e, hash, id);
 
           if (id){
             //load the user with the userid
             var key = 'user:' + id;
-            console.log("USER GET KEY", key);
+            //console.log("USER GET KEY", key);
             redis.hgetall(key, function(e, user){
-              console.log("USER", e, user);
+              //console.log("USER", e, user);
               if (e){
-                //console.log("couldn't load existing user from store",err);
+                ////console.log("couldn't load existing user from store",err);
                 fn('user-not-found');
               } else {
                 user.hash = hash;
 
-                //console.log("found the user", user);
+                ////console.log("found the user", user);
                 if (!user.fullName){
                   if (user.firstName && user.lastName){
                     user.fullName = user.firstName + ' ' + user.lastName;
@@ -730,24 +730,24 @@ UsersController = function(store) {
 
           /*
           redis.sismember(['coordel-invites', 'invite:' + id], function(err, reply) {
-            console.log("after testing  sismember", err, reply);
+            //console.log("after testing  sismember", err, reply);
             if (err){
               //problem with getting invite
-              //console.log("error getting invite from store", err);
+              ////console.log("error getting invite from store", err);
               startRegistration(req, res, defaultData);
             } else if (!reply){
-              //console.log("invite didn't exist");
+              ////console.log("invite didn't exist");
               startRegistration(req, res, defaultData);
             } else if (reply) {
-              //console.log("invite existed, loading");
+              ////console.log("invite existed, loading");
               var key = 'invite:' + id;
-              console.log("key for get", key);
+              //console.log("key for get", key);
               redis.hgetall(key, function(err, invite){
                 if (err){
-                  //console.log("couldn't load existing invite from store",err);
+                  ////console.log("couldn't load existing invite from store",err);
                   startRegistration(req, res, defaultData);
                 } else {
-                  console.log("found the invite", invite);
+                  //console.log("found the invite", invite);
                   var data = {};
                   if (invite.firstName && invite.lastName){
                     data.fullName = invite.firstName + ' ' + invite.lastName; // create the full name okay because user can change it
@@ -822,7 +822,7 @@ UsersController = function(store) {
         , vals = req.body.vals;
 
       App.set(appId, vals, function(e, o){
-        console.log("updated app", e, o);
+        //console.log("updated app", e, o);
         res.end();
       });
     }

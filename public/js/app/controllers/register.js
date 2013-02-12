@@ -19,7 +19,7 @@ define(["dojo/dom", "dojo/dom-class", "dojo/on", "dojo/request/xhr", "dojo/domRe
             , verifyPass = dom.byId('resetPasswordNewVerify').value
             , hash = decodeURIComponent(dom.byId('resetPasswordHash').value);
 
-          console.log("newPass", newPass, "hash", hash);
+          //console.log("newPass", newPass, "hash", hash);
 
 
           if (newPass !== verifyPass){
@@ -48,14 +48,14 @@ define(["dojo/dom", "dojo/dom-class", "dojo/on", "dojo/request/xhr", "dojo/domRe
       
       var resend = dom.byId('resendPasswordSubmit');
       if (resend){
-        console.log("setting submit");
+        //console.log("setting submit");
         on(resend, 'click', function(e){
-          console.log("clicked", e);
+          //console.log("clicked", e);
 
           var email = dom.byId('resendEmail').value
             , username = dom.byId('resendUsername').value;
 
-          console.log("username", username);
+          //console.log("username", username);
           
           xhr.post('/password/resets', {
           data: {
@@ -67,13 +67,13 @@ define(["dojo/dom", "dojo/dom-class", "dojo/on", "dojo/request/xhr", "dojo/domRe
             "X-CSRF-Token": self._csrf
           }
         }).then(function(res){
-            console.log("response from post of reset", res);
+            //console.log("response from post of reset", res);
             if (res.success){
               var node = dom.byId('resendPasswordSuccess');
               domClass.remove(node, 'hide');
               node.innerHTML = res.message;
             } else {
-              console.log("show the error", res.errors);
+              //console.log("show the error", res.errors);
               var eNode = dom.byId('resendPasswordErrors');
               domClass.remove(eNode, 'hide');
               eNode.innerHTML = res.errors;
@@ -255,7 +255,7 @@ define(["dojo/dom", "dojo/dom-class", "dojo/on", "dojo/request/xhr", "dojo/domRe
 
       $("#password").keyup(function(){
         var result = self.checkPassword($("#username").val(), $("#password").val());
-        console.log("password result", result);
+        //console.log("password result", result);
 
         setStrength(result);
       });
@@ -273,7 +273,7 @@ define(["dojo/dom", "dojo/dom-class", "dojo/on", "dojo/request/xhr", "dojo/domRe
     },
 
     validateLogin: function(args){
-      console.log('validating');
+      //console.log('validating');
     },
 
     checkPassword: function(username, password){
@@ -283,13 +283,13 @@ define(["dojo/dom", "dojo/dom-class", "dojo/on", "dojo/request/xhr", "dojo/domRe
       var strongPass = 'perfect';
       var emptyPass = '';
 
-      console.log("username", username, "password", password);
+      //console.log("username", username, "password", password);
 
       return passwordStrength(password, username);
 
       function passwordStrength(password,username)
       {
-        console.log("in function");
+        //console.log("in function");
           score = 0;
 
           if (password.length === 0){ return emptyPass;}

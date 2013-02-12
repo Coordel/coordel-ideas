@@ -111,7 +111,7 @@ IdeasController = function(store, socket) {
           success: false,
           errors: [e]});
       } else {
-        console.log("response from support", o);
+        //console.log("response from support", o);
         //if it wasn't already supported notify
         //console.log("results", o[0], o[1]);
         if (o[0]){
@@ -138,7 +138,7 @@ IdeasController = function(store, socket) {
           success: false,
           errors: [e]});
       } else {
-        console.log("response from remove support", o);
+        //console.log("response from remove support", o);
         //if it wasn't already supported notify
         //console.log("results", o[0], o[1]);
         if (o[0]){
@@ -161,7 +161,7 @@ IdeasController = function(store, socket) {
 
     findTimeline: function(req, res){
       var page = req.params.page || 0;
-      console.log("page", page);
+      //console.log("page", page);
       Idea.timeline(page, function(e, o){
         if (e){
           res.json({
@@ -188,7 +188,7 @@ IdeasController = function(store, socket) {
 
     findTrending: function(req, res){
       var page = req.params.page || 0;
-      console.log("page", page);
+      //console.log("page", page);
       Idea.trending(page, function(e, o){
         if (e){
           res.json({
@@ -215,7 +215,7 @@ IdeasController = function(store, socket) {
 
     makePayment: function(req, res){
       var payment = JSON.parse(req.body.payment);
-      console.log("payment", payment);
+      //console.log("payment", payment);
       Idea.makePayment(payment, function(e, o){
         if (e){
           res.json({
@@ -481,7 +481,7 @@ IdeasController = function(store, socket) {
         },
         supporting: function(cb){
           store.redis.smembers('ideas:' + id + ':supporting', function(e, o){
-            console.log("smembers", e, o);
+            //console.log("smembers", e, o);
             if (e){
               cb(e);
             } else {
@@ -734,21 +734,21 @@ IdeasController = function(store, socket) {
       if (isTweet){
         UserApp.findById(user.appId, function(e, userApp){
 
-          console.log("tweet this message", message);
+          //console.log("tweet this message", message);
           var options = {
             consumer_key: store.twitter.consumerKey,
             consumer_secret: store.twitter.consumerSecret,
             access_token_key: userApp.twitterToken,
             access_token_secret: userApp.twitterTokenSecret
           };
-          console.log("options", options);
+          //console.log("options", options);
           var twit = new twitter(options);
 
           
           twit.updateStatus(message, function (e, data) {
-            console.log('tried to send tweet', e, data);
+            //console.log('tried to send tweet', e, data);
             if (e){
-              console.log("error sending tweet", e);
+              //console.log("error sending tweet", e);
               isTweet = false;
             }
 

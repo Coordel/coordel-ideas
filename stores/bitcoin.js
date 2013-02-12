@@ -51,7 +51,7 @@ var bitcoin = {
       fn(data);
     });
     if (!lastLoaded || moment(lastLoaded).add('m', 15) <= moment()){
-      log('need to refresh prices');
+      //log('need to refresh prices');
       bitcoin.refreshPrices();
     }
   },
@@ -76,11 +76,11 @@ var bitcoin = {
           lastLoaded = moment();
           fs.writeFile(__dirname+'/cache/prices.json', JSON.stringify(o), 'utf8', function(e){
             if (!e) {
-              console.log('cached prices file');
+              //console.log('cached prices file');
             }
           });
         } catch (err){
-          console.log("error refreshing prices", err);
+          //console.log("error refreshing prices", err);
         }
       }
     });

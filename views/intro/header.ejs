@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <!--[if lt IE 9]>
+    <script src="/lib/html5shiv/html5shiv.js"></script>
+    <![endif]-->
     <title><%= title%></title>
     <meta name="description" content="A description of the page" />
     <meta charset="UTF-8">
@@ -90,9 +93,9 @@
           <div class="nav-collapse collapse">
             <img class="beta" src="/img/beta.png"/>
             <ul class="nav">
-              <li id="menuIdeas"><a id="menuIdeas" href="/intro"><i class="c-icon-idea"></i>Share & support Ideas</a></li>
-              <li id="menuCoordel"><a href="/preview"><i class="c-icon-coordel"></i>Make Ideas happen</a></li>
-              <li id="menuBlueprints"><a href="/success"><i class="c-icon-blueprint"></i>Re-use success stories</a></li>
+              <li id="menuIdeas" <% if (menu==="#menuIdeas"){ %>class="active"<% } %>><a id="menuIdeas" href="/intro"><i class="c-icon-idea"></i>Share & support Ideas</a></li>
+              <li id="menuCoordel" <% if (menu==="#menuCoordel"){ %>class="active"<% } %>><a href="/preview"><i class="c-icon-coordel"></i>Make Ideas happen</a></li>
+              <li id="menuBlueprints" <% if (menu==="#menuBlueprints"){ %>class="active"<% } %>><a href="/success"><i class="c-icon-blueprint"></i>Re-use success stories</a></li>
             </ul>
           </div><!--/.nav-collapse -->
           

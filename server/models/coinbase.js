@@ -35,12 +35,12 @@ module.exports = function(store) {
       if(err) return fn(err);
 
       var token = JSON.parse(body)
-        , expires = moment().add('s', 7200).format(store.timeFormat)
+        , expires = moment().add('seconds', 7200).format(store.timeFormat)
         , UserApp = require('./userApp')(store);
 
 
       if (token.access_token){
-        console.log("TOKEN REFRESHED", token);
+        console.log("TOKEN REFRESHED", token, expires);
         //need to update the user with the new stuff
         var keys = [
           {

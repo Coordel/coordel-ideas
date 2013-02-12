@@ -80,7 +80,7 @@ module.exports = function(store) {
       if (err){
         fn(err, false);
       } else {
-        console.log("uuids", uuids, templates);
+        //console.log("uuids", uuids, templates);
         var privProj = templates.privateProject,
             privRole = templates.privateRole,
             delegate = templates.delegatedProject,
@@ -176,7 +176,7 @@ module.exports = function(store) {
 
     multi.hgetall(key);
     multi.exec(function(err, replies){
-      console.log('set replies', replies);
+      //console.log('set replies', replies);
       if (err) return fn(err);
       fn(null, _.last(replies));
     });
@@ -205,25 +205,25 @@ module.exports = function(store) {
     findByUsername: function(username, fn){
       var key = 'users:' + username;
       store.redis.get(key, function(e, userid){
-        console.log("looked in redis for key", key, e, userid);
+        //console.log("looked in redis for key", key, e, userid);
         if (e){
-          console.log("there was an error",key, e);
+          //console.log("there was an error",key, e);
           return fn('user-not-found');
         } else if (!userid){
-          console.log("this userid doesn't exist", key, userid);
+          //console.log("this userid doesn't exist", key, userid);
           return fn('user-not-found');
         } else {
-          console.log("we're good to go", userid);
+          //console.log("we're good to go", userid);
           key = 'users:' + userid;
-          console.log("USER GET KEY", key);
+          //console.log("USER GET KEY", key);
           store.redis.hgetall(key, function(e, u){
-            console.log("USER", e, u);
+            //console.log("USER", e, u);
             if (e){
               //console.log("couldn't load existing user from store",err);
               fn('user-not-found');
             } else {
               //console.log("found the user", user);
-              console.log("got the user", e, u);
+              //console.log("got the user", e, u);
               var appId = u.appId;
               key = 'coordelapp:' + appId;
               //console.log("USER GET KEY", key);
@@ -276,7 +276,7 @@ module.exports = function(store) {
 
         if (!appIds) appIds = [];
     
-        console.log('appIds', appIds);
+        //console.log('appIds', appIds);
 
         appIds.forEach(function(id){
           var akey = 'coordelapp:' + id;
@@ -318,7 +318,7 @@ module.exports = function(store) {
                   if (u.personalLink){
                     item.personalLink = u.personalLink;
                   }
-                  console.log("info item", e, item);
+                  //console.log("info item", e, item);
                   info.push(item);
                 }
               });
@@ -383,7 +383,7 @@ module.exports = function(store) {
         if (doUpdate){
           multi.hgetall(key);
           multi.exec(function(err, replies){
-            console.log('set replies', replies);
+            //console.log('set replies', replies);
             if (err) return fn(err);
             fn(null, _.last(replies));
           });
@@ -450,7 +450,7 @@ module.exports = function(store) {
     create: function(userData, fn){
       //create the app in redis
       var v = validator.validate(userData, Schema);
-      console.log("v", v);
+      //console.log("v", v);
       var data = userData;
       if (!v.valid){
         fn(v.errors);
@@ -460,7 +460,7 @@ module.exports = function(store) {
           if (e){
             fn('add-app-objects ' + e);
           } else {
-            console.log('back from adding objects getting ready to save', data);
+            //console.log('back from adding objects getting ready to save', data);
             //create the app
             var multi = store.redis.multi(),
 
@@ -478,7 +478,7 @@ module.exports = function(store) {
             multi.hset(key, 'myDelegatedProject', data.delegatedProject);
             multi.hset(key, 'myPrivateProject', data.privateProject);
             multi.hset(key, 'myPrivateRole', data.privateRole);
-            multi.hset(key, 'showQuickStart', true);
+            multi.hset(key, 'showQuickStart', false);
             multi.hset(key, 'suppressEmail', false);
             
             multi.sadd('coordel-apps', key);

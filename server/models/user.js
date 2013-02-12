@@ -79,12 +79,12 @@ module.exports = function(store){
 
     var dt = new Date(year, month, day, hour, min, sec, mills);
 
-    console.log("dt", dt);
+    //console.log("dt", dt);
 
     var time = dt.getTime().toString(),
         password = new Buffer(time).toString('base64');
 
-        console.log("password", password);
+        //console.log("password", password);
 
     return password;
 
@@ -97,7 +97,7 @@ module.exports = function(store){
 
     //get the userid at the key
     redis.get(login.key, function(e, userid){
-      console.log("looked for the key", login.key, e, userid);
+      //console.log("looked for the key", login.key, e, userid);
       if (e){
         fn('error-user-login');
       } else if (userid === null){
@@ -105,7 +105,7 @@ module.exports = function(store){
       } else {
         //load the user with the userid
         loadUser(userid, function(e, o){
-          console.log("loaded the user", e, o);
+          //console.log("loaded the user", e, o);
           if (e){
             fn(e);
           } else {
@@ -122,14 +122,14 @@ module.exports = function(store){
     
     //load the user with the userid
     var key = 'users:' + userid;
-    console.log("USER GET KEY", key);
+    //console.log("USER GET KEY", key);
     redis.hgetall(key, function(e, user){
-      console.log("USER", e, user);
+      //console.log("USER", e, user);
       if (e){
-        //console.log("couldn't load existing user from store",err);
+        ////console.log("couldn't load existing user from store",err);
         fn('user-not-found');
       } else {
-        //console.log("found the user", user);
+        ////console.log("found the user", user);
         fn(false, user);
       }
     });
@@ -175,9 +175,9 @@ module.exports = function(store){
 
   function saltAndHash(pass, fn){
     bcrypt.genSalt(10, function(err, salt) {
-      console.log('salt', salt);
+      //console.log('salt', salt);
       bcrypt.hash(pass, salt, function(err, hash) {
-        console.log('hash', hash);
+        //console.log('hash', hash);
         fn(false, hash);
       });
     });
@@ -186,9 +186,9 @@ module.exports = function(store){
   User = {
 
     findById: function(id, fn){
-      console.log("finding user by id", id);
+      //console.log("finding user by id", id);
       loadUser(id, function(e, user){
-        console.log("result from find", e, user);
+        //console.log("result from find", e, user);
         if (e){
           fn('user-not-found');
         } else if (user === null){
@@ -202,7 +202,7 @@ module.exports = function(store){
     findByUsername: function(username, fn){
       var key = 'users:' + username;
       store.redis.get(key, function(e, userid){
-        console.log("looked for the username key", key, e, userid);
+        //console.log("looked for the username key", key, e, userid);
         if (e){
           fn('error-user-login');
         } else if (userid === null){
@@ -210,7 +210,7 @@ module.exports = function(store){
         } else {
           //load the user with the userid
           loadUser(userid, function(e, o){
-            console.log("loaded the user", e, o);
+            //console.log("loaded the user", e, o);
             if (e){
               fn(e);
             } else {
@@ -226,7 +226,7 @@ module.exports = function(store){
       //validate the login and get a key to use to see if the user exists
       var login = validateLogin(user, pass);
 
-      console.log("validated login", login);
+      //console.log("validated login", login);
 
       if (login.key){
         //the user and passwords were valid
@@ -241,12 +241,12 @@ module.exports = function(store){
             bcrypt.compare(pass, o.password, function(err, res) {
               if (res){
 
-                console.log("password okay, returning user", o);
+                //console.log("password okay, returning user", o);
                 //remove the password from the object
                 delete o.password;
                 fn(null, o);
               } else{
-                console.log("invalid password");
+                //console.log("invalid password");
                 fn('invalid-password');
               }
             });
@@ -261,19 +261,19 @@ module.exports = function(store){
     resetPassword: function(key, fn){
       //this function returns a user with a hash that can be used to send an email link
       //and can be used to verify that the reset is correct
-      console.log("in user.resetPassword",key);
+      //console.log("in user.resetPassword",key);
       //create a temp password
       var tempPass = tempPassword();
 
-      console.log("temp password", tempPass);
+      //console.log("temp password", tempPass);
 
       //increment the reset passwords set to get a new id
       store.redis.incr('password-resets', function(e, id){
 
-        console.log("password reset id", id);
+        //console.log("password reset id", id);
 
         saltAndHash(new Buffer(id).toString('base64'), function(e, hash){
-          console.log("hash", hash);
+          //console.log("hash", hash);
          
           store.redis.get(key, function(e, userId){
             if (e){
@@ -281,7 +281,7 @@ module.exports = function(store){
             } else if (userId === null){
               fn('user not found');
             } else {
-              console.log("user found", e, userId);
+              //console.log("user found", e, userId);
               var multi = store.redis.multi();
               multi.set('reset:' + hash, JSON.stringify({userId: userId, pass:tempPass}));
               var userKey = 'users:' + userId;
@@ -303,7 +303,7 @@ module.exports = function(store){
     },
 
     completeResetPassword: function(userId, password, fn){
-      console.log("userid, password", userId, password);
+      //console.log("userid, password", userId, password);
       saltAndHash(password, function(e, hashPassword){
         var key = 'users:' + userId;
         var multi = store.redis.multi();
@@ -311,7 +311,7 @@ module.exports = function(store){
         multi.hgetall(key);
         multi.exec(function(e, o){
           var user = _.last(o);
-          console.log("heres the user", e, o);
+          //console.log("heres the user", e, o);
           fn(null, user);
         });
       });
@@ -322,13 +322,13 @@ module.exports = function(store){
 
 
       loadUser(args.id, function(e, user){
-        console.log("result from updatePassword load user", e, user);
+        //console.log("result from updatePassword load user", e, user);
         if (e){
           fn('user-not-found');
         } else if (user === null){
           fn('user-not-found');
         } else {
-          console.log("current", args.current, 'user', user.password);
+          //console.log("current", args.current, 'user', user.password);
           bcrypt.compare(args.current, user.password, function(err, res) {
             if (res){
               saltAndHash(args.newPass, function(e, hashPassword){
@@ -336,7 +336,7 @@ module.exports = function(store){
                 fn(null, 'password-updated');
               });
             } else{
-              console.log("invalid password");
+              //console.log("invalid password");
               fn('invalid-password');
             }
           });
@@ -347,15 +347,15 @@ module.exports = function(store){
     requestInvite: function(user, fn){
       var redis = store.redis;
       var key = 'inviteRequest:' + user.email;
-      console.log("key", key, user);
+      //console.log("key", key, user);
       redis.exists(key, function(e, o){
-        //console.log('testing exists', e, o);
+        ////console.log('testing exists', e, o);
         if (e){
           fn(null, [0]);
         } else if (o===0){
-          //console.log("didn't exist, pushing");
+          ////console.log("didn't exist, pushing");
           redis.set(key, user.email, function(e, o){
-            //console.log("set the key", e, o);
+            ////console.log("set the key", e, o);
           });
           redis.lpush('inviteRequests', JSON.stringify(user), function(e, o){
             if (e){
@@ -365,7 +365,7 @@ module.exports = function(store){
             }
           });
         } else {
-          //console.log("existed, don't insert");
+          ////console.log("existed, don't insert");
           fn(null, [0]);
         }
       });
@@ -409,7 +409,7 @@ module.exports = function(store){
 
           
           multi.exec(function(err, replies){
-            console.log('imported user', replies);
+            //console.log('imported user', replies);
             if (err) fn(err, false);
             fn(null, true);
           });
@@ -448,7 +448,7 @@ module.exports = function(store){
         if (user.fullName) multi.hset(appKey, 'fullName', user.fullName);
         multi.hgetall(key);
         multi.exec(function(e, replies){
-          console.log('redeemed user', replies);
+          //console.log('redeemed user', replies);
           if (e){
             fn(e);
           } else {
@@ -489,7 +489,7 @@ module.exports = function(store){
           multi.set('users:'+user.username.trim().toLowerCase(), user.userId);
           
           multi.exec(function(err, replies){
-            console.log('created user', replies);
+            //console.log('created user', replies);
             if (err) return fn(err, false);
             fn(null, user);
           });
@@ -502,7 +502,7 @@ module.exports = function(store){
       var key = "users:" + id
         , multi = store.redis.multi();
 
-      console.log("saving user", id, data);
+      //console.log("saving user", id, data);
 
       //updates the user object with any fields sent in as data (update app with any common fields)
       if (data.fullName){
@@ -547,7 +547,7 @@ module.exports = function(store){
       }
       multi.hgetall(key);
       multi.exec(function(e, replies){
-        console.log("response from multi in save", e, replies);
+        //console.log("response from multi in save", e, replies);
         if (e){
           fn(e);
         } else {

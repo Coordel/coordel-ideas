@@ -65,7 +65,7 @@ module.exports = function(store) {
     },
 
     remove: function(username, fn){
-      console.log("username", username);
+      //console.log("username", username);
       var key = 'token:' + username.toLowerCase()
         , multi = redis.multi();
 

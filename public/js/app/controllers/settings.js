@@ -11,7 +11,14 @@ define(["dojo/dom"
       self.user = args.user;
       self._csrf = $('#addIdea_csrf').val();
 
-      console.log('settings init', args);
+      $(".search-query").keyup(function(e){
+        if (e.keyCode === 13){
+          //console.log("submit the search", $(e.target).val());
+          window.location = "/search?q=" + $(e.target).val();
+        }
+      });
+
+      //console.log('settings init', args);
 
       //set whether the user is connected to coinbase
       self.coinbaseConnected(args.user.app.coinbaseAccessToken && args.user.app.coinbaseAccessToken.length > 0);
@@ -29,7 +36,7 @@ define(["dojo/dom"
       });
 
       on(dom.byId('subNavAccount'), 'click', function(){
-        console.log("clicked account");
+        //console.log("clicked account");
         self.setAccountView();
       });
 
@@ -85,7 +92,7 @@ define(["dojo/dom"
 
       $("#passwordNew").keyup(function(){
         var result = self.checkPassword(self.user.username, $("#passwordNew").val());
-        console.log("password result", result);
+        //console.log("password result", result);
         self.setStrength(result);
       });
     },
@@ -147,13 +154,13 @@ define(["dojo/dom"
       var strongPass = 'perfect';
       var emptyPass = '';
 
-      console.log("username", username, "password", password);
+      //console.log("username", username, "password", password);
 
       return passwordStrength(password, username);
 
       function passwordStrength(password,username)
       {
-        console.log("in function");
+        //console.log("in function");
           score = 0;
 
           if (password.length === 0){ return emptyPass;}
@@ -273,10 +280,10 @@ define(["dojo/dom"
       var self = this
         , url = '/disconnect/'+service;
 
-      console.log("disconnecting", service);
+      //console.log("disconnecting", service);
 
       xhr.get(url).then(function(res){
-        console.log("response from disconnect", res);
+        //console.log("response from disconnect", res);
         if (service === 'twitter'){
           self.twitterConnected(false);
         } else if (service === 'coinbase'){
@@ -348,7 +355,7 @@ define(["dojo/dom"
     },
 
     twitterConnected: function(isConnected){
-      console.log("isTwitterConnected", isConnected);
+      //console.log("isTwitterConnected", isConnected);
       var on = dom.byId('twitterConnectedOn')
         , off = dom.byId('twitterConnectedOff');
 
@@ -361,7 +368,7 @@ define(["dojo/dom"
     },
 
     coinbaseConnected: function(isConnected){
-      console.log("isCoinbaseConnected", isConnected);
+      //console.log("isCoinbaseConnected", isConnected);
       var on = dom.byId('coinbaseConnectedOn')
         , off = dom.byId('coinbaseConnectedOff');
 

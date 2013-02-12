@@ -33,6 +33,7 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/request","dojo/topic", "a
       //set the amounts
       dom.byId("reportTimePledgeType").innerHTML = pledge.type.toLowerCase();
       self.setPledgeHours(pledge.amount);
+      self.setOwnershipPoints(pledge.amount);
 
     },
 

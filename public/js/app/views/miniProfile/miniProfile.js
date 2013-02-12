@@ -84,6 +84,7 @@ define([
         
       } else {
         domClass.add(self.proxySum, "hide");
+        domClass.add(self.proxiesImage, "hide");
       }
     },
 

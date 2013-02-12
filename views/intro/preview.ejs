@@ -3,6 +3,7 @@
   <% include ../includes/login %>
   <% include ../includes/registration %>
   <% include ../includes/about %>
+  <% include ../includes/coinbase %>
 </div>
 <div class="main-column">
   <div id="infoHeader" class="info-container rounded-column">
@@ -56,7 +57,7 @@
     </div>
     
   </div>
-  <div class="bg-white rounded-column">
+  <div id="previewLead" class="bg-white rounded-column">
     <p class="lead center">Increase your own performance and better coordinate your work with others.</p>
     <div class="row">
       <div class="span3 bg-gray rounded-marketing">
@@ -79,40 +80,60 @@
       </div>
     </div>
   </div>
-  <div class="stream-container bg-white no-padding">
-  <div class="stream-header">
-    <h4 id="container-header">Workspace Features</h4>
-  </div>
-  <div class="stream">
-    <div id="stream-items-container" class="stream-items padding-20">
-      <div>
-        <p>See how Coordel makes you more productive so you have time to work on Ideas that you support.</p>
-        <p>Coordel's features support better coordination of work with others and increased personal performance. You'll be more productive so you can support more Ideas.</p>
+  <div id="previewFeatureList" class="stream-container bg-white no-padding">
+    <div class="stream-header">
+      <h4 id="container-header">Workspace Features</h4>
+    </div>
+    <div class="stream">
+      <div id="stream-items-container" class="stream-items padding-20">
+        <div>
+          <p>See how Coordel makes you more productive so you have time to work on Ideas that you support.</p>
+          <p>Coordel's features support better coordination of work with others and increased personal performance. You'll be more productive so you can support more Ideas.</p>
 
-        <div class="padding-20">
-          <img style="border: 1px solid #000000" class="full-screen-image border-radius-4" alt="Productivity Tasks Software Features" src="/img/features/newtask.png">
+          <div class="padding-20">
+            <img style="border: 1px solid #000000" class="full-screen-image border-radius-4" alt="Productivity Tasks Software Features" src="/img/features/newtask.png">
+          </div>
         </div>
-      </div>
-      <div id="coordination" class="support">
-        <h3>Coordinate</h3>
-        <div>
-          <% include features/coordination %>
+        <div id="coordination" class="support">
+          <h3>Coordinate</h3>
+          <div>
+            <div id="coordinationFeatures"></div>
+          </div>
         </div>
-      </div>
-      <div id="performance" class="support">
-        <h3>Perform</h3>
-        <div>
-          <% include features/performance %>
+        <div id="performance" class="support">
+          <h3>Perform</h3>
+          <div>
+            <div id="performanceFeatures"></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="stream-footer">
-    <div style="margin: 0 auto; width: 100px;">
-      <img class="logo" src="lib/coordel-bootstrap/img/logo.png"/>
-      <div></div>
+    <div class="stream-footer">
+      <div style="margin: 0 auto; width: 100px;">
+        <img class="logo" src="lib/coordel-bootstrap/img/logo.png"/>
+        <div></div>
+      </div>
     </div>
   </div>
-</div>
+  <div id="previewFeatureDetails" class="stream-container bg-white no-padding hide">
+    
+    <div class="stream-header">
+      
+      <h4 id="feature-details.container-headline" class="muted pull-right"></h4>
+      <h4 id="feature-details-container-header" class="clearfix"></h4>
+      <a href="/preview"><i class="icon-circle-arrow-left icon-blue"></i> Back to &#8216;Make Ideas happen&#8217;</a>
+    </div>
+    <div class="stream">
+      <div id="feature-details-stream-items-container" class="stream-items padding-20">
+        
+      </div>
+    </div>
+    <div class="stream-footer">
+      <div style="margin: 0 auto; width: 100px;">
+        <img class="logo" src="/lib/coordel-bootstrap/img/logo.png"/>
+        <div></div>
+      </div>
+    </div>
+  </div>
 </div>
 <% include footer %>

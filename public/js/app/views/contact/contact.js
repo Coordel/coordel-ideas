@@ -111,9 +111,10 @@ define([
             placement: "bottom",
             html: true
           });
+
+          domClass.remove(self.proxySum, "hide");
+          domClass.remove(self.proxiesImage, "hide");
           
-        } else {
-          domClass.add(self.proxySum, "hide");
         }
 
 
@@ -134,10 +135,12 @@ define([
             placement: "bottom",
             html: true
           });
+          domClass.remove(self.feedbackImage, "hide");
+          domClass.remove(self.feedbackAvg, "hide");
 
         } else {
           //hide the feedback graphic
-          domClass.add(self.feedbackImage, "hide");
+          
         }
 
 

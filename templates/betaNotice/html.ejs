@@ -1,0 +1,56 @@
+<% include ../header/html %>
+<div>
+  <h3 style="font-size:18px;-webkit-font-smoothing:antialiased">
+    <strong style="font-weight:bold;white-space:nowrap"><%=from.fullName%></strong> <span style="white-space:nowrap">assigned you a task using <a href="<%=coordelUrl%>">Coordel</a>…</span>
+  </h3>
+  <div class="task-header">
+    <table width="100%" style="border-top: 1px solid #cccccc; border-bottom: 1px solid #cccccc; padding: 12px 0px">
+
+      <tr>
+        <td valign="top" width="24px">
+          <img src="<%=coordelUrl%>/img/email/checkbox.png" border="0" style="border:0; outline:none; display:block;width:24px;height:24px;">
+        </td>
+        <td valign="middle" style="font-size:16px;-webkit-font-smoothing:antialiased;padding-left:4px;color:#00629B;padding-top:4px;line-height:1.35em">
+          <%=data.name%>
+        </td>
+      </tr>
+
+    </table>
+    <table width="100%" style="margin-top: 8px">
+      <% if (data.purpose) { %>
+      <tr>
+        <td width="24px" style="color: #5c5c5c" align="right" valign="middle">
+          Purpose:
+        </td>
+        <td style="font-size:14px;-webkit-font-smoothing:antialiased;padding-left:4px;padding-top:4px;line-height:1.35em">
+          <%=data.purpose%>
+        </td>
+      </tr>
+      <% } %>
+      <% if (data.start) { %>
+      <tr>
+        <td width="24px" style="color: #5c5c5c" align="right" valign="middle">
+          Starts:
+        </td>
+        <td colspan="2" style="font-size:14px;-webkit-font-smoothing:antialiased;padding-left:4px;padding-top:4px;line-height:1.35em">
+          <%=data.start%>
+        </td>
+      </tr>
+      <% } %> 
+      <% if (data.start) { %> 
+      <tr>
+        <td width="24px" style="color: #5c5c5c" align="right" valign="middle">
+          Deadline:
+        </td>
+        <td style="font-size:14px;-webkit-font-smoothing:antialiased;padding-left:4px;padding-top:4px;line-height:1.35em">
+          <%=data.deadline%>
+        </td>
+      </tr>
+      <% } %>
+    </table>
+  </div><!-- .task-header -->
+  <div style="padding-top: 18px">
+    <a class="btn btn-primary" href="<%=coordelUrl%>/redeem?i=<%=hash%>">Activate Your Free Account</a>
+  </div>
+</div>
+<% include ../footer/html %>

@@ -26,7 +26,7 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/topic", "app/models/pledg
     },
 
     showError: function(){
-      console.log("showing error");
+      //console.log("showing error");
       domClass.add(dom.byId("cancelMoneyAction"), "hide");
       domClass.add(dom.byId("cancelMoneySubmit"), "hide");
       domClass.remove(dom.byId("cancelMoneyError"), "hide");
@@ -34,7 +34,7 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/topic", "app/models/pledg
 
     showPledge: function(pledge){
       var self = this;
-      console.log("showing pledge", pledge);
+      //console.log("showing pledge", pledge);
       self.pledge = pledge;
       //set the amounts
       dom.byId("cancelMoneyPledgeType").innerHTML = pledge.type.toLowerCase();
@@ -74,7 +74,7 @@ define(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/topic", "app/models/pledg
       pledge.cancelled = timestamp;
       pledge.cancelledBy = self.user.appId;
 
-      console.log("pledge", pledge);
+      //console.log("pledge", pledge);
 
       var db = stores.moneyStore();
       

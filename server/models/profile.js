@@ -27,7 +27,7 @@ module.exports = function(store) {
         , redis = store.redis
         , couch = store.couch;
 
-      //console.log("finding miniProfile", user);
+      ////console.log("finding miniProfile", user);
 
       async.parallel({
         ideas: function(cb){
@@ -43,10 +43,10 @@ module.exports = function(store) {
           redis.scard('user:'+user.appId+':supporting', function(e, o){
           
             if (e){
-              //console.log("error getting supporting", e);
+              ////console.log("error getting supporting", e);
               cb('error ' + e);
             } else {
-              //console.log("got supporting", o);
+              ////console.log("got supporting", o);
               cb(null,o);
             }
           });
@@ -54,7 +54,7 @@ module.exports = function(store) {
         contacts: function(cb){
           redis.scard('coordelapp:'+user.appId+':people', function(e, o){
             if (e){
-              //console.log("error getting contacts", e);
+              ////console.log("error getting contacts", e);
               cb('error '+e);
             } else {
               cb(null, o);
@@ -110,7 +110,7 @@ module.exports = function(store) {
               });
               act.tasks = tasks;
               act.other = other;
-              //console.log("activity rows", act);
+              ////console.log("activity rows", act);
               cb(null, act);
             }
           });
@@ -136,13 +136,13 @@ module.exports = function(store) {
                 _.each(acct, function(item){
                   if (item.docType === "money-pledge") {
                     if (item.status === "PLEDGED"){
-                      console.log("pledged", item);
+                      //console.log("pledged", item);
                       result.withMoney = result.withMoney + 1;
                     } else if (item.status === "PROXIED" && item.creator === user.appId){
-                      console.log("proxied", item);
+                      //console.log("proxied", item);
                       result.withMoney = result.withMoney + 1;
                     } else if (item.status === "ALLOCATED" && item.type === "RECURRING"){
-                      console.log("allocated recurring", item);
+                      //console.log("allocated recurring", item);
                       result.withMoney = result.withMoney + 1;
                     }
                   } else if (item.docType === "time-pledge") {
@@ -222,7 +222,7 @@ module.exports = function(store) {
               };
 
               proxies = _.map(proxies, function(item){
-                //console.log('proxy', item);
+                ////console.log('proxy', item);
                 return item.value;
               });
 
@@ -286,7 +286,7 @@ module.exports = function(store) {
           };
 
           proxies = _.map(proxies, function(item){
-            //console.log('proxy', item);
+            ////console.log('proxy', item);
             return item.value;
           });
 
@@ -317,10 +317,10 @@ module.exports = function(store) {
           redis.smembers('user:'+user.appId+':supporting', function(e, o){
           
             if (e){
-              //console.log("error getting supporting", e);
+              ////console.log("error getting supporting", e);
               cb('error ' + e);
             } else {
-              //console.log("got supporting", o);
+              ////console.log("got supporting", o);
               cb(null,o);
             }
           });
@@ -374,7 +374,7 @@ module.exports = function(store) {
                         result.recurringPledges.push(item.project);
                       }
                     } else if (item.status === "PROXIED"){
-                      //console.log("proxied", item);
+                      ////console.log("proxied", item);
 
                       if (user.appId === item.creator){
                         result.proxied = parseFloat(result.proxied) + parseFloat(item.amount);

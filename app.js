@@ -30,6 +30,22 @@ var express = require('express')
   , v1 = '/api/v1';
 
 
+//get the cookie domain
+function getCookieDomain(){
+  //get the cookie domain
+  var parts = settings.coordelUrl.split('.')
+    , host1 = parts[parts.length - 2]
+    , host2 = parts[parts.length - 1]
+    , domain;
+
+  if (host2.split(":").length > 1){
+    host2 = host2.split(":")[0];
+  }
+  
+  domain = '.' + host1 + '.' + host2;
+  return ".coordel.com";
+}
+
 //setup the stores
 var store = {
   couch: require('./stores/couchdb').Store,
@@ -42,7 +58,8 @@ var store = {
   twitter: settings.auth.twitter,
   sendgrid: sendgridOpts,
   coordelUrl: settings.coordelUrl,
-  followUrl: couchOpts.followUrl
+  workspaceUrl: settings.workspaceUrl,
+  cookieDomain: getCookieDomain()
 };
 
 //start the payments method
@@ -65,17 +82,17 @@ function configureServer(req, res, next){
         doc._id = settings.serverConfigKey;
         store.couch.db.save(doc, function(e, o){
           if (e){
-            console.log("ERROR: server doesn't have a default config");
+            //console.log("ERROR: server doesn't have a default config");
           } else {
             doc._rev = o.rev;
-            console.log("SERVER CONFIGURED");
+            //console.log("SERVER CONFIGURED");
             serverConfig = doc;
             req.session.serverConfig = doc;
             next();
           }
         });
       } else {
-        console.log("SERVER CONFIGURED");
+        //console.log("SERVER CONFIGURED");
         serverConfig = config;
         req.session.serverConfig = config;
         next();
@@ -86,12 +103,15 @@ function configureServer(req, res, next){
 }
 
 
+
+
 //authentication middleware
 function authenticateFromLoginToken(req, res, next) {
 
   var cookie = JSON.parse(req.cookies.logintoken)
     , Token = require('./server/models/token')(store)
-    , User = require('./server/models/user')(store);
+    , User = require('./server/models/user')(store)
+    , domain = store.cookieDomain;
 
   Token.find(cookie.username, function(e, token){
    
@@ -104,15 +124,18 @@ function authenticateFromLoginToken(req, res, next) {
     } else {
       
       if (cookie.token === token.token && cookie.series === token.series){
+
         
+
         User.findByUsername(token.username, function(e, o) {
-          console.log("tried to do the account", e, o);
+          //console.log("tried to do the account", e, o);
           if (o) {
             req.session.username = token.username;
             req.session.currentUser = o;
             token = Token.refresh(cookie);
             Token.save(token, function(){});
-            res.cookie('logintoken', JSON.stringify(token), {expires: new Date(Date.now() + 2 * 604800000), path: '/', domain: '.coordel.com'});
+            console.log("domain app.js", domain);
+            res.cookie('logintoken', JSON.stringify(token), {expires: new Date(Date.now() + 2 * 604800000), path: '/', domain: domain});
             next();
           } else {
             res.redirect('/intro');
@@ -132,37 +155,33 @@ function loadUser(req, res, next) {
     console.log("it's an old link");
     oldLink = true;
   }
-  /*
-  if (req.session) {
-    var username = req.session.username;
-    res.clearCookie('logintoken');
-    req.session.destroy(function() {});
-    
-  }
-  res.redirect('/intro');
-  */
-  //console.log("session variables", req.session.username, req.session.currentUser);
-  if (req.session.username && req.session.currentUser) {
-    console.log('there is a session');
-    next();
-  } else if (req.cookies.logintoken) {
-    console.log('there is a logintoken');
-    authenticateFromLoginToken(req, res, next);
-  } else {
-    if (oldLink){
 
-      var url = '/'+req.query.p;
-      if (req.query.f){
-        url = url + '/'+req.query.f;
-      }
-      console.log('redirecting to' + url);
-      res.redirect(url);
+  if (oldLink){
+    var url = '/intro';
+
+    console.log("feature", req.query.f);
+
+    if (req.query.f){
+      url = '/preview?p='+req.query.p + '&f=' + req.query.f;
+    }
+
+    console.log('redirecting to' + url);
+    res.redirect(url);
+
+  } else {
+
+    ////console.log("session variables", req.session.username, req.session.currentUser);
+    if (req.session.username && req.session.currentUser) {
+      //console.log('there is a session');
+      next();
+    } else if (req.cookies.logintoken) {
+      //console.log('there is a logintoken');
+      authenticateFromLoginToken(req, res, next);
     } else {
+      
       console.log('redirecting to intro');
       res.redirect('/intro');
     }
-    
-    
   }
 }
 
@@ -214,7 +233,7 @@ passport.use('coinbase', new OAuth2Strategy({
     });
 
     UserApp.set(appId, keys, function(err, app) {
-      //console.log("updated app with coinbase keys", app);
+      ////console.log("updated app with coinbase keys", app);
       done(err, app);
     });
   }
@@ -230,7 +249,7 @@ passport.use(new TwitterStrategy({
     callbackURL: settings.coordelUrl + "/connect/twitter/callback"
   },
   function(token, tokenSecret, profile, done) {
-    //console.log("callback from twitter", token, tokenSecret, profile, done);
+    ////console.log("callback from twitter", token, tokenSecret, profile, done);
     //get this user with at twitter_auth entry
     //update the user with this value
 
@@ -238,7 +257,7 @@ passport.use(new TwitterStrategy({
       token: token,
       tokenSecret: tokenSecret
     };
-    //console.log("token to save", act);
+    ////console.log("token to save", act);
     return done(null, act);
   }
 ));
@@ -348,17 +367,17 @@ app.post('/settings', loadUser, function(req, res){
   var appId = req.session.currentUser.appId
     , keys = req.body.keys;
 
-  console.log("keys for settings", keys);
+  //console.log("keys for settings", keys);
   
   UserApp.set(appId, keys, function(e, app) {
-    console.log("updated app with the keys", app);
+    //console.log("updated app with the keys", app);
     if(e){
       res.json({
         success: false,
         errors: [e]
       });
     } else {
-      console.log("currentUser", req.session.currentUser);
+      //console.log("currentUser", req.session.currentUser);
       req.session.currentUser.app = app;
       res.json({
         success: true,
@@ -392,7 +411,7 @@ app.post('/connect/stripe/payments', function(req, res){
     , amount = req.body.submitAmount
     , description = req.body.description;
 
-  console.log("amount", amount);
+  //console.log("amount", amount);
 
   var charge = {
     amount: parseInt(amount, 10) * 100,
@@ -401,10 +420,10 @@ app.post('/connect/stripe/payments', function(req, res){
     description: description
   };
 
-  console.log("charge", charge);
+  //console.log("charge", charge);
 
   stripe.charges.create(charge, function(e, o){
-    console.log("from testing of charge", e, o);
+    //console.log("from testing of charge", e, o);
   });
 
 });
@@ -437,7 +456,7 @@ app.get('/connect/coinbase/error', function(req, res){
 app.get('/connect/coinbase/callback', //set up in analytics as Coinbase Connection
   passport.authorize('coinbase', {failureRedirect: '/login' }), function(req, res){
     var code = req.query.code;
-    console.log("code", code);
+    //console.log("code", code);
     res.render('close');
   });
 
@@ -464,7 +483,7 @@ app.get('/connect/twitter/callback', //set up in analytics as Twitter Connection
     // Associate the Twitter account with the logged-in user.
     //account.userId = cur.id;
 
-    //console.log("should save the account for the user",user, account);
+    ////console.log("should save the account for the user",user, account);
     res.render('close');
     
     var appId = req.session.currentUser.appId;
@@ -483,10 +502,10 @@ app.get('/connect/twitter/callback', //set up in analytics as Twitter Connection
       }
     ];
 
-    //console.log("keys for twitter", keys);
+    ////console.log("keys for twitter", keys);
     
     UserApp.set(appId, keys, function(err, app) {
-      //console.log("updated app with twitter keys", app);
+      ////console.log("updated app with twitter keys", app);
     });
   });
 
@@ -525,7 +544,7 @@ app.post(v1 + '/proxies/deallocations', loadUser, Pledges.proxyDeallocate);
 ///////********************************************************************//////
 /*
 server.listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
+  //console.log("Express server listening on port " + app.get('port'));
 });
 */
 server.listen(8080);

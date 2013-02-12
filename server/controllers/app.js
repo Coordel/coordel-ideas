@@ -149,6 +149,7 @@ AppController = function(store) {
           contacts: ext.contacts,
           username: req.session.username,
           imageUrl: req.session.currentUser.imageUrl,
+          workspaceUrl:  store.workspaceUrl,
           fullName: req.session.currentUser.fullName,
           _csrf: req.session._csrf
         });
@@ -198,6 +199,7 @@ AppController = function(store) {
           username: req.session.username,
           imageUrl: req.session.currentUser.imageUrl,
           fullName: req.session.currentUser.fullName,
+          workspaceUrl:  store.workspaceUrl,
           currencies: compress(store.bitcoin.currencies()),
           _csrf: req.session._csrf
         });
@@ -265,6 +267,7 @@ AppController = function(store) {
           username: req.session.username,
           imageUrl: req.session.currentUser.imageUrl,
           fullName: req.session.currentUser.fullName,
+          workspaceUrl: store.workspaceUrl,
           _csrf: req.session._csrf
         });
       });
@@ -316,6 +319,7 @@ AppController = function(store) {
             username: req.session.username,
             imageUrl: req.session.currentUser.imageUrl,
             fullName: req.session.currentUser.fullName,
+            workspaceUrl:  store.workspaceUrl,
             _csrf: req.session._csrf
           });
         });
@@ -365,6 +369,7 @@ AppController = function(store) {
           username: req.session.username,
           imageUrl: req.session.currentUser.imageUrl,
           fullName: req.session.currentUser.fullName,
+          workspaceUrl:  store.workspaceUrl,
           _csrf: req.session._csrf
         });
       });
@@ -420,6 +425,7 @@ AppController = function(store) {
             username: req.session.username,
             imageUrl: req.session.currentUser.imageUrl,
             fullName: req.session.currentUser.fullName,
+            workspaceUrl:  store.workspaceUrl,
             _csrf: req.session._csrf
           });
         });
@@ -442,6 +448,7 @@ AppController = function(store) {
           username: req.session.username,
           imageUrl: req.session.currentUser.imageUrl,
           fullName: req.session.currentUser.fullName,
+          workspaceUrl:  store.workspaceUrl,
           _csrf: req.session._csrf
         });
       });
@@ -519,6 +526,7 @@ AppController = function(store) {
             username: req.session.username,
             imageUrl: req.session.currentUser.imageUrl,
             fullName: req.session.currentUser.fullName,
+            workspaceUrl:  store.workspaceUrl,
             _csrf: req.session._csrf
           });
         });
@@ -597,6 +605,7 @@ AppController = function(store) {
             username: req.session.username,
             imageUrl: req.session.currentUser.imageUrl,
             fullName: req.session.currentUser.fullName,
+            workspaceUrl:  store.workspaceUrl,
             _csrf: req.session._csrf
           });
         });
@@ -674,6 +683,7 @@ AppController = function(store) {
             username: req.session.username,
             imageUrl: req.session.currentUser.imageUrl,
             fullName: req.session.currentUser.fullName,
+            workspaceUrl:  store.workspaceUrl,
             _csrf: req.session._csrf
           });
         });
@@ -732,6 +742,7 @@ AppController = function(store) {
               username: req.session.username,
               imageUrl: req.session.currentUser.imageUrl,
               fullName: req.session.currentUser.fullName,
+              workspaceUrl:  store.workspaceUrl,
               _csrf: req.session._csrf
             });
           }
@@ -802,6 +813,7 @@ AppController = function(store) {
             username: req.session.username,
             imageUrl: req.session.currentUser.imageUrl,
             fullName: req.session.currentUser.fullName,
+            workspaceUrl:  store.workspaceUrl,
             _csrf: req.session._csrf
           });
         });
@@ -869,6 +881,7 @@ AppController = function(store) {
             username: req.session.username,
             imageUrl: req.session.currentUser.imageUrl,
             fullName: req.session.currentUser.fullName,
+            workspaceUrl:  store.workspaceUrl,
             _csrf: req.session._csrf
           });
         });
