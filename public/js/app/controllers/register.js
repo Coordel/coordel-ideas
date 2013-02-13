@@ -173,6 +173,7 @@ define(["dojo/dom", "dojo/dom-class", "dojo/on", "dojo/request/xhr", "dojo/domRe
         }
       });
 
+     
 
       $('.redeemInviteForm').validate({
         rules: {
@@ -238,11 +239,9 @@ define(["dojo/dom", "dojo/dom-class", "dojo/on", "dojo/request/xhr", "dojo/domRe
         }
       });
 
-      $("#submit-form").click(function(){
+      $("#submit-form").click(function(e){
         if (!$("#account").valid()){
           $(this).effect("shake", { times:2 }, 500);
-        } else {
-          _gaq.push(['_trackEvent', 'Registration', 'Completed']);
         }
       });
 

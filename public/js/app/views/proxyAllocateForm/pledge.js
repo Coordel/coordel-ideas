@@ -35,7 +35,7 @@ define([
     setProxiedBy: function(appId){
       var self = this
         , by = ""
-        , imageUrl = "http://coordel.com/images/default_contact.png";
+        , imageUrl = "https://work.coordel.com/images/default_contact.png";
 
       array.forEach(self.contacts, function(item){
         if (item.appId === appId){

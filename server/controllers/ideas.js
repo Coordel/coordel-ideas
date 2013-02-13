@@ -83,7 +83,7 @@ IdeasController = function(store, socket) {
       , timestamp = moment().format(store.timeFormat);
 
     //add the user's imageUrl
-    user.imageUrl = 'https://secure.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png');
+    user.imageUrl = 'https://secure.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('https://work.coordel.com/images/default_contact.png');
 
     //create the object to be stored in the timeline
     idea.creatorDetails = user;

@@ -909,7 +909,7 @@ AppController = function(store) {
             userId: a.userId,
             username: a.username,
             email: a.email,
-            imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+            imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('https://work.coordel.com/images/default_contact.png')
           };
           fn(null, app);
         }
@@ -997,7 +997,7 @@ AppController = function(store) {
 
       var ext = {};
       //update the user
-      user.imageUrl = 'https://secure.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png');
+      user.imageUrl = 'https://secure.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('https://work.coordel.com/images/default_contact.png');
       user.app = results.userApp;
       user.account = results.supportAccount;
       user.feedback = results.feedback;

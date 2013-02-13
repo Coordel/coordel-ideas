@@ -132,7 +132,7 @@ module.exports = function(store) {
             fullName: item.fullName,
             email:item.email,
             userId: item.userId,
-            imageUrl: 'https://secure.gravatar.com/avatar/' + md5(item.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+            imageUrl: 'https://secure.gravatar.com/avatar/' + md5(item.email) + '?d=' + encodeURIComponent('https://work.coordel.com/images/default_contact.png')
           };
         });
 
@@ -273,7 +273,7 @@ module.exports = function(store) {
               user: a.user,
               userId: a.userId,
               username: a.username,
-              imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+              imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('https://work.coordel.com/images/default_contact.png')
             };
           }
         });
@@ -318,7 +318,7 @@ module.exports = function(store) {
                     user: a.user,
                     userId: a.userId,
                     username: a.username,
-                    imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+                    imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('https://work.coordel.com/images/default_contact.png')
                   };
                 }
               });
@@ -527,7 +527,7 @@ module.exports = function(store) {
         var details = {
           username: user.username,
           fullName: user.fullName,
-          imageUrl: 'https://secure.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+          imageUrl: 'https://secure.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('https://work.coordel.com/images/default_contact.png')
         };
 
         idea.creator = user.appId;

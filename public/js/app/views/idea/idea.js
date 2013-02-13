@@ -487,11 +487,13 @@ define([
               })
             });
 
-          var shareUrl;
+          var shareUrl, countUrl;
           if (self.idea.hash){
             shareUrl = self.idea.shortUrl;
+            countUrl = 'https://coordel.com/i/' + self.idea.hash;
           } else {
-            shareUrl = 'http://coordel.com/ideas/'+self.idea._id;
+            shareUrl = 'https://coordel.com/ideas/'+self.idea._id;
+            countUrl = shareUrl;
           }
 
           $(self.doShare).popover({
@@ -501,7 +503,8 @@ define([
               shareHtml,
               {
                 tweet: 'Check out this great idea--'+self.idea.name,
-                url: shareUrl
+                url: shareUrl,
+                counturl: countUrl
               })
             });
 

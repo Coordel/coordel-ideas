@@ -334,7 +334,7 @@ module.exports = function(store) {
                     user: a.user,
                     userId: a.userId,
                     username: a.username,
-                    imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png')
+                    imageUrl: 'https://secure.gravatar.com/avatar/' + md5(a.email) + '?d=' + encodeURIComponent('https://work.coordel.com/images/default_contact.png')
                   };
                 }
               });

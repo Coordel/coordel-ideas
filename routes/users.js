@@ -17,7 +17,7 @@ exports.show = function(req, res){
   obj.firstName = user.firstName;
   obj.lastName = user.lastName;
   obj.username = user.username;
-  obj.imageUrl = 'https://secure.gravatar.com/avatar/' + hash + '?d=' + encodeURIComponent('http://coordel.com/images/default_contact.png');
+  obj.imageUrl = 'https://secure.gravatar.com/avatar/' + hash + '?d=' + encodeURIComponent('https://work.coordel.com/images/default_contact.png');
   obj.user = req.params.username;
 
   //appId, email, username, firstName and lastName are in the session

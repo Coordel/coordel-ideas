@@ -51,7 +51,7 @@ define([
         return user[0];
       } else {
         return {
-          imageUrl: "http://coordel.com/images/default_contact.png",
+          imageUrl: "https://work.coordel.com/images/default_contact.png",
           username: ""
         };
       }
