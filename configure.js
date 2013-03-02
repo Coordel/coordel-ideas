@@ -31,7 +31,7 @@ module.exports = function(app, express, passport){
       res.header('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
       next();
     } else {
-      res.send({auth: false});
+      res.redirect('https://coordel.com/intro');
     }
   };
 
@@ -57,6 +57,19 @@ module.exports = function(app, express, passport){
     next();
   }
 
+  function allowBrowsers(req, res, next){
+    //the initial app only allows the latest browsers. not accepted browsers sees registration closed and a
+    //a suggestion to get one that is allowed
+    var r = require('ua-parser').parse(req.headers['user-agent']);
+
+    var browser = r.userAgent.family
+      , major = r.userAgent.major
+      , minor = r.userAgent.minor;
+    
+    //console.log("browser", r.userAgent.toString(), browser, major, minor);
+    next();
+  }
+
   //configure express
   app.configure(function(){
     app.set('port', process.env.PORT || 8080);
@@ -73,6 +86,7 @@ module.exports = function(app, express, passport){
     
     app.use(allowCrossDomain);
     app.use(httpsRedirect);
+    app.use(allowBrowsers);
     
     //app.use(express.csrf());
 

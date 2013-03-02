@@ -1,12 +1,6 @@
 
     <% include includes/modals %>
 
-    <!--logout form -->
-    <form class="hide" id="sign-out-form" method="post" action="/sessions/delete">
-      <input type="submit" value="Logout">
-      <input type="hidden" name="_csrf" value="<%= token%>">
-    </form>
-
     <!--csrf -->
     <div class="hide" id="mainCsrf"><%=_csrf%></div>
 
@@ -35,7 +29,7 @@
       // load our app module and wait for the DOM to be ready
       require(['app/controllers/app', 'dojo/domReady!' ], function(app){
         //this let's us bootstrap the ideas from the server
-        app.init({_csrf:'<%=_csrf%>', ideas:JSON.parse(unescape('<%- ideas%>')), profile: JSON.parse(unescape('<%-profile%>')), user: JSON.parse(unescape('<%- user%>')), contacts: JSON.parse(unescape('<%- contacts%>')), menu: '<%=menu%>', subNav: '<%=subNav%>'});
+        app.init({_csrf:'<%=_csrf%>', ideas:JSON.parse(unescape('<%- ideas%>')), profile: JSON.parse(unescape('<%-profile%>')), user: JSON.parse(unescape('<%- user%>')), contacts: JSON.parse(unescape('<%- contacts%>')), menu: '<%=menu%>', subNav: '<%=subNav%>', pointers: JSON.parse(unescape('<%- pointers%>')) });
       });
     </script>
 

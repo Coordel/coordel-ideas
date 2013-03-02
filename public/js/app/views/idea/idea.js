@@ -448,7 +448,7 @@ define([
               //domClass.remove(self.activityContainer, "hide");
               //console.log("idea prices", self.bitcoinPrices);
               self.ideaDetails = ideaDetails({idea: self.idea, currentUser: self.currentUser, bitcoinPrices: self.bitcoinPrices}).placeAt(self.detailsContainer);
-              ideaStream({idea:self.idea}).placeAt(self.streamContainer);
+              new ideaStream({idea:self.idea}).placeAt(self.streamContainer);
 
             } else {
                domClass.remove(self.domNode, "idea-spaced");
@@ -490,11 +490,13 @@ define([
           var shareUrl, countUrl;
           if (self.idea.hash){
             shareUrl = self.idea.shortUrl;
-            countUrl = 'https://coordel.com/i/' + self.idea.hash;
+            countUrl = 'https://coordel.com/ideas/'+self.idea._id;
           } else {
             shareUrl = 'https://coordel.com/ideas/'+self.idea._id;
             countUrl = shareUrl;
           }
+
+          //console.log("countUrl, shareUrl", countUrl, shareUrl);
 
           $(self.doShare).popover({
             placement: 'bottom',

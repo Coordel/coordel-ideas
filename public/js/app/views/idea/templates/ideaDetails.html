@@ -22,39 +22,62 @@
   <div data-dojo-attach-point="activityContainer" class="activity hide" style="border-top: 1px solid #ddd; padding: 12px 2px 0">
   </div>
   <table class="table profile-stats">
-    <tr>
-      <th style="border-right: 1px solid #ddd">Supporting</th>
-      <th colspan="2" style="border-right: 1px solid #ddd">Time</th>
-      <th colspan="2">Money</th>
-      
-    </tr>
-    <tr>
-      <td>
-        <strong data-dojo-attach-point="peopleSupporting"></strong>
-        <span data-dojo-attach-point="peopleLabel">PEOPLE</span>
-      </td>
-      <td>
-        <strong data-dojo-attach-point="timePledged"></strong>
-        PLEDGED
-      </td>
-      <td>
-        <strong data-dojo-attach-point="timeReported"></strong>
-        REPORTED
-      </td>
-      <td>
-        <strong data-dojo-attach-point="moneyPledged"></strong>
-        PLEDGED
-      </td>
-      <td style="border-right: none">
-        <strong data-dojo-attach-point="moneyAllocated"></strong>
-        ALLOCATED
-      </td>
-    </tr>
-    <tr class="hide" data-dojo-attach-point="gaveList">
-      <td>&nbsp;</td>
-      <td colspan="2" class"people-list" data-dojo-attach-point="gaveTimeContainer" style="text-align:left;"></td>
-      <td colspan="2" class="people-list" data-dojo-attach-point="gaveMoneyContainer" style="text-align: left;border-right: none"></td>
-    </tr>
+    <thead>
+       <tr>
+        <th style="border-right: 1px solid #ddd">Supporting</th>
+        <th colspan="2" style="border-right: 1px solid #ddd">Time</th>
+        <th colspan="3">Money</th>
+      </tr>
+      <tr>
+        <td>
+          <span data-dojo-attach-point="peopleLabel">PEOPLE</span>
+        </td>
+        <td>
+          PLEDGED
+        </td>
+        <td>
+          REPORTED
+        </td>
+        <td>
+          PLEDGED
+        </td>
+        <td>
+          BY PROXY
+        </td>
+        <td style="border-right: none">
+          ALLOCATED
+        </td>
+      </tr>
+    </thead>
+    <tbody data-dojo-attach-point="userReportContainer">
+    </tbody>
+    <tfoot>
+      <tr>
+        <td>
+          <strong data-dojo-attach-point="peopleSupporting"></strong>
+        </td>
+        <td>
+          <strong data-dojo-attach-point="timePledged"></strong>
+        </td>
+        <td>
+          <strong data-dojo-attach-point="timeReported"></strong>
+        </td>
+        <td>
+          <strong data-dojo-attach-point="moneyPledged"></strong>
+        </td>
+        <td>
+          <strong data-dojo-attach-point="moneyProxied">0</strong>
+        </td>
+        <td style="border-right: none">
+          <strong data-dojo-attach-point="moneyAllocated"></strong>
+        </td>
+      </tr>
+      <!--<tr class="hide" data-dojo-attach-point="gaveList">
+        <td>&nbsp;</td>
+        <td colspan="2" class"people-list" data-dojo-attach-point="gaveTimeContainer" style="text-align:left;"></td>
+        <td colspan="3" class="people-list" data-dojo-attach-point="gaveMoneyContainer" style="text-align: left;border-right: none"></td>
+      </tr>-->
+    </tfoot>
   </table>
   <div data-dojo-attach-point="purposeFooter" class="details-footer"></div>
 </div>

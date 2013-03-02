@@ -31,7 +31,7 @@ module.exports = function(store) {
     }, function (err, response, body) {
 
 
-      console.log("result from post to oauth/token", err, body);
+      //console.log("result from post to oauth/token", err, body);
       if(err) return fn(err);
 
       var token = JSON.parse(body)
@@ -40,7 +40,7 @@ module.exports = function(store) {
 
 
       if (token.access_token){
-        console.log("TOKEN REFRESHED", token, expires);
+        //console.log("TOKEN REFRESHED", token, expires);
         //need to update the user with the new stuff
         var keys = [
           {
@@ -55,7 +55,7 @@ module.exports = function(store) {
         ];
 
         UserApp.set(user.id, keys, function(err, app) {
-          console.log("updated app with coinbase keys", app);
+          //console.log("updated app with coinbase keys", app);
           return fn(null, token.access_token);
         });
       } else {
@@ -84,7 +84,7 @@ module.exports = function(store) {
         var postUrl = apiUrl + resource + '?access_token='+token;
         request.post({url: postUrl, json: data}, function(e, r, body){
           if (e) {
-            console.log("Error Posting URL", getUrl, e);
+            console.log("Error Posting URL");
             return fn('Unexpected error posting url');
           } else {
             fn(null, body);
@@ -134,7 +134,7 @@ module.exports = function(store) {
           if (res.amount){
             fn(null, res.amount);
           } else {
-            console.log("GET BALANCE FAILED", res);
+            //console.log("GET BALANCE FAILED", res);
             fn('failed to get balance');
           }
         }
@@ -143,7 +143,7 @@ module.exports = function(store) {
     getReceiveAddress: function(user, fn){
       get(user, '/account/receive_address', function(e, res){
         if (e){
-          console.log('error receive address', e);
+          console.log('error receive address');
           fn(e);
         } else {
           res = JSON.parse(res);
@@ -167,7 +167,7 @@ module.exports = function(store) {
       
       post(user, '/transactions/send_money', data, function(e, res){
         if (e){
-          console.log('error send money', e);
+          console.log('error send money');
           fn(e);
         } else {
           if (res.success){
@@ -204,7 +204,7 @@ module.exports = function(store) {
       var postUrl = apiUrl + '/transactions/send_money?api_key='+store.coinbase.salesAccount;
       request.post({url: postUrl, json: data}, function(e, r, body){
         if (e) {
-          console.log("Error Posting URL", getUrl, e);
+          console.log("Error Posting URL");
           return fn('Unexpected error posting url');
         } else {
           fn(null, body);

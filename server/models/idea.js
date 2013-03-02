@@ -13,7 +13,8 @@ var moment = require('moment')
 
 module.exports = function(store) {
 
-  var UserApp = require('./userApp')(store);
+  var UserApp = require('./userApp')(store)
+    , Parse = require('../util/parse')(store);
 
   var validator = require('revalidator')
     , Idea
@@ -527,7 +528,7 @@ module.exports = function(store) {
         var details = {
           username: user.username,
           fullName: user.fullName,
-          imageUrl: 'https://secure.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent('https://work.coordel.com/images/default_contact.png')
+          imageUrl: 'https://secure.gravatar.com/avatar/' + md5(user.email) + '?d=' + encodeURIComponent(store.coordelUrl + '/images/default_contact.png')
         };
 
         idea.creator = user.appId;
@@ -569,6 +570,7 @@ module.exports = function(store) {
               if (e) {
                 fn(e);
               } else {
+                Parse.detectPointers(idea.purpose, idea._id);
                 idea._rev = o.rev;
                 fn(null, idea);
               }
@@ -829,6 +831,7 @@ module.exports = function(store) {
           fn(e);
         } else {
           //console.log("reply from saving reply", o);
+          Parse.detectPointers(message, idea._id);
           a._rev = o.rev;
           fn(null, a);
         }

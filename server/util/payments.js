@@ -70,7 +70,7 @@ exports.start = function (store){
       prices: function(cb){
         request.get(store.coordelUrl + '/bitcoin/prices', function(e, r, body){
           if (e){
-            console.log('error getting prices',e);
+            //console.log('error getting prices',e);
             cb(e);
           } else {
             body = JSON.parse(body);
@@ -131,7 +131,7 @@ exports.start = function (store){
         } else {
           Coinbase.account.getReceiveAddress(results.recipient, function(e, address){
             if (e){
-              console.log("error getting receive address", e);
+              //console.log("error getting receive address");
             } else {
 
               var data = {
@@ -156,7 +156,7 @@ exports.start = function (store){
               Coinbase.coordel.sendMoney(data, function(e, res) {
                 if (e){
                   //send failed, probably network error or something bad.
-                  console.log("coinbase sendMoney error", e);
+                  console.log("coinbase sendMoney error");
                 } else {
                   //console.log("response from coinbase.coordel sendMoney", res);
                   if (res.success){
@@ -164,9 +164,9 @@ exports.start = function (store){
                     item.completed = moment().format(store.timeFormat);
                     store.couch.db.save(item, function(e, res){
                       if (e){
-                        console.log("payment failed", e);
+                        console.log("payment failed");
                       } else {
-                        console.log("payment completed", item);
+                        console.log("payment completed");
                       }
   
                     });
@@ -229,16 +229,16 @@ exports.start = function (store){
     }, function(e, results){
 
       if(e){
-        console.log("error getting objects for use with allocation", e);
+        console.log("error getting objects for use with allocation");
       }else {
-        console.log("results", results);
+        //console.log("results", results);
         Coinbase.account.getBalance(results.user, function(e, balance){
           //console.log("balance", balance);
           var currency = require('./currency')(results.prices, results.user.localCurrency)
             , fee = item.amount * 0.05;
 
           if (e){
-            console.log("error getting account balance", e);
+            console.log("error getting account balance");
 
           } else {
             console.log("testing allocation", balance, item.amount + fee);
@@ -263,9 +263,9 @@ exports.start = function (store){
               Coinbase.transactions.sendMoney(results.user, data, function(e, res) {
                 if (e){
                   //send failed, probably network error or something bad.
-                  //console.log("coinbase sendMoney error", e);
+                  console.log("coinbase sendMoney error", e);
                 } else {
-                  //console.log("response from coinbase sendMoney", res);
+                  console.log("response from coinbase sendMoney", res);
                   if (res.success){
                     item.status = "COMPLETED";
                     item.completed = moment().format(store.timeFormat);
@@ -339,7 +339,7 @@ exports.start = function (store){
 
   store.couch.db.info(function(e, info){
     if (e){
-      console.log("ERROR getting update sequence when starting to monitor couch changes: " + JSON.stringify(e));
+      console.log("ERROR getting update sequence when starting to monitor couch changes: ");
     } else {
       //console.log("following", info);
       var since = info.update_seq;
@@ -363,14 +363,14 @@ exports.start = function (store){
     }
   });
 
-  /*
+  
   var doAllocations = function () {
     //console.log('checking for allocations');
     store.couch.db.view('coordel/ideaAllocations',{include_docs:true}, function(e, ideas){
       if (e){
-        //console.log("error getting allocations", e);
+        console.log("error getting allocations", e);
       } else {
-
+        //console.log("got allocations", ideas);
         ideas = _.map(ideas, function(item){
           return item.doc;
         });
@@ -383,6 +383,10 @@ exports.start = function (store){
           return item.docType === "time-report";
         });
 
+        var p = _.filter(ideas, function(item){
+          return item.docType === "idea-payment";
+        });
+
         if (a.length){
           _.each(a, function(item){
             allocate(item);
@@ -391,14 +395,21 @@ exports.start = function (store){
 
         if (r.length){
           _.each(r, function(item){
-            pay(item);
+            reportTime(item);
+          });
+        }
+
+        if (p.length){
+          _.each(r, function(item){
+            makePayment(item);
           });
         }
       }
     });
-    setTimeout(doAllocations,15000);
-  };
-  */
 
-  //doAllocations();
+    setTimeout(doAllocations,600000); //check for missed transactions every 10 minutes
+  };
+  
+
+  doAllocations();
 };

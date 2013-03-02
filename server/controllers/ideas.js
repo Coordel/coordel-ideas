@@ -1,13 +1,13 @@
 var v1       = '/api/v1'
-  , _        = require('underscore')
-  , utils    = require('../../lib/utils')
+  , _       = require('underscore')
+  , utils   = require('../../lib/utils')
   , NotFound = utils.NotFound
   , checkErr = utils.checkErr
-  , log      = console.log
+  , log     = console.log
   , moment   = require('moment')
-  , md5      = require('MD5')
-  , async    = require('async')
-  , twitter  = require('ntwitter')
+  , md5     = require('MD5')
+  , async   = require('async')
+  , twitter = require('ntwitter')
   , nodemailer    = require('nodemailer')
   , fs = require('fs')
   , IdeasController;
@@ -28,9 +28,245 @@ IdeasController = function(store, socket) {
     //this function looks through the purpose and finds hash tags and pointers and handles any found
     var hashtagPattern = /[#]+[A-Za-z0-9-_]+/g; //finds words with hashtags like #coordel
     var pointerPattern = /[>]+[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&~\?\/.=]+/g; //finds pointers to domains like >coordel.com
-  
+
     var hashtagMatches = purpose.match(hashtagPattern);
     var pointerMatches = purpose.match(pointerPattern);
+  }
+
+  function getSupportReport(timePledges, reports, moneyPledges, proxies, allocations){
+    //this function formats pledges and allocations into a single user report
+    var map = {
+
+    };
+
+    //go through each of the four arrays
+    //see if this user has a user map entry and if not, create one
+    //then update the report with the value;
+    /*
+    {
+      user: 1,
+      time: {
+        pledged: 1,
+        reported: 1
+      },
+      money: {
+        pledged: 1,
+        proxied: -1,
+        allocated: 1
+      }
+    }
+    */
+
+    var report = {
+      rows: []
+    };
+
+    _.each(timePledges, function(item){
+      var row = map[item.user.appId];
+      if (!row){
+        row = {
+          user: item.user,
+          time: {
+            pledged: item.amount,
+            reported: 0
+          },
+          money: {
+            pledged: 0,
+            proxied: 0,
+            allocated: 0
+          }
+        };
+
+        map[item.user.appId] = row;
+      } else {
+        row.time.pledged += item.amount;
+      }
+    });
+
+    _.each(reports, function(item){
+      var row = map[item.user.appId];
+      if (!row){
+        row = {
+          user: item.user,
+          time: {
+            pledged: 0,
+            reported: item.amount
+          },
+          money: {
+            pledged: 0,
+            proxied: 0,
+            allocated: 0
+          }
+        };
+        map[item.user.appId] = row;
+      } else {
+        row.time.reported += item.amount;
+      }
+    });
+
+    _.each(moneyPledges, function(item){
+      console.log("item in moneyPledges each", item, moneyPledges);
+      var row = map[item.user.appId];
+      if (!row){
+        row = {
+          user: item.user,
+          time: {
+            pledged: 0,
+            reported: 0
+          },
+          money: {
+            pledged: item.amount,
+            proxied: 0,
+            allocated: 0
+          }
+        };
+
+        map[item.user.appId] = row;
+      } else {
+        row.money.pledged += item.amount;
+      }
+    });
+
+    _.each(proxies, function(item){
+      var row = map[item.user.appId];
+      if (!row){
+        row = {
+          user: item.user,
+          time: {
+            pledged: 0,
+            reported: 0
+          },
+          money: {
+            pledged: 0,
+            proxied: item.amount,
+            allocated: 0
+          }
+        };
+
+        map[item.user.appId] = row;
+      } else {
+        row.money.proxied += item.amount;
+      }
+    });
+
+    _.each(allocations, function(item){
+      var row = map[item.user.appId];
+      if (!row){
+        row = {
+          user: item.user,
+          time: {
+            pledged: 0,
+            reported: 0
+          },
+          money: {
+            pledged: 0,
+            proxied: 0,
+            allocated: item.amount
+          }
+        };
+
+        map[item.user.appId] = row;
+      } else {
+        row.money.allocated += item.amount;
+      }
+    });
+
+    _.each(map, function(item){
+      report.rows.push(item);
+    });
+
+    return report;
+
+  }
+
+  function getTotalMoneyPledges(array, fn){
+    var list = _.map(array, function(item){
+      return item.doc;
+    });
+
+    var acctPledged = {}
+      , acctProxied = {}
+      , users = [];
+
+    function countItem(item){
+      console.log("Pledge item to count", item);
+
+      function count(item, who, isProxy){
+        var acct = acctPledged,
+            amount = item.amount;
+
+        if (isProxy){
+          acct = acctProxied;
+          if (who === 'creator') {
+            amount = -amount;
+          }
+        }
+
+        if (!acct[item[who]]){
+          users.push(item[who]);
+          acct[item[who]] = {amount: 0};
+          acct[item[who]].amount = amount;
+        } else {
+          acct[item[who]].amount = acct[item[who]].amount + amount;
+        }
+      }
+
+      if (item.type === "RECURRING"){
+        if (item.status === "PLEDGED"){
+          //make a pledged entry for the creator
+          count(item, 'creator', false);
+        }
+      } else {
+        if (item.status === "PLEDGED"){
+          //make a pledged entry for the creator
+          count(item, 'creator', false);
+        } else if (item.status === "PROXIED"){
+          //make a proxied entry for the proxy
+          count(item, 'creator', true);
+          count(item, 'proxy', true);
+        }
+      }
+    }
+
+    //sum up what was given
+    _.each(list, function(item){
+      countItem(item);
+    });
+
+    //now we need to load the users so we have their details
+    Idea.findUserBatch(users, function(e, users){
+
+      if (e){
+        fn(e);
+      } else {
+
+        var pledges = {
+          pledged: [],
+          proxied: []
+        };
+
+        _.each(users, function(user){
+          if (acctPledged[user.appId]){
+            acctPledged[user.appId].user = user;
+          }
+
+          if (acctProxied[user.appId]){
+            acctProxied[user.appId].user = user;
+          }
+        });
+
+        //now put the pledgedAccounts into an array for return
+        _.each(acctPledged, function(item){
+          pledges.pledged.push(item);
+        });
+
+        _.each(acctProxied, function(item){
+          pledges.proxied.push(item);
+        });
+
+        fn(null, pledges);
+      }
+    });
   }
 
   //used to sum money and time allocations
@@ -171,7 +407,7 @@ IdeasController = function(store, socket) {
           var ideas = [];
           //console.log("ideas", o);
         _.each(o, function(i){
-            
+
             ideas.push(i);
           });
           if (!ideas.length){
@@ -198,7 +434,7 @@ IdeasController = function(store, socket) {
           var ideas = [];
           //console.log("ideas", o);
         _.each(o, function(i){
-            
+
             ideas.push(i);
           });
           if (!ideas.length){
@@ -245,20 +481,20 @@ IdeasController = function(store, socket) {
       UserApp.findById(args.appId, function(e, app){
         args.name = req.session.currentUser.fullName;
         Idea.addFeedback(args, function(e, o){
-    
+
           if (e){
             res.json({
               success: false,
               errors: [e]
             });
           } else {
-  
+
             Profile.findMiniProfile(user, function(e, mini){
-            
+
               if (e){
                 //TODO log error
               } else {
-          
+
                 socket.emit('miniProfile:'+user.appId, mini);
               }
             });
@@ -374,7 +610,7 @@ IdeasController = function(store, socket) {
               });
               act.tasks = tasks;
               act.other = other;
-    
+
               cb(null, act);
             }
           });
@@ -409,7 +645,7 @@ IdeasController = function(store, socket) {
               acct = _.map(acct, function(item){
                 return item.value;
               });
-           
+
               var result = {
                 pledges: [],
                 pledged: 0,
@@ -455,7 +691,7 @@ IdeasController = function(store, socket) {
                     result.allocated = parseFloat(result.allocated) + parseFloat(item.amount);
 
                   } else if (item.docType === "time-report"){
-                   
+
                     result.reportedTime = parseFloat(result.reportedTime) + parseFloat(item.amount);
                   } else if (item.docType === "time-pledge") {
                     if (item.status === "PLEDGED"){
@@ -472,6 +708,9 @@ IdeasController = function(store, socket) {
                     }
                   }
                 });
+
+                //make sure the counts are unique
+
               }
 
               cb(null, result);
@@ -486,11 +725,41 @@ IdeasController = function(store, socket) {
               cb(e);
             } else {
               if (o.length){
-                cb(null, o[0]);
+                cb(null, o.length);
               } else {
                 cb (null, 0);
               }
-              
+
+            }
+          });
+        },
+        pledgedMoney: function(cb){
+          store.couch.db.view('coordel/ideaMoneyPledges', {startkey: [id], endkey:[id,{}], include_docs: true}, function(e,o){
+            if (e){
+              cb(e);
+            } else {
+              getTotalMoneyPledges(o, function(e, pledged){
+                if (e){
+                  cb(e);
+                } else {
+                  cb(null, pledged);
+                }
+              });
+            }
+          });
+        },
+        pledgedTime: function(cb){
+          store.couch.db.view('coordel/ideaTimePledges', {startkey: [id], endkey:[id,{}], include_docs: true}, function(e,o){
+            if (e){
+              cb(e);
+            } else {
+              getTotalAllocations(o, function(e, gave){
+                if (e){
+                  cb(e);
+                } else {
+                  cb(null, gave);
+                }
+              });
             }
           });
         },
@@ -526,7 +795,7 @@ IdeasController = function(store, socket) {
         }
       },
       function(e, results) {
-        
+
         if (e){
           res.json({error: e});
         } else {
@@ -557,6 +826,8 @@ IdeasController = function(store, socket) {
             }
           });
 
+          var report = getSupportReport(results.pledgedTime, results.gaveTime, results.pledgedMoney.pledged, results.pledgedMoney.proxied, results.gaveMoney);
+
           res.json({
             idea: idea,
             supporting: supporting,
@@ -567,7 +838,10 @@ IdeasController = function(store, socket) {
             activity: results.activity,
             account: results.account,
             gaveTime: results.gaveTime,
-            gaveMoney: results.gaveMoney
+            gaveMoney: results.gaveMoney,
+            pledgedMoney: results.pledgedMoney,
+            pledgedTime: results.pledgedTime,
+            userReport: report
           });
         }
       });
@@ -664,7 +938,7 @@ IdeasController = function(store, socket) {
           });
 
           parsePurpose(o.purpose);
-          
+
           //returns the idea and details
           res.json(o);
 
@@ -683,7 +957,7 @@ IdeasController = function(store, socket) {
     },
 
     support: function(req, res){
-      
+
       var id = req.body.id
         , userid = req.session.currentUser.appId;
 
@@ -693,7 +967,7 @@ IdeasController = function(store, socket) {
     },
 
     removeSupport: function(req, res){
-      
+
       var id = req.body.id
         , userid = req.session.currentUser.appId;
 
@@ -744,7 +1018,6 @@ IdeasController = function(store, socket) {
           //console.log("options", options);
           var twit = new twitter(options);
 
-          
           twit.updateStatus(message, function (e, data) {
             //console.log('tried to send tweet', e, data);
             if (e){
@@ -788,8 +1061,8 @@ IdeasController = function(store, socket) {
       }
 
       //if this isfollow, then we just invite the contact from the logged on user
-      
-      
+
+
       if (isFollow){
         Idea.invite(contact, ideaId, req.session.currentUser.app, function (e, o){
           if (e){
@@ -805,7 +1078,7 @@ IdeasController = function(store, socket) {
           }
         });
       } else {
-      
+
         //otherwise, this is an email invite if the user isn't already part of the idea
         //first check if this user is already a member
         var couch = store.couch;
@@ -835,7 +1108,7 @@ IdeasController = function(store, socket) {
           res.json({
             success: true
           });
-         
+
         });
       }
     },
@@ -845,7 +1118,7 @@ IdeasController = function(store, socket) {
       //publish invest money
     }
 
-    
+
 
   };
 

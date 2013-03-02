@@ -30,12 +30,14 @@ define(["dojo/dom",
   "app/views/proxyDeallocateForm/proxyDeallocateForm",
   "app/views/donationsForm/donationsForm",
   "app/controllers/features",
+  "app/views/pointer/pointer",
   "app/views/addForm/addForm",
+
   "dojo/domReady!" ], function(dom
                     , topic, cookie, array, on, domClass, build, request, hash, registry
                     , model, currency, miniProfile, userProfile, idea, blueprint, moneyForm
                     , timeForm, contact, allocate, reportTimeForm, addProxy, makePaymentForm
-                    , cancelMoneyForm, cancelTimeForm, removeProxyForm, feedbackForm, feedback, proxyAllocateForm, proxyDeallocateForm, donationsForm, features){
+                    , cancelMoneyForm, cancelTimeForm, removeProxyForm, feedbackForm, feedback, proxyAllocateForm, proxyDeallocateForm, donationsForm, features, pointer){
 
   var app = {
     max: {
@@ -58,6 +60,7 @@ define(["dojo/dom",
       var self = this;
       self.user = args.user;
       self.otherUser = args.otherUser;
+      self.pointers = args.pointers;
       console.log("init app", args );
       this.currentMenu = args.menu;
       this.subNav = args.subNav;
@@ -509,6 +512,8 @@ define(["dojo/dom",
         } else {
           self.showTimeline();
         }
+
+        self.showPointers();
       }
 
       if (this.currentMenu === "#menuOtherIdea"){
@@ -629,6 +634,15 @@ define(["dojo/dom",
   
           }
         });
+      });
+    },
+
+    showPointers: function(){
+      var self=this;
+      //console.log("show pointers", self.pointers);
+
+      array.forEach(self.pointers, function(item){
+        new pointer({pointer: item}).placeAt("pointers");
       });
     },
 

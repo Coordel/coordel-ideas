@@ -6,6 +6,8 @@ var express = require('express')
   , moment = require('moment')
   , serverConfig = false;
 
+
+
 //certificates
 var privateKey = fs.readFileSync('./ssl/private-key.pem').toString();
 var certificate = fs.readFileSync('./ssl/public-cert.pem').toString();
@@ -74,32 +76,30 @@ require('./configure')(app, express, passport);
 
 function configureServer(req, res, next){
 
-    //make sure the server config is in place
-    store.couch.db.get(settings.serverConfigKey, function(e, config){
-      if (e){
-        //create the doc with the key
-        var doc = settings.serverDefaultConfig;
-        doc._id = settings.serverConfigKey;
-        store.couch.db.save(doc, function(e, o){
-          if (e){
-            //console.log("ERROR: server doesn't have a default config");
-          } else {
-            doc._rev = o.rev;
-            //console.log("SERVER CONFIGURED");
-            serverConfig = doc;
-            req.session.serverConfig = doc;
-            next();
-          }
-        });
-      } else {
-        //console.log("SERVER CONFIGURED");
-        serverConfig = config;
-        req.session.serverConfig = config;
-        next();
-      }
-    });
-
-  
+  //make sure the server config is in place
+  store.couch.db.get(settings.serverConfigKey, function(e, config){
+    if (e){
+      //create the doc with the key
+      var doc = settings.serverDefaultConfig;
+      doc._id = settings.serverConfigKey;
+      store.couch.db.save(doc, function(e, o){
+        if (e){
+          //console.log("ERROR: server doesn't have a default config");
+        } else {
+          doc._rev = o.rev;
+          //console.log("SERVER CONFIGURED");
+          serverConfig = doc;
+          req.session.serverConfig = doc;
+          next();
+        }
+      });
+    } else {
+      //console.log("SERVER CONFIGURED");
+      serverConfig = config;
+      req.session.serverConfig = config;
+      next();
+    }
+  });
 }
 
 

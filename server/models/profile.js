@@ -46,7 +46,7 @@ module.exports = function(store) {
               ////console.log("error getting supporting", e);
               cb('error ' + e);
             } else {
-              ////console.log("got supporting", o);
+              //console.log("got supporting", o);
               cb(null,o);
             }
           });

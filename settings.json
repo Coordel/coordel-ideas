@@ -23,5 +23,33 @@
       "cache": false
     },
     "couchName": "coordel-dev"
+  },
+  "auth": {
+    "fb": {
+      "appId": "145674338818252", 
+      "appSecret": "937018cf2c75b9eaced798864f7f4ebd"
+    }, 
+    "twitter": {
+      "consumerKey": "ofbkKDfUpLqBQHakhdBytw", 
+      "consumerSecret": "GM3lLmIaKVGUddiU65G4MMrG9pMfNGN8pVuVcNSiCoU"
+    }, 
+    "linkedin": {
+      "apiKey": "uaq9f87fwvkp", 
+      "apiSecret": "2AhwrRhR2KkCfJSh"
+    }, 
+    "google": {
+      "clientId": "570025906568.apps.googleusercontent.com", 
+      "clientSecret": "wBCkg3nW9-hgwmVlP8V6_DDc"
+    },
+    "coinbase": {
+      "clientId": "29d3fb4883a932a3773573fe496ec018181b2f3b95ba4f94af660b24172745d4",
+      "clientSecret": "5315743576889538102485fce1b537da131bb5a0d9d93ce9b6accf2edd3b3329",
+      "salesAccount": "55fd564b6d8224f0c26b51ed2f6e92a115009e3f5fe70fa0780482c6cf57f937",
+      "salesReceiveAccount": "1JaXtjkXitvzZeF2tGwsHvMbVVqXoL2hHk"
+    },
+    "bitly": {
+      "login": "coordel",
+      "apiKey": "R_a91e7a62e711c839e5ea3731da1df6a7"
+    }
   }
 }

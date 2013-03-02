@@ -6,8 +6,9 @@ define([
     "dojo/on",
     "dojo/dom-class",
     "dojo/topic",
-    "dojo/_base/array"
-], function(declare, _WidgetBase, _TemplatedMixin, template, on, domClass, topic, array) {
+    "dojo/_base/array",
+    "app/util/parse"
+], function(declare, _WidgetBase, _TemplatedMixin, template, on, domClass, topic, array, parse) {
  
   return declare([_WidgetBase, _TemplatedMixin], {
 
@@ -19,9 +20,11 @@ define([
     postCreate: function(){
       this.inherited(arguments);
       var self = this;
-      console.log('message', this.message, this.message.isTweet);
+      //console.log('message', this.message, this.message.isTweet);
 
       var user = self.getUser(self.message.actor.id);
+
+      //console.log("message user", user);
       this.ideaLink.href = "/ideas/"+this.idea._id;
       this.ideaLink.title = moment(this.message.created).format('h:mm A - D MMM YY');
       this.ideaLink.innerHTML = moment(this.message.created).fromNow();
@@ -31,14 +34,19 @@ define([
       this.userNameLink.innerHTML = this.message.actor.name;
       //this.usernameLink.innerHTML = user.username;
 
-      this.messageBody.innerHTML = this.message.body;
+      var msg = parse.url(this.message.body);
+          msg = parse.pointer(msg);
 
-      $(this.messageBody).linkify({target: '_blank'});
+      //console.log("msg", msg);
+
+      this.messageBody.innerHTML = msg;
+
+      //$(this.messageBody).linkify({target: '_blank'});
       
       if (this.message.isTweet){
         domClass.remove(this.tweetIcon, "hide");
       }
-      
+      //console.log("message created");
     },
 
     getUser: function(appId){

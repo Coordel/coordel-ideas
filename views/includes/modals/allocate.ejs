@@ -1,22 +1,24 @@
-<div>
-  <div id="allocateModal" data-backdrop="false" class="modal hide in">  
-    <div class="modal-header">  
+<div id="allocateModal" data-backdrop="false" class="modal hide in">  
+  <div class="modal-header">  
     <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>  
     <h4 style="text-align: center">Allocate your <span id="allocatePledgeType">one-time</span> pledge</h4>  
   </div>  
-  
+
   <div class="modal-body"> 
     <div id="allocateAuthorize">
       <h4>Authorize payments from you Coinbase account</h4>
       <ul>
-        <li><p>When you allocate money to an Idea, the Idea Responsible can then distribute the amount to the appropriate participant or participants in the Idea.</p></li>
-        <li><p>In order to allocate your pledge, please click "Authorize" to connect Coordel with your Coinbase account.</p></li>
+        <li>
+          <p>When you allocate money to an Idea, the Idea Responsible can then distribute the amount to the appropriate participant or participants in the Idea.</p>
+        </li>
+        <li>
+          <p>In order to allocate your pledge, please click "Authorize" to connect Coordel with your Coinbase account.</p>
+        </li>
       </ul>
       <p>
         <a id="coinbaseAuthorize" class="btn btn-mini btn-primary pull-right">Authorize</a>
         <div class="clearfix"></div>
       </p>
-
     </div>
 
     <div id="allocateError" class="alert alert-error hide">
@@ -24,12 +26,11 @@
     </div>
 
     <div id="allocateAction" class="hide pledge-allocation">
-      <fieldset style="width: 400px; margin: auto;">
-       
+      <fieldset style="width: 400px; margin: auto;">   
         <table class="table table-bordered">
           <tr>
-            <td >
-              <strong><span id="allocateBtcAmount">0.00</strong>
+            <td>
+              <strong><span id="allocateBtcAmount">0.00</span></strong>
               <div>BTC</div>
             </td>
             <td>
@@ -37,7 +38,6 @@
               <div id="allocateLocalCurrency">USD</div>
             </td>
           </tr>
-         
         </table>
         <div>
           <p id="allocateOnceInstructions">Click "Confirm" to indicate you want transfer the above amount to the Idea's Bank and charge your Coinbase account.</p>
@@ -48,13 +48,19 @@
 
           <p>You will be credited with <strong id="allocateOwnershipPoints">0.00</strong> effort points.</p>
 
-          <div id="allocateFeeContainer" style="margin-top: 10px" class="alert alert-info hide"><small><p>You are sending less than .01 BTC (<span id="allocateFeeWarning">$.01</span>) so this transaction requires a .0005 BTC (<span id="allocateFeeAmount">$.01</span>) fee to be accepted by the bitcoin network.</p><p>This fee does not go to Coordel or Coinbase.</p></small><div>
+          <div id="allocateFeeContainer" style="margin-top: 10px" class="alert alert-info hide">
+            <small>
+              <p>You are sending less than .01 BTC (<span id="allocateFeeWarning">$.01</span>) so this transaction requires a .0005 BTC (<span id="allocateFeeAmount">$.01</span>) fee to be accepted by the bitcoin network.</p>
+              <p>This fee does not go to Coordel or Coinbase.</p>
+            </small>
+          <div>
         </div>
       </fieldset>
     </div>
   </div>
+
   <div class="modal-footer" style="text-align: left">
     <input id="allocateSubmit" type="submit" value="Confirm" class="btn btn-primary pull-right">
     <input id="allocateIdea" type="hidden">
-  </div>            
+  </div> 
 </div>

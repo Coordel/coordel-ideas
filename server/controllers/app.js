@@ -14,6 +14,17 @@ AppController = function(store) {
   var Idea = require('../models/idea')(store);
   var Profile = require('../models/profile')(store);
   var UserApp = require('../models/userApp')(store);
+  var Parse = require('../util/parse')(store);
+
+  function searchPointerIdeas(query, fn){
+    Parse.findPointerIdeas(query, function(e, o){
+      if (e){
+        fn(e);
+      } else {
+        fn(null, o);
+      }
+    });
+  }
 
   function search(query, fn){
    
@@ -124,12 +135,25 @@ AppController = function(store) {
               cb(null, o);
             }
           });
+        },
+        pointers: function(cb){
+          Parse.findPointerTimeline(20, function(e, o){
+            if (e){
+              cb(e);
+            } else {
+              var p = _.filter(o, function(item){
+                return item;
+              });
+              cb(null, p);
+            }
+          });
         }
       },
       function(e, results) {
 
         //compress the user
         var ext = compressExtendedUser(results.extendedUser);
+
 
         //get the ideas
         var ideas = [];
@@ -145,6 +169,7 @@ AppController = function(store) {
           subNav: 'timeline',
           user: ext.user,
           ideas: compress(ideas),
+          pointers: compress(results.pointers),
           profile: ext.profile,
           contacts: ext.contacts,
           username: req.session.username,
@@ -212,7 +237,7 @@ AppController = function(store) {
         , hash = req.params.hash;
 
 
-      console.log("showing idea", id, hash);
+      //console.log("showing idea", id, hash);
 
       async.parallel({
         extendedUser: function(cb){
@@ -227,7 +252,6 @@ AppController = function(store) {
             if (e){
                 cb(e);
               } else {
-                
                 cb(null, [o]);
               }
             });
@@ -248,7 +272,7 @@ AppController = function(store) {
       },
       function(e, results) {
 
-        console.log("got the results", results.ideas);
+        //console.log("got the results", results.ideas);
 
         //compress the user
         var ext = compressExtendedUser(results.extendedUser);
@@ -264,6 +288,7 @@ AppController = function(store) {
           ideas: compress(results.ideas),
           profile: ext.profile,
           contacts: ext.contacts,
+          pointers: compress([]),
           username: req.session.username,
           imageUrl: req.session.currentUser.imageUrl,
           fullName: req.session.currentUser.fullName,
@@ -290,13 +315,25 @@ AppController = function(store) {
             });
           },
           searchResults: function(cb){
-            search(query, function(e, o){
-              if (e){
-                cb(e);
-              } else {
-                cb(null, o);
-              }
-            });
+            if (query.substring(0,1)=== "~"){
+              //look for pointers
+              searchPointerIdeas(query, function(e, o){
+                if (e){
+                  cb(e);
+                } else {
+                  cb(null, o);
+                }
+              });
+            } else {
+              search(query, function(e, o){
+                if (e){
+                  cb(e);
+                } else {
+                  cb(null, o);
+                }
+              });
+            }
+            
           }
         },
         function(e, results) {
@@ -343,6 +380,18 @@ AppController = function(store) {
               cb(null, o);
             }
           });
+        },
+        pointers: function(cb){
+          Parse.findPointerTimeline(20, function(e, o){
+            if (e){
+              cb(e);
+            } else {
+              var p = _.filter(o, function(item){
+                return item;
+              });
+              cb(null, p);
+            }
+          });
         }
       },
       function(e, results) {
@@ -366,6 +415,7 @@ AppController = function(store) {
           ideas: compress(ideas),
           profile: ext.profile,
           contacts: ext.contacts,
+          pointers: compress(results.pointers),
           username: req.session.username,
           imageUrl: req.session.currentUser.imageUrl,
           fullName: req.session.currentUser.fullName,
@@ -567,7 +617,7 @@ AppController = function(store) {
           ideas: function(cb){
             Profile.findSupportAccount(user, function(e, o){
               if (e){
-                console.log("error", e);
+                //console.log("error", e);
 
               } else {
                 //console.log('account', o);
@@ -827,75 +877,82 @@ AppController = function(store) {
 
 
       getUser(curUser, username, function(e, user){
-        console.log("getting user", curUser, username);
-        var isMe = (curUser.appId === user.appId);
-        if (!isMe){
-          menuName = "#menuOther";
-        }
+        if (e){
+          res.redirect('/');
+        } else {
 
-        async.parallel({
-          extendedUser: function(cb){
-            extendUser(req.session.currentUser, function(e, ext){
-              cb(null,ext);
-            });
-          },
-          extendedOtherUser: function(cb){
-            if (!isMe){
-              extendUser(user, function(e, ext){
+          //console.log("getting user", curUser, username);
+          var isMe = (curUser.appId === user.appId);
+          if (!isMe){
+            menuName = "#menuOther";
+          }
+
+          async.parallel({
+            extendedUser: function(cb){
+              extendUser(req.session.currentUser, function(e, ext){
                 cb(null,ext);
               });
-            } else {
-              cb(null, {});
+            },
+            extendedOtherUser: function(cb){
+              if (!isMe){
+                extendUser(user, function(e, ext){
+                  cb(null,ext);
+                });
+              } else {
+                cb(null, {});
+              }
+            },
+            ideas: function(cb){
+              store.couch.db.view('coordel/userOpportunities', {startkey: [user.appId], endkey: [user.appId, {}]}, function(e, opps){
+                if (e){
+                  cb('error '+e);
+                } else {
+                  cb(null, opps);
+                }
+              });
             }
           },
-          ideas: function(cb){
-            store.couch.db.view('coordel/userOpportunities', {startkey: [user.appId], endkey: [user.appId, {}]}, function(e, opps){
-              if (e){
-                cb('error '+e);
-              } else {
-                cb(null, opps);
-              }
+          function(e, results) {
+
+            var ideas = _.map(results.ideas, function(item){
+              return item.value;
             });
-          }
-        },
-        function(e, results) {
 
-          var ideas = _.map(results.ideas, function(item){
-            return item.value;
+            //compress the user
+            var ext = compressExtendedUser(results.extendedUser);
+
+
+            res.render('user', {
+              token: res.locals.token,
+              title: req.session.currentUser.fullName,
+              menu: menuName,
+              subNav: 'ideas',
+              user: ext.user,
+              otherUser: compress(results.extendedOtherUser),
+              ideas: compress(ideas),
+              profile: ext.profile,
+              contacts: ext.contacts,
+              username: req.session.username,
+              imageUrl: req.session.currentUser.imageUrl,
+              fullName: req.session.currentUser.fullName,
+              workspaceUrl:  store.workspaceUrl,
+              _csrf: req.session._csrf
+            });
           });
-
-          //compress the user
-          var ext = compressExtendedUser(results.extendedUser);
-
-
-          res.render('user', {
-            token: res.locals.token,
-            title: req.session.currentUser.fullName,
-            menu: menuName,
-            subNav: 'ideas',
-            user: ext.user,
-            otherUser: compress(results.extendedOtherUser),
-            ideas: compress(ideas),
-            profile: ext.profile,
-            contacts: ext.contacts,
-            username: req.session.username,
-            imageUrl: req.session.currentUser.imageUrl,
-            fullName: req.session.currentUser.fullName,
-            workspaceUrl:  store.workspaceUrl,
-            _csrf: req.session._csrf
-          });
-        });
+        }
       });
     }
   };
 
   //test if the requested user is the logged on user
   function getUser(user, username, fn){
-    console.log("in getUser", username);
+    //console.log("in getUser", username);
     UserApp.findByUsername(username, function(e, a){
       if (e){
+        //console.log("error in getUser", e);
         fn(e);
       } else {
+        //console.log("looked for user", a);
         var appId = a.appId;
         if (user.appId === appId){
           fn(null, user);

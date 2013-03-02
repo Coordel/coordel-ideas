@@ -7,6 +7,7 @@ define([
     "dojo/text!./templates/user.html",
     "dojo/text!./templates/giver.html",
     "dojo/text!./templates/reportEntry.html",
+    "dojo/text!./templates/userReportEntry.html",
     "dojo/on",
     "dojo/dom-class",
     "dojo/topic",
@@ -16,9 +17,10 @@ define([
     "dojo/_base/array",
     "dojo/request",
     "app/models/currency",
-    "app/views/makePaymentForm/makePaymentForm"
-], function(declare, _WidgetBase, _TemplatedMixin, template, fileHtml, userHtml, giverHtml, reportHtml, on, domClass, topic, lang, build, JsonRest, array, request, currency, makePaymentForm) {
- 
+    "app/views/makePaymentForm/makePaymentForm",
+    "app/util/parse"
+], function(declare, _WidgetBase, _TemplatedMixin, template, fileHtml, userHtml, giverHtml, reportHtml, entryHtml, on, domClass, topic, lang, build, JsonRest, array, request, currency, makePaymentForm, parse) {
+
   return declare([_WidgetBase, _TemplatedMixin], {
 
     templateString: template,
@@ -30,15 +32,28 @@ define([
     //  your custom code goes here
     postCreate: function(){
       this.inherited(arguments);
-      
+
       var self = this;
 
       this.store = new JsonRest({
         target: "/api/v1/ideas/"
       });
-      
+
       self.showDetails();
-  
+
+    },
+
+    findPointers: function(purpose, fn){
+      purpose.replace(/[~]+[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&~\?\/.=]+/g, function(p) {
+        //link = ~coordel.com
+        var link = p;
+        if (link.split('/').length > 1){
+          link = link.split('/')[0];
+        }
+        var pointer = link.replace('~', '%7E');
+        var toReturn = p.link('/search?q='+pointer);
+        fn(toReturn);
+      });
     },
 
     showDetails: function(){
@@ -46,7 +61,7 @@ define([
 
       self.store.get(self.idea._id).then(function(details){
 
-        //console.log("details", details);
+        console.log("details", details);
 
         var idea = details.idea;
 
@@ -54,9 +69,10 @@ define([
         self.supporting = details.supporting;
         self.gaveMoney = details.gaveMoney;
         self.gaveTime = details.gaveTime;
+        self.userReport = details.userReport;
 
         self.setAccount();
-       
+
         if (details.activity && (details.activity.tasks.length || details.activity.other.length)){
           self.showActivity(details.activity);
         }
@@ -67,14 +83,23 @@ define([
           self.showFiles(idea);
         }
         */
-        
+
         //expanded info
         if (idea.purpose){
-          self.purposeContainer.innerHTML = idea.purpose.replace(/\n/g, "<br>");
+          var purp = parse.url(idea.purpose);
+          purp = parse.pointer(purp);
+          self.purposeContainer.innerHTML = purp;
+          /*
+          self.findPointers(idea.purpose, function(purp){
+            console.log("purp", purp);
+            self.purposeContainer.innerHTML = purp.replace(/\n/g, "<br>");
+            $(self.purposeContainer).linkify({target: '_blank'});
+          });
+          */
         } else {
           self.purposeContainer.innerHTML = '<em class="muted">Woops, purposeless!</em>';
         }
-        $(self.purposeContainer).linkify({target: '_blank'});
+
 
         if (idea.deadline){
           self.deadlineContainer.innerHTML = moment(idea.deadline).format('h:mm A - D MMM YY');
@@ -82,29 +107,28 @@ define([
           domClass.add(self.deadlineContainer, 'hide');
         }
 
-        
+
         if (self.account.balance > 0 && self.currentUser.appId === idea.responsible){
-          
-       
+
+
           currency.init(self.bitcoinPrices, self.currentUser.app.localCurrency);
           domClass.remove(self.paymentContainer, 'hide');
           self.paymentBtcAmount.innerHTML = currency.formatBtc(self.account.balance);
           self.paymentLocalAmount.innerHTML = currency.toLocal(self.account.balance);
 
           on(self.paymentButton, "click", function(){
-            console.log("show payment form", self.account.balance, self.idea);
             makePaymentForm.show(self.idea, self.account.balance);
           });
-        
+
         }
-        
+
         self.purposeFooter.innerHTML = moment(idea.updated).format('h:mm A - D MMM YY');
 
         $('.idea-purpose-icon').tooltip({title: "Idea purpose", placement: "left"});
         $('.idea-deadline-icon').tooltip({title: "Idea deadline", placement:"left"});
         $('.idea-payment-icon').tooltip({title: "Idea available balance", placement:"left"});
       });
-      
+
     },
 
     updateAccountBalance: function(btcAmount){
@@ -126,14 +150,21 @@ define([
         if (parseInt(self.supporting,10) === 1){
           self.peopleLabel.innerHTML = "PERSON";
         }
-        self.moneyPledged.innerHTML = self.getLocalAmount(account.pledged + account.proxied);
-        self.moneyAllocated.innerHTML = self.getLocalAmount(account.allocated);
+        self.moneyPledged.innerHTML = self.getLocalAmount(account.pledged, true);
+        self.moneyProxied.innerHTML = self.getLocalAmount(account.proxied, true);
+        self.moneyAllocated.innerHTML = self.getLocalAmount(account.allocated, true);
         self.timePledged.innerHTML = account.pledgedTime + " hrs";
         self.timeReported.innerHTML = account.reportedTime  + " hrs";
 
+        /*
         if (self.gaveMoney.length || self.gaveTime.length){
           domClass.remove(self.gaveList, "hide");
           self.showGave();
+        }
+        */
+
+        if (self.userReport.rows.length){
+          self.showUserReport();
         }
 
         $("[rel=tooltip]").tooltip({
@@ -144,20 +175,24 @@ define([
       });
     },
 
-    getLocalAmount: function(btcAmount){
-   
+    getLocalAmount: function(btcAmount, showSymbol){
+
       var self = this;
-      return self.currency.getSymbol() + self.currency.toLocal(btcAmount);
+      if (showSymbol){
+        return self.currency.getSymbol() + self.currency.toLocal(btcAmount);
+      } else {
+        return self.currency.toLocal(btcAmount);
+      }
     },
 
     showActivity: function(activity){
       //console.log("showing activity", activity);
-     
+
       var self = this
         , row;
 
       domClass.remove(self.activityContainer, "hide");
-        
+
       if (activity.other.length){
         row = build.toDom("<h5>Activity</h5>");
         build.place(row, self.activityContainer);
@@ -175,6 +210,51 @@ define([
           build.place(row, self.activityContainer);
         });
       }
+    },
+
+    showUserReport: function(){
+      var self = this
+        , entry = {}
+        , row;
+
+      array.forEach(self.userReport.rows, function(item){
+        entry.id = item.user.appId;
+        entry.imageUrl = item.user.imageUrl;
+        entry.fullName = item.user.fullName;
+        if (item.time.pledged){
+          entry.timePledged = item.time.pledged;
+        } else {
+          entry.timePledged = "";
+        }
+        if (item.time.reported){
+          entry.timeReported = item.time.reported;
+        } else {
+          entry.timeReported = "";
+        }
+        if (item.money.pledged){
+          entry.moneyPledged = self.getLocalAmount(item.money.pledged);
+        } else {
+          entry.moneyPledged = "";
+        }
+        if (item.money.proxied){
+          if (item.money.proxied < 0){
+            entry.proxyClass = "proxied";
+            entry.moneyProxied = self.getLocalAmount(-item.money.proxied);
+          } else {
+            entry.proxyClass = "";
+            entry.moneyProxied = self.getLocalAmount(item.money.proxied);
+          }
+        } else {
+          entry.moneyProxied = "";
+        }
+        if (item.money.allocated){
+          entry.moneyAllocated = self.getLocalAmount(item.money.allocated);
+        } else {
+          entry.moneyAllocated = "";
+        }
+        row = build.toDom(lang.replace(entryHtml, entry));
+        build.place(row, self.userReportContainer);
+      });
     },
 
     showGave: function(){
