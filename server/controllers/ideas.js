@@ -1097,7 +1097,7 @@ IdeasController = function(store, socket) {
               email: toEmail,
               username: ""
             },
-            subject: 'Check out this idea at Coordel',
+            subject: 'Check out this Idea at Coordel',
             generateTextFromHtml: true,
             idea: idea,
             message: message
