@@ -189,7 +189,7 @@ IdeasController = function(store, socket) {
       , users = [];
 
     function countItem(item){
-      console.log("Pledge item to count", item);
+      //console.log("Pledge item to count", item);
 
       function count(item, who, isProxy){
         var acct = acctPledged,

@@ -221,6 +221,7 @@ define([
         entry.id = item.user.appId;
         entry.imageUrl = item.user.imageUrl;
         entry.fullName = item.user.fullName;
+        entry.userLink = "/" + item.user.username;
         if (item.time.pledged){
           entry.timePledged = item.time.pledged;
         } else {

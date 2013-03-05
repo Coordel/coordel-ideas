@@ -55,13 +55,13 @@ define(["dojo/dom",
 
     taskbp: [],
 
-    
+
     init: function(args){
       var self = this;
       self.user = args.user;
       self.otherUser = args.otherUser;
       self.pointers = args.pointers;
-      console.log("init app", args );
+      //console.log("init app", args );
       this.currentMenu = args.menu;
       this.subNav = args.subNav;
       this.model= model.init(args);
@@ -71,7 +71,7 @@ define(["dojo/dom",
         //console.log("workspaceUrl", args.workspaceUrl);
         self.workspaceUrl = args.workspaceUrl;
       }
-      
+
 
       $("#ideasCarousel").carousel({interval: 10000});
       $("#workspaceCarousel").carousel({interval: 10000});
@@ -111,14 +111,14 @@ define(["dojo/dom",
       }
 
       self.setSearch();
-     
+
       timeForm.init(args.user);
 
       if (args.subNav !== "singleIdea"){
         donationsForm.init();
       }
-      
-      
+
+
       request("/bitcoin/prices", {
         handleAs: "json"
         }).then(function(prices){
@@ -142,9 +142,9 @@ define(["dojo/dom",
 
           feedbackForm.init(args.user);
 
-  
+
           makePaymentForm.init(args.user, currency, args.contacts);
-  
+
         });
 
 
@@ -170,7 +170,7 @@ define(["dojo/dom",
           type: 'post',
           data: {email: email, fullname: fullname},
           headers: {
-              "X-CSRF-Token":  _csrf//for object property name, use quoted notation shown in second
+              "X-CSRF-Token": _csrf//for object property name, use quoted notation shown in second
           },
           dataType: 'json',
           success: function( res )
@@ -180,7 +180,7 @@ define(["dojo/dom",
             //console.log("res", res);
             domClass.add(dom.byId("requestInviteForm"), "hide");
             domClass.remove(dom.byId("requestInviteSuccessMessage"), "hide");
-            
+
             domClass.add(dom.byId("closedRegistrationAlert"), "hide");
           }
         });
@@ -230,7 +230,7 @@ define(["dojo/dom",
 
       topic.subscribe("/dojo/hashchange", function(changedHash){
         // Handle the hash change publish
-    
+
         if (changedHash === "coords"){
           domClass.remove(taskNav, "active");
           domClass.add(coordNav, "active");
@@ -241,13 +241,13 @@ define(["dojo/dom",
           self.showTaskBlueprints();
         }
       });
-      
+
     },
 
-    
+
 
     showIdeaSearchResults: function(){
-  
+
       var self = this
         , cont = dom.byId("stream-items-container")
         , head = dom.byId("mainColumnHeader");
@@ -266,7 +266,7 @@ define(["dojo/dom",
     },
 
     showPeopleSearchResults: function(){
- 
+
       var self = this
         , cont = dom.byId("stream-items-container")
         , head = dom.byId("mainColumnHeader");
@@ -312,7 +312,7 @@ define(["dojo/dom",
         self.showEmpty(cont, "No Task blueprints");
       }
 
-      
+
     },
 
     showCoordBlueprints: function(){
@@ -333,7 +333,7 @@ define(["dojo/dom",
       } else {
         self.showEmpty(cont, "No Coord blueprints");
       }
-      
+
     },
 
 
@@ -497,7 +497,7 @@ define(["dojo/dom",
           topic.publish("coordel/coinbaseAuthorize", account);
         });
       }
-      
+
 
 
       if (this.currentMenu === "#menuIdeas"){
@@ -524,7 +524,7 @@ define(["dojo/dom",
       if (this.currentMenu === "#menuOther"){
         self.showOtherProfile();
         self.setSubNav(self.subNav, true);
-    
+
         if (self.otherUser.user.account.proxiedToMe > 0){
           domClass.remove(dom.byId("subNavProxy"), "hide");
           dom.byId("navProxy").innerHTML = self.otherUser.user.account.proxiedToMe;
@@ -552,7 +552,7 @@ define(["dojo/dom",
           domClass.remove(dom.byId("subNavProxy"), "hide");
           dom.byId("navProxy").innerHTML = self.model.currentUser.account.proxiedToMe;
         }
-  
+
         if (self.subNav && self.subNav === "contacts"){
           self.showContacts();
         } else if (self.subNav && self.subNav === "supporting"){
@@ -562,7 +562,7 @@ define(["dojo/dom",
         } else {
           self.showTimeline({showDogears: true});
         }
-        
+
       }
 
       $("[rel=tooltip]").tooltip({
@@ -575,7 +575,7 @@ define(["dojo/dom",
 
         /* stop form from submitting normally */
         event.preventDefault();
- 
+
         /* get some values from elements on the page: */
         var name = $('#addName').val()
           , purpose = $('#addPurpose').val()
@@ -606,7 +606,7 @@ define(["dojo/dom",
             //topic.publish("coordel/addIdea", idea);
           }
         });
-        
+
       });
 
       $("#supportTimeForm").submit(function(event){
@@ -631,7 +631,7 @@ define(["dojo/dom",
           dataType: 'json',
           success: function( idea )
           {
-  
+
           }
         });
       });
@@ -690,11 +690,7 @@ define(["dojo/dom",
       var self = this
         , contacts = this.contacts;
 
-      //console.log("contacts", contacts, self.user.contacts);
-
       array.forEach(contacts, function(item){
-        
-
         var i = new contact({contact: item}).placeAt("stream-items-container");
       });
     },
@@ -705,7 +701,7 @@ define(["dojo/dom",
         , contacts = self.otherUser.contacts;
 
       array.forEach(contacts, function(item){
-        
+
 
         var i = new contact({contact: item}).placeAt("stream-items-container");
       });
@@ -751,7 +747,7 @@ define(["dojo/dom",
 
       function showIdea(item){
 
-        
+
 
         var options = {
           idea: item,
@@ -782,7 +778,7 @@ define(["dojo/dom",
           options.subNavId = self.subNavId;
         }
 
-      
+
 
         var i =new idea(options).placeAt("stream-items-container");
         /*
@@ -825,7 +821,7 @@ define(["dojo/dom",
           options.subNavId = self.subNavId;
         }
 
-      
+
 
         var i =new idea(options).placeAt("stream-items-container");
         */
@@ -847,8 +843,8 @@ define(["dojo/dom",
 
       $('#stream-items-container').infinitescroll({
 
-        // callback   : function () { //console.log('using opts.callback'); },
-        navSelector   : "#scrollNext",
+        // callback  : function () { //console.log('using opts.callback'); },
+        navSelector  : "#scrollNext",
         nextSelector  : "#scrollNext",
         itemSelector  : "#stream-items-container .idea",
         loading: {
@@ -864,7 +860,7 @@ define(["dojo/dom",
         state: {
           currPage: 0
         },
-        debug     : false,
+        debug    : false,
         dataType    : 'json',
         extraScrollPx: 200,
         path: function(pageNumber) {
@@ -873,13 +869,13 @@ define(["dojo/dom",
         } ,
         //behavior    : 'twitter',
         appendCallback  : false // USE FOR PREPENDING
-        //pathParse      : function( pathStr, nextPage ){ return pathStr.replace('2', nextPage ); }
+        //pathParse     : function( pathStr, nextPage ){ return pathStr.replace('2', nextPage ); }
       }, function( response, opts ) {
         //console.log("response, opts", response, opts);
         var jsonData = response.results;
 
         //console.log("isDone", opts.state.isDone);
-           
+
             var newElements = "";
                 //var newItems = new Array();
             for(var i=0;i<jsonData.length;i++) {
@@ -890,10 +886,10 @@ define(["dojo/dom",
             }
                 //_addMasonryItem(newItems);
               });
-  
+
 
       self.ideasHandler = ideas.observe(function(item, removedFrom, insertedInto){
-        
+
         if(insertedInto > -1){ // new or updated object inserted
           var i = new idea({idea: item, subNavId: self.subNavId, currentUser: self.model.currentUser, contacts: self.model.contacts}).placeAt("stream-items-container", "first");
         }
@@ -913,7 +909,7 @@ define(["dojo/dom",
       var self = this;
       var user = self.model.currentUser
         , mini = self.model.miniProfile;
-    
+
       self.setUserNav();
       var p = new userProfile({user: user, miniProfile: mini}).placeAt("userProfileContainer");
     },
@@ -922,7 +918,7 @@ define(["dojo/dom",
       var self = this;
       var user = self.otherUser.user
         , mini = self.otherUser.profile;
-    
+
       self.setUserNav();
       var p = new userProfile({user: user, miniProfile: mini}).placeAt("userProfileContainer");
     },
@@ -945,38 +941,38 @@ define(["dojo/dom",
       var feedback = dom.byId("navFeedback");
 
 
-      
+
       domClass.add(ideas, "hide");
       if (mini.ideas > 0){
         ideas.innerHTML = mini.ideas;
         domClass.remove(ideas, "hide");
       }
-      
+
       domClass.add(supporting, "hide");
       if (mini.supporting > 0){
         supporting.innerHTML = mini.supporting;
         domClass.remove(supporting, "hide");
       }
-      
+
       domClass.add(contacts, "hide");
       if (mini.contacts > 0){
         contacts.innerHTML = mini.contacts;
         domClass.remove(contacts, "hide");
       }
-      
+
       domClass.add(money, "hide");
       if (mini.supportingTypes.withMoney > 0){
         money.innerHTML = mini.supportingTypes.withMoney;
         domClass.remove(money, "hide");
       }
-     
+
       domClass.add(time, "hide");
       if (mini.supportingTypes.withTime > 0){
         time.innerHTML = mini.supportingTypes.withTime;
         domClass.remove(time, "hide");
       }
 
-      
+
       domClass.add(feedback, "hide");
       if (user.feedback.length){
         feedback.innerHTML = user.feedback.length;
@@ -984,7 +980,7 @@ define(["dojo/dom",
       }
 
     }
-    
+
   };
 
   return app;

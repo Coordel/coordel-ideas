@@ -13,7 +13,7 @@ define([
     "dojo/_base/array",
     "dojo/_base/lang"
 ], function(declare, _WidgetBase, _TemplatedMixin, template, reportHtml, tipHtml, proxyTipHtml, on, domClass, build, request, array, lang) {
- 
+
   return declare([_WidgetBase, _TemplatedMixin], {
 
     templateString: template,
@@ -25,13 +25,12 @@ define([
     //  your custom code goes here
     postCreate: function(){
       this.inherited(arguments);
+
       var self = this
         , info = self.contact.info;
 
-      console.log("contact", self.contact);
-
       this.userImage.src = this.contact.imageUrl;
-      
+
       if (this.contact.fullName){
         this.userImage.alt = this.contact.fullName;
         this.userNameLink.innerHTML = this.contact.fullName;
@@ -40,7 +39,7 @@ define([
         this.userNameLink.innerHTML = this.contact.firstName + " " + this.contact.lastName;
       }
 
-     if (info.bio){
+      if (info.bio){
         self.bio.innerHTML = info.bio;
       } else {
         domClass.add(self.bio, 'hide');
@@ -68,7 +67,7 @@ define([
       } else {
         this.userNameLink.href = "#";
       }
-      
+
       //this.usernameLink.innerHTML = this.contact.username;
 
       on(self.toggler, "click", function(e){
@@ -114,10 +113,10 @@ define([
 
           domClass.remove(self.proxySum, "hide");
           domClass.remove(self.proxiesImage, "hide");
-          
+          domClass.remove(self.proxiesLink, "hide");
+
+
         }
-
-
 
         if (profile.feedback.avg > 0){
           //set the average
@@ -140,11 +139,9 @@ define([
 
         } else {
           //hide the feedback graphic
-          
+
         }
 
-
-        
         var row;
         var mini = [
           {name: "IDEAS", value: profile.ideas},
@@ -158,7 +155,7 @@ define([
           row = build.toDom(lang.replace(reportHtml, item));
           build.place(row, self.activityContainer);
         });
-        
+
         if (profile.activity.other.length){
           row = build.toDom("<h5>Activity</h5>");
           build.place(row, self.activityContainer);
@@ -177,7 +174,6 @@ define([
           });
         }
       });
-
     }
   });
 });

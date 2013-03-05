@@ -11,7 +11,7 @@ define([
     "dojo/request",
     "dojo/_base/lang"
 ], function(declare, _WidgetBase, _TemplatedMixin, template, tipHtml, proxyTipHtml, on, domClass, topic, request, lang) {
- 
+
   return declare([_WidgetBase, _TemplatedMixin], {
 
     templateString: template,
@@ -36,7 +36,11 @@ define([
       //self.username.innerHTML = self.user.username;
       self.bio.innerHTML = self.user.bio || "";
       domClass.add(self.other, "hide");
-      if (self.user.location || self.user.url){
+      if (self.user.location && self.user.personalLink){
+        domClass.remove(self.otherBullet, "hide");
+      }
+      if (self.user.location || self.user.personalLink){
+
         domClass.remove(self.other, "hide");
         self.location.innerHTML = self.user.location || "";
         self.url.innerHTML = "";
@@ -49,7 +53,7 @@ define([
       self.setAccount();
       self.setProfile();
       self.setProxies();
-      
+
       topic.subscribe("coordel/addIdea", function(idea){
         if (self.user.appId === idea.creator){
           var count = parseInt(self.ideas.innerHTML, 10) + 1;
@@ -80,7 +84,7 @@ define([
         , proxies = self.user.proxies
         , sum = self.user.proxies.ideas + self.user.proxies.people;
 
-      console.log("proxies", proxies);
+      //console.log("proxies", proxies);
       if (sum > 0){
         if (sum > 9999){
           sum = Math.round(sum/1000);
@@ -101,7 +105,7 @@ define([
           placement: "bottom",
           html: true
         });
-        
+
       } else {
         domClass.add(self.proxySum, "hide");
         domClass.add(self.proxyImage, "hide");

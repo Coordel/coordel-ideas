@@ -67,7 +67,7 @@ module.exports = function(store){
         , obj = {
             pointer: pointer,
             link: link,
-            fav: 'https://getfavicon.appspot.com' + link + '?defaulticon=' + store.coordelUrl + '/img/pointer_icon.png'
+            fav: 'https://getfavicon.appspot.com/' + link + '?defaulticon=' + store.coordelUrl + '/img/pointer_icon.png'
           };
 
       //convert the pointerId to a string because redis set has to be a string
@@ -76,7 +76,7 @@ module.exports = function(store){
       //add the new pointer's idea lookup
       var key = 'coordel-pointers:' + p
         , hash = base64.encode(pointerId);
-      
+
       store.redis.set(key, pointerId);
 
       //finalize the pointer object getting the title, description
@@ -121,7 +121,7 @@ module.exports = function(store){
 
           //update the pointer timeline
           updatePointerTimeline(pointerId);
-          
+
         });
     }
 
@@ -170,8 +170,8 @@ module.exports = function(store){
     var key = 'coordel-pointers:' + p;
     //console.log("getting pointer", key);
     //store.redis.del(key);
-    
-    
+
+
     store.redis.get(key, function(e, pointerId){
       if (e){
         //console.log("error getting pointer", e);
@@ -220,7 +220,7 @@ module.exports = function(store){
       var timelineKey = 'pointer-timeline'
         , multi = store.redis.multi();
       store.redis.lrange(timelineKey, 0, -1, function(e, list){
-        
+
         _.each(list, function(item){
 
           var pointerKey = 'pointers:'+ item;

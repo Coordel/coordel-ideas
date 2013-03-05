@@ -241,7 +241,7 @@ exports.start = function (store){
             console.log("error getting account balance");
 
           } else {
-            console.log("testing allocation", balance, item.amount + fee);
+            //console.log("testing allocation", balance, item.amount + fee);
             //we only allocate when there is balance available. otherwise, the system tries daily until there is balance
             if (balance > (item.amount + fee)){
               //do a send transaction
