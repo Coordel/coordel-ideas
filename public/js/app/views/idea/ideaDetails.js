@@ -107,6 +107,12 @@ define([
           domClass.add(self.deadlineContainer, 'hide');
         }
 
+        if (idea.shortUrl){
+          self.linkContainer.innerHTML = idea.shortUrl;
+          self.linkContainer.href = idea.shortUrl;
+        } else {
+          domClass.add(self.linkContainer, 'hide');
+        }
 
         if (self.account.balance > 0 && self.currentUser.appId === idea.responsible){
 
@@ -127,6 +133,7 @@ define([
         $('.idea-purpose-icon').tooltip({title: "Idea purpose", placement: "left"});
         $('.idea-deadline-icon').tooltip({title: "Idea deadline", placement:"left"});
         $('.idea-payment-icon').tooltip({title: "Idea available balance", placement:"left"});
+        $('.idea-link-icon').tooltip({title: "Idea short link", placement:"left"});
       });
 
     },

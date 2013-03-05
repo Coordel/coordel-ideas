@@ -70,6 +70,10 @@ module.exports = function(store){
             fav: 'https://getfavicon.appspot.com/' + link + '?defaulticon=' + store.coordelUrl + '/img/pointer_icon.png'
           };
 
+      if (p.indexOf('coordel') > -1){
+        obj.fav = '/img/favicon.gif';
+      }
+
       //convert the pointerId to a string because redis set has to be a string
       pointerId = pointerId.toString();
 
